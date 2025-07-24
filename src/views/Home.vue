@@ -186,7 +186,6 @@ export default {
   },
   data() {
     return {
-      // Step management
       steps: {
         currentStep: 1,
         steps: [
@@ -209,7 +208,7 @@ export default {
       },
 
       // QR Code settings
-      value: 'https://www.newfarosport.it/',
+      value: '',
       qrSize: 300,
       background: '#ffffff',
       foreground: '#000000',
@@ -293,6 +292,11 @@ export default {
       }
     },
     handleNextStep() {
+      if (this.steps.currentStep === 1 && !this.value) {
+        alert('Inserisci un link');
+        return;
+      }
+
       if (this.steps.currentStep < 3) {
         this.steps.currentStep++;
       }
