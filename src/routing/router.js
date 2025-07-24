@@ -1,21 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-// OnBoard
-import Signin from '../views/onBoard/Signin.vue';
-
 // General
 import Home from '../views/Home.vue';
 
 const routes = [
-  // OnBoard
-  {
-    path: '/signin',
-    name: 'signin',
-    component: Signin,
-    props: true,
-    meta: { title: 'QRGenerator • Sign in' },
-  },
-
   // General
   {
     path: '/',

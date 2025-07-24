@@ -4,7 +4,7 @@
 
 <script>
 export default {
-  name: 'Signin',
+  name: 'slider-bar',
 };
 </script>
 

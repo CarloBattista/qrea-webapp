@@ -47,15 +47,14 @@
             <div class="control-group">
               <label class="text-lg font-medium mb-2 block">Stile Punti:</label>
               <div class="flex flex-wrap gap-2">
-                <button
+                <buttonLg
                   v-for="style in dotStyles"
                   :key="style.value"
                   @click="dotsStyle = style.value"
-                  :class="{ 'bg-blue-500 text-white': dotsStyle === style.value, 'bg-gray-200': dotsStyle !== style.value }"
-                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
-                >
-                  {{ style.label }}
-                </button>
+                  type="button"
+                  :variant="dotsStyle === style.value ? 'primary' : 'secondary'"
+                  :label="style.label"
+                />
               </div>
             </div>
           </div>
@@ -69,15 +68,14 @@
             <div class="control-group">
               <label class="text-lg font-medium mb-2 block">Stile Angoli:</label>
               <div class="flex flex-wrap gap-2">
-                <button
+                <buttonLg
                   v-for="style in cornerStyles"
                   :key="style.value"
                   @click="cornerStyle = style.value"
-                  :class="{ 'bg-blue-500 text-white': cornerStyle === style.value, 'bg-gray-200': cornerStyle !== style.value }"
-                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
-                >
-                  {{ style.label }}
-                </button>
+                  type="button"
+                  :variant="cornerStyle === style.value ? 'primary' : 'secondary'"
+                  :label="style.label"
+                />
               </div>
             </div>
 
@@ -137,26 +135,25 @@
               <input v-model="margin" type="range" min="0" max="50" class="w-full slider" />
             </div>
 
-            <!-- Formato Download -->
-            <div class="control-group">
-              <label class="text-lg font-medium mb-2 block">Formato Download:</label>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="format in downloadFormats"
-                  :key="format.value"
-                  @click="selectedFormat = format.value"
-                  :class="{ 'bg-blue-500 text-white': selectedFormat === format.value, 'bg-gray-200': selectedFormat !== format.value }"
-                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
-                >
-                  {{ format.label }}
-                </button>
-              </div>
-            </div>
-
             <!-- Pulsanti Azione -->
             <div class="flex gap-4 mt-8">
-              <button @click="resetToDefaults" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">Reset</button>
-              <button @click="downloadQR" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">Scarica QR</button>
+              <buttonLg @click="resetToDefaults" type="button" variant="secondary" label="Reset" />
+              <buttonLg @click="downloadQR" :actions="true" type="button" variant="primary" label="Scarica">
+                <template #options>
+                  <div
+                    v-for="(option, optionIndex) in downloadFormats"
+                    :key="optionIndex"
+                    @click.stop="selectedFormat = option.value"
+                    class="w-full h-9 px-2 rounded-sm flex items-center text-sm cursor-pointer"
+                    :class="{
+                      'bg-transparent hover:bg-gray-100': selectedFormat !== option.value,
+                      'bg-black text-white': selectedFormat === option.value,
+                    }"
+                  >
+                    {{ option.label }}
+                  </div>
+                </template>
+              </buttonLg>
             </div>
           </div>
         </div>
@@ -189,13 +186,20 @@
 </template>
 
 <script>
+import QRCodeStyling from 'qr-code-styling';
+
+import buttonLg from '../components/button/button-lg.vue';
+import sliderBar from '../components/slider/slider-bar.vue';
+
 // ICONS
 import { ArrowUp, ArrowDown } from 'lucide-vue-next';
-import QRCodeStyling from 'qr-code-styling';
 
 export default {
   name: 'Home',
   components: {
+    buttonLg,
+    sliderBar,
+
     // ICONS
     ArrowUp,
     ArrowDown,
@@ -326,7 +330,6 @@ export default {
         this.steps.currentStep++;
       }
     },
-
     generateQRCode() {
       if (this.qrCode) {
         this.$refs.qrCodeContainer.innerHTML = '';
@@ -335,7 +338,6 @@ export default {
       this.qrCode = new QRCodeStyling(this.qrOptions);
       this.qrCode.append(this.$refs.qrCodeContainer);
     },
-
     resetToDefaults() {
       this.value = '';
       this.qrSize = 300;
@@ -353,7 +355,6 @@ export default {
       this.imageSettings.src = '';
       this.selectedFormat = 'png';
     },
-
     downloadQR() {
       if (this.qrCode) {
         this.qrCode.download({
