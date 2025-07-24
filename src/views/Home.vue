@@ -1,152 +1,214 @@
 <template>
-  <div class="qr-generator-container">
-    <!-- Pannello di controllo -->
-    <div class="controls-panel">
-      <h2>Personalizza il tuo QR Code</h2>
-
-      <!-- URL Input -->
-      <div class="control-group">
-        <label>URL/Testo:</label>
-        <input v-model="value" type="text" placeholder="Inserisci URL o testo" class="text-input" />
-      </div>
-
-      <!-- Dimensioni -->
-      <div class="control-group">
-        <label>Dimensioni: {{ qrSize }}px</label>
-        <input v-model="qrSize" type="range" min="200" max="500" class="slider" />
-      </div>
-
-      <!-- Colore Foreground -->
-      <div class="control-group">
-        <label>Colore Principale:</label>
-        <div class="color-controls">
-          <input v-model="foreground" type="color" class="color-picker" />
-          <span>{{ foreground }}</span>
-        </div>
-      </div>
-
-      <!-- Colore Background -->
-      <div class="control-group">
-        <label>Colore Sfondo:</label>
-        <div class="color-controls">
-          <input v-model="background" type="color" class="color-picker" />
-          <span>{{ background }}</span>
-        </div>
-      </div>
-
-      <!-- Stile Dots -->
-      <div class="control-group">
-        <label>Stile Punti:</label>
-        <div class="button-group">
-          <button
-            v-for="style in dotStyles"
-            :key="style.value"
-            @click="dotsStyle = style.value"
-            :class="{ active: dotsStyle === style.value }"
-            class="style-button"
-          >
-            {{ style.label }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Stile Angoli -->
-      <div class="control-group">
-        <label>Stile Angoli:</label>
-        <div class="button-group">
-          <button
-            v-for="style in cornerStyles"
-            :key="style.value"
-            @click="cornerStyle = style.value"
-            :class="{ active: cornerStyle === style.value }"
-            class="style-button"
-          >
-            {{ style.label }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Gradiente -->
-      <div class="control-group">
-        <label>
-          <input v-model="gradient" type="checkbox" />
-          Abilita Gradiente
-        </label>
-      </div>
-
-      <div v-if="gradient" class="gradient-controls">
-        <div class="control-group">
-          <label>Colore Inizio Gradiente:</label>
-          <div class="color-controls">
-            <input v-model="gradientStartColor" type="color" class="color-picker" />
-            <span>{{ gradientStartColor }}</span>
+  <div class="w-full md:h-svh h-[calc(100svh-300px)] flex md:flex-row flex-col items-start">
+    <div class="relative z-20 w-full h-full">
+      <div
+        v-for="(step, stepIndex) in steps.steps"
+        :key="stepIndex"
+        class="step-container w-full h-full md:px-9 px-3 pt-32 flex flex-none flex-col items-start justify-start"
+        :style="{ transform: `translateY(-${(steps.currentStep - 1) * 100}%)` }"
+      >
+        <!-- Step 1: Inserisci il link -->
+        <div v-if="steps.currentStep === 1" class="w-full">
+          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
+          <div class="relative mt-32 w-full h-18">
+            <input v-model="value" type="text" placeholder="www.example.com" class="w-full h-full outline-0" />
           </div>
         </div>
 
-        <div class="control-group">
-          <label>Colore Fine Gradiente:</label>
-          <div class="color-controls">
-            <input v-model="gradientEndColor" type="color" class="color-picker" />
-            <span>{{ gradientEndColor }}</span>
+        <!-- Step 2: Scegli il tipo di QR -->
+        <div v-else-if="steps.currentStep === 2" class="w-full">
+          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
+          <div class="mt-8 space-y-6">
+            <!-- Dimensioni -->
+            <div class="control-group">
+              <label class="text-lg font-medium mb-2 block">Dimensioni: {{ qrSize }}px</label>
+              <input v-model="qrSize" type="range" min="200" max="500" class="w-full slider" />
+            </div>
+
+            <!-- Colori -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="control-group">
+                <label class="text-lg font-medium mb-2 block">Colore Principale:</label>
+                <div class="flex items-center gap-2">
+                  <input v-model="foreground" type="color" class="w-12 h-10 rounded border-0" />
+                  <span class="text-sm">{{ foreground }}</span>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="text-lg font-medium mb-2 block">Colore Sfondo:</label>
+                <div class="flex items-center gap-2">
+                  <input v-model="background" type="color" class="w-12 h-10 rounded border-0" />
+                  <span class="text-sm">{{ background }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stili -->
+            <div class="control-group">
+              <label class="text-lg font-medium mb-2 block">Stile Punti:</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="style in dotStyles"
+                  :key="style.value"
+                  @click="dotsStyle = style.value"
+                  :class="{ 'bg-blue-500 text-white': dotsStyle === style.value, 'bg-gray-200': dotsStyle !== style.value }"
+                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
+                >
+                  {{ style.label }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="control-group">
-          <label>Rotazione Gradiente: {{ gradientRotation }}°</label>
-          <input v-model="gradientRotation" type="range" min="0" max="360" class="slider" />
+        <!-- Step 3: Personalizza il QR -->
+        <div v-else-if="steps.currentStep === 3" class="w-full">
+          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
+          <div class="mt-8 space-y-6">
+            <!-- Stile Angoli -->
+            <div class="control-group">
+              <label class="text-lg font-medium mb-2 block">Stile Angoli:</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="style in cornerStyles"
+                  :key="style.value"
+                  @click="cornerStyle = style.value"
+                  :class="{ 'bg-blue-500 text-white': cornerStyle === style.value, 'bg-gray-200': cornerStyle !== style.value }"
+                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
+                >
+                  {{ style.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Gradiente -->
+            <div class="control-group">
+              <label class="flex items-center gap-2 text-lg font-medium">
+                <input v-model="gradient" type="checkbox" class="w-4 h-4" />
+                Abilita Gradiente
+              </label>
+            </div>
+
+            <div v-if="gradient" class="ml-6 space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium mb-1 block">Colore Inizio:</label>
+                  <div class="flex items-center gap-2">
+                    <input v-model="gradientStartColor" type="color" class="w-10 h-8 rounded" />
+                    <span class="text-xs">{{ gradientStartColor }}</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-sm font-medium mb-1 block">Colore Fine:</label>
+                  <div class="flex items-center gap-2">
+                    <input v-model="gradientEndColor" type="color" class="w-10 h-8 rounded" />
+                    <span class="text-xs">{{ gradientEndColor }}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium mb-1 block">Rotazione: {{ gradientRotation }}°</label>
+                <input v-model="gradientRotation" type="range" min="0" max="360" class="w-full slider" />
+              </div>
+            </div>
+
+            <!-- Logo -->
+            <div class="control-group">
+              <label class="flex items-center gap-2 text-lg font-medium">
+                <input v-model="showImage" type="checkbox" class="w-4 h-4" />
+                Mostra Logo
+              </label>
+            </div>
+
+            <div v-if="showImage" class="ml-6 space-y-4">
+              <div>
+                <label class="text-sm font-medium mb-1 block">URL Immagine:</label>
+                <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
+              </div>
+              <div>
+                <label class="text-sm font-medium mb-1 block">Dimensione: {{ imageSize }}%</label>
+                <input v-model="imageSize" type="range" min="10" max="50" class="w-full slider" />
+              </div>
+            </div>
+
+            <!-- Margine -->
+            <div class="control-group">
+              <label class="text-lg font-medium mb-2 block">Margine: {{ margin }}px</label>
+              <input v-model="margin" type="range" min="0" max="50" class="w-full slider" />
+            </div>
+
+            <!-- Pulsanti Azione -->
+            <div class="flex gap-4 mt-8">
+              <button @click="resetToDefaults" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">Reset</button>
+              <button @click="downloadQR" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">Scarica QR</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Logo/Immagine -->
-      <div class="control-group">
-        <label>
-          <input v-model="showImage" type="checkbox" />
-          Mostra Logo
-        </label>
-      </div>
-
-      <div v-if="showImage" class="image-controls">
-        <div class="control-group">
-          <label>URL Immagine:</label>
-          <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="text-input" />
+      <div class="absolute top-0 right-0 w-16 h-full flex flex-col justify-between">
+        <div
+          @click="handlePrevStep"
+          class="relative w-full aspect-square flex items-center justify-center"
+          :class="{ 'cursor-pointer': steps.currentStep >= 2 }"
+        >
+          <ArrowUp v-if="steps.currentStep >= 2" size="28" />
         </div>
-
-        <div class="control-group">
-          <label>Dimensione Immagine: {{ imageSize }}%</label>
-          <input v-model="imageSize" type="range" min="10" max="50" class="slider" />
+        <div
+          @click="handleNextStep"
+          class="relative w-full aspect-square flex items-center justify-center"
+          :class="{ 'cursor-pointer': steps.currentStep < 3 }"
+        >
+          <ArrowDown v-if="steps.currentStep < 3" size="28" />
         </div>
-      </div>
-
-      <!-- Margine -->
-      <div class="control-group">
-        <label>Margine: {{ margin }}px</label>
-        <input v-model="margin" type="range" min="0" max="50" class="slider" />
-      </div>
-
-      <!-- Pulsanti Azione -->
-      <div class="action-buttons">
-        <button @click="resetToDefaults" class="reset-button">Reset Impostazioni</button>
-        <button @click="downloadQR" class="download-button">Scarica QR Code</button>
       </div>
     </div>
 
     <!-- Anteprima QR Code -->
-    <div class="qr-preview">
-      <h3>Anteprima</h3>
-      <div class="qr-container" ref="qrCodeContainer">
-        <!-- Il QR code verrà generato qui -->
-      </div>
+    <div class="relative z-30 w-full md:min-h-full min-h-[300px] md:max-w-[500px] bg-gray-100 flex flex-col items-center justify-center p-6">
+      <h3 class="text-xl font-semibold mb-4">Anteprima</h3>
+      <div class="qr-container" ref="qrCodeContainer"></div>
     </div>
   </div>
 </template>
 
 <script>
+// ICONS
+import { ArrowUp, ArrowDown } from 'lucide-vue-next';
 import QRCodeStyling from 'qr-code-styling';
 
 export default {
   name: 'Home',
+  components: {
+    // ICONS
+    ArrowUp,
+    ArrowDown,
+  },
   data() {
     return {
+      // Step management
+      steps: {
+        currentStep: 1,
+        steps: [
+          {
+            step: 1,
+            title: 'Inserisci il link',
+            description: '',
+          },
+          {
+            step: 2,
+            title: 'Scegli il tipo di QR',
+            description: '',
+          },
+          {
+            step: 3,
+            title: 'Personalizza il QR',
+            description: '',
+          },
+        ],
+      },
+
+      // QR Code settings
       value: 'https://www.newfarosport.it/',
       qrSize: 300,
       background: '#ffffff',
@@ -158,7 +220,7 @@ export default {
       gradientStartColor: '#000000',
       gradientEndColor: '#38bdf8',
       gradientRotation: 0,
-      showImage: true,
+      showImage: false,
       imageSize: 40,
       imageSettings: {
         src: '',
@@ -181,7 +243,6 @@ export default {
       ],
     };
   },
-
   computed: {
     qrOptions() {
       return {
@@ -225,21 +286,18 @@ export default {
       };
     },
   },
-
-  watch: {
-    qrOptions: {
-      handler() {
-        this.generateQRCode();
-      },
-      deep: true,
-    },
-  },
-
-  mounted() {
-    this.generateQRCode();
-  },
-
   methods: {
+    handlePrevStep() {
+      if (this.steps.currentStep > 1) {
+        this.steps.currentStep--;
+      }
+    },
+    handleNextStep() {
+      if (this.steps.currentStep < 3) {
+        this.steps.currentStep++;
+      }
+    },
+
     generateQRCode() {
       if (this.qrCode) {
         this.$refs.qrCodeContainer.innerHTML = '';
@@ -261,8 +319,9 @@ export default {
       this.gradientStartColor = '#000000';
       this.gradientEndColor = '#38bdf8';
       this.gradientRotation = 0;
-      this.showImage = true;
+      this.showImage = false;
       this.imageSize = 40;
+      this.imageSettings.src = '';
     },
 
     downloadQR() {
@@ -274,84 +333,42 @@ export default {
       }
     },
   },
+  watch: {
+    qrOptions: {
+      handler() {
+        this.generateQRCode();
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    this.generateQRCode();
+  },
 };
 </script>
 
 <style scoped>
-.qr-generator-container {
-  display: flex;
-  gap: 2rem;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+input,
+input::placeholder {
+  font-size: 2rem;
+  color: #040f0f;
 }
 
-.controls-panel {
-  flex: 1;
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-height: 80vh;
-  overflow-y: auto;
+input::placeholder {
+  opacity: 0.3;
 }
 
-.qr-preview {
-  flex: 1;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.qr-container {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 2px dashed #e0e0e0;
-  border-radius: 8px;
-  min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-h2,
-h3 {
-  margin-top: 0;
-  color: #333;
+.step-container {
+  transition-property: transform;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
 }
 
 .control-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.text-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.3s;
-}
-
-.text-input:focus {
-  outline: none;
-  border-color: #007bff;
+  margin-bottom: 1rem;
 }
 
 .slider {
-  width: 100%;
   height: 6px;
   border-radius: 3px;
   background: #e0e0e0;
@@ -368,96 +385,10 @@ label {
   cursor: pointer;
 }
 
-.color-controls {
+.qr-container {
+  min-height: 320px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.color-picker {
-  width: 50px;
-  height: 40px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.style-button {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e0e0e0;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
-}
-
-.style-button:hover {
-  border-color: #007bff;
-}
-
-.style-button.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.gradient-controls,
-.image-controls {
-  margin-left: 1rem;
-  padding-left: 1rem;
-  border-left: 3px solid #e0e0e0;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.reset-button,
-.download-button {
-  flex: 1;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.reset-button {
-  background: #6c757d;
-  color: white;
-}
-
-.reset-button:hover {
-  background: #5a6268;
-}
-
-.download-button {
-  background: #28a745;
-  color: white;
-}
-
-.download-button:hover {
-  background: #218838;
-}
-
-@media (max-width: 768px) {
-  .qr-generator-container {
-    flex-direction: column;
-    padding: 1rem;
-  }
-
-  .controls-panel {
-    max-height: none;
-  }
+  justify-content: center;
 }
 </style>
