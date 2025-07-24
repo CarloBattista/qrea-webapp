@@ -107,8 +107,16 @@
             <checkbox @click="showImage = !showImage" :selected="showImage" label="Abilita Logo" :disabled="false" />
             <div v-if="showImage" class="ml-6 space-y-4">
               <div>
-                <label class="text-sm font-medium mb-1 block">URL Immagine:</label>
-                <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
+                <label class="text-sm font-medium mb-1 block">Scegli immagine:</label>
+                <div class="flex flex-col gap-2">
+                  <div class="flex gap-2">
+                    <input ref="fileInput" type="file" accept="image/*" @change="handleImageUpload" class="hidden" />
+                    <buttonLg @click="$refs.fileInput.click()" type="button" variant="secondary" label="Carica Immagine" />
+                    <buttonLg v-if="imageSettings.src" @click="removeImage" type="button" variant="secondary" label="Rimuovi" />
+                  </div>
+                  <div class="text-xs text-gray-500">Oppure inserisci un URL:</div>
+                  <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
+                </div>
               </div>
               <div class="w-full max-w-[500px] flex flex-col">
                 <h2>Dimensione</h2>
@@ -125,7 +133,7 @@
             <!-- Pulsanti Azione -->
             <div class="flex gap-4 mt-8">
               <buttonLg @click="resetToDefaults" type="button" variant="secondary" label="Reset" />
-              <buttonLg @click="downloadQR" :actions="true" type="button" variant="primary" label="Scarica">
+              <buttonLg @click="downloadQR" :actions="true" type="button" variant="primary" label="Scarica QR">
                 <template #options>
                   <div
                     v-for="(option, optionIndex) in downloadFormats"
@@ -146,17 +154,17 @@
         </div>
       </div>
 
-      <div class="absolute top-0 right-0 w-16 h-full flex flex-col justify-between">
+      <div class="absolute top-0 right-0 w-16 h-full flex flex-col justify-between pointer-events-none">
         <div
           @click="handlePrevStep"
-          class="relative w-full aspect-square flex items-center justify-center"
+          class="relative w-full aspect-square flex items-center justify-center pointer-events-auto"
           :class="{ 'cursor-pointer': steps.currentStep >= 2 }"
         >
           <ArrowUp v-if="steps.currentStep >= 2" size="28" />
         </div>
         <div
           @click="handleNextStep"
-          class="relative w-full aspect-square flex items-center justify-center"
+          class="relative w-full aspect-square flex items-center justify-center pointer-events-auto"
           :class="{ 'cursor-pointer': steps.currentStep < 3 }"
         >
           <ArrowDown v-if="steps.currentStep < 3" size="28" />
@@ -166,7 +174,7 @@
 
     <!-- Anteprima QR Code -->
     <div class="relative z-30 w-full md:min-h-full min-h-[300px] md:max-w-[500px] bg-gray-100 flex flex-col items-center justify-center p-6">
-      <h3 class="text-xl font-semibold mb-4">Anteprima</h3>
+      <h3 class="text-xl font-semibold mb-4 md:block hidden">Anteprima</h3>
       <div class="qr-container" ref="qrCodeContainer"></div>
     </div>
   </div>
@@ -328,9 +336,8 @@ export default {
       this.qrCode.append(this.$refs.qrCodeContainer);
     },
     resetToDefaults() {
-      // this.value = '';
       if (confirm('Sei sicuro di voler resettare le impostazioni?')) {
-        // this.value = '';
+        this.value = '';
         this.qrSize = 300;
         this.background = '#ffffff';
         this.foreground = '#000000';
@@ -346,6 +353,11 @@ export default {
         this.imageSettings.src = '';
         this.selectedFormat = 'png';
 
+        // Reset dell'input file
+        if (this.$refs.fileInput) {
+          this.$refs.fileInput.value = '';
+        }
+
         this.steps.currentStep = 1;
       }
     },
@@ -355,6 +367,36 @@ export default {
           name: 'personalized-qr-code',
           extension: this.selectedFormat,
         });
+      }
+    },
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Verifica che sia un'immagine
+        if (!file.type.startsWith('image/')) {
+          alert('Per favore seleziona un file immagine valido.');
+          return;
+        }
+
+        // Verifica dimensione file (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Il file è troppo grande. Dimensione massima: 5MB.');
+          return;
+        }
+
+        // Crea URL temporaneo per l'immagine
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.imageSettings.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    removeImage() {
+      this.imageSettings.src = '';
+      // Reset dell'input file
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.value = '';
       }
     },
   },
