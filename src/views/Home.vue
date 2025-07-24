@@ -137,6 +137,22 @@
               <input v-model="margin" type="range" min="0" max="50" class="w-full slider" />
             </div>
 
+            <!-- Formato Download -->
+            <div class="control-group">
+              <label class="text-lg font-medium mb-2 block">Formato Download:</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="format in downloadFormats"
+                  :key="format.value"
+                  @click="selectedFormat = format.value"
+                  :class="{ 'bg-blue-500 text-white': selectedFormat === format.value, 'bg-gray-200': selectedFormat !== format.value }"
+                  class="px-3 py-2 rounded text-sm font-medium transition-colors"
+                >
+                  {{ format.label }}
+                </button>
+              </div>
+            </div>
+
             <!-- Pulsanti Azione -->
             <div class="flex gap-4 mt-8">
               <button @click="resetToDefaults" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors">Reset</button>
@@ -240,6 +256,15 @@ export default {
         { label: 'Arrotondato', value: 'rounded' },
         { label: 'Extra Arrotondato', value: 'extra-rounded' },
       ],
+
+      // Formati di download disponibili
+      selectedFormat: 'png',
+      downloadFormats: [
+        { label: 'PNG', value: 'png' },
+        { label: 'JPG', value: 'jpeg' },
+        { label: 'SVG', value: 'svg' },
+        { label: 'PDF', value: 'pdf' },
+      ],
     };
   },
   computed: {
@@ -312,7 +337,7 @@ export default {
     },
 
     resetToDefaults() {
-      this.value = 'https://www.newfarosport.it/';
+      this.value = '';
       this.qrSize = 300;
       this.background = '#ffffff';
       this.foreground = '#000000';
@@ -326,13 +351,14 @@ export default {
       this.showImage = false;
       this.imageSize = 40;
       this.imageSettings.src = '';
+      this.selectedFormat = 'png';
     },
 
     downloadQR() {
       if (this.qrCode) {
         this.qrCode.download({
-          name: 'qr-code-personalizzato',
-          extension: 'png',
+          name: 'personalized-qr-code',
+          extension: this.selectedFormat,
         });
       }
     },
