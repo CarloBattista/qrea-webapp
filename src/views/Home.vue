@@ -79,53 +79,40 @@
               </div>
             </div>
 
-            <!-- Gradiente -->
-            <div class="control-group">
-              <label class="flex items-center gap-2 text-lg font-medium">
-                <input v-model="gradient" type="checkbox" class="w-4 h-4" />
-                Abilita Gradiente
-              </label>
-            </div>
-
+            <checkbox @click="gradient = !gradient" :selected="gradient" label="Abilita Gradiente" :disabled="false" />
             <div v-if="gradient" class="ml-6 space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="text-sm font-medium mb-1 block">Colore Inizio:</label>
+                  <label class="text-sm font-medium mb-1 block">Colore iniziale:</label>
                   <div class="flex items-center gap-2">
                     <input v-model="gradientStartColor" type="color" class="w-10 h-8 rounded" />
                     <span class="text-xs">{{ gradientStartColor }}</span>
                   </div>
                 </div>
                 <div>
-                  <label class="text-sm font-medium mb-1 block">Colore Fine:</label>
+                  <label class="text-sm font-medium mb-1 block">Colore finale:</label>
                   <div class="flex items-center gap-2">
                     <input v-model="gradientEndColor" type="color" class="w-10 h-8 rounded" />
                     <span class="text-xs">{{ gradientEndColor }}</span>
                   </div>
                 </div>
               </div>
-              <div>
-                <label class="text-sm font-medium mb-1 block">Rotazione: {{ gradientRotation }}°</label>
-                <input v-model="gradientRotation" type="range" min="0" max="360" class="w-full slider" />
+              <div class="w-full max-w-[500px] flex flex-col">
+                <h2>Rotazione</h2>
+                <sliderBar v-model="gradientRotation" :min="0" :max="360" :step="1" previewExtraValue="°" />
               </div>
             </div>
 
             <!-- Logo -->
-            <div class="control-group">
-              <label class="flex items-center gap-2 text-lg font-medium">
-                <input v-model="showImage" type="checkbox" class="w-4 h-4" />
-                Mostra Logo
-              </label>
-            </div>
-
+            <checkbox @click="showImage = !showImage" :selected="showImage" label="Abilita Logo" :disabled="false" />
             <div v-if="showImage" class="ml-6 space-y-4">
               <div>
                 <label class="text-sm font-medium mb-1 block">URL Immagine:</label>
                 <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
               </div>
-              <div>
-                <label class="text-sm font-medium mb-1 block">Dimensione: {{ imageSize }}%</label>
-                <input v-model="imageSize" type="range" min="10" max="50" class="w-full slider" />
+              <div class="w-full max-w-[500px] flex flex-col">
+                <h2>Dimensione</h2>
+                <sliderBar v-model="imageSize" :min="10" :max="50" :step="1" previewExtraValue="%" />
               </div>
             </div>
 
@@ -190,6 +177,7 @@ import QRCodeStyling from 'qr-code-styling';
 
 import buttonLg from '../components/button/button-lg.vue';
 import sliderBar from '../components/slider/slider-bar.vue';
+import checkbox from '../components/toggle/checkbox.vue';
 
 // ICONS
 import { ArrowUp, ArrowDown } from 'lucide-vue-next';
@@ -199,6 +187,7 @@ export default {
   components: {
     buttonLg,
     sliderBar,
+    checkbox,
 
     // ICONS
     ArrowUp,
@@ -339,21 +328,26 @@ export default {
       this.qrCode.append(this.$refs.qrCodeContainer);
     },
     resetToDefaults() {
-      this.value = '';
-      this.qrSize = 300;
-      this.background = '#ffffff';
-      this.foreground = '#000000';
-      this.margin = 10;
-      this.dotsStyle = 'square';
-      this.cornerStyle = 'square';
-      this.gradient = false;
-      this.gradientStartColor = '#000000';
-      this.gradientEndColor = '#38bdf8';
-      this.gradientRotation = 0;
-      this.showImage = false;
-      this.imageSize = 40;
-      this.imageSettings.src = '';
-      this.selectedFormat = 'png';
+      // this.value = '';
+      if (confirm('Sei sicuro di voler resettare le impostazioni?')) {
+        // this.value = '';
+        this.qrSize = 300;
+        this.background = '#ffffff';
+        this.foreground = '#000000';
+        this.margin = 10;
+        this.dotsStyle = 'square';
+        this.cornerStyle = 'square';
+        this.gradient = false;
+        this.gradientStartColor = '#000000';
+        this.gradientEndColor = '#38bdf8';
+        this.gradientRotation = 0;
+        this.showImage = false;
+        this.imageSize = 40;
+        this.imageSettings.src = '';
+        this.selectedFormat = 'png';
+
+        this.steps.currentStep = 1;
+      }
     },
     downloadQR() {
       if (this.qrCode) {
