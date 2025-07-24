@@ -38,7 +38,7 @@
             </div>
 
             <!-- Stili -->
-            <div class="control-group">
+            <div class="mb-4">
               <label class="text-lg font-medium mb-2 block">Stile Punti:</label>
               <div class="flex flex-wrap gap-2">
                 <buttonLg
@@ -59,7 +59,7 @@
           <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
           <div class="mt-8 space-y-6">
             <!-- Stile Angoli -->
-            <div class="control-group">
+            <div class="mb-4">
               <label class="text-lg font-medium mb-2 block">Stile Angoli:</label>
               <div class="flex flex-wrap gap-2">
                 <buttonLg
@@ -156,7 +156,7 @@
     <!-- Anteprima QR Code -->
     <div class="relative z-30 w-full md:min-h-full min-h-[300px] md:max-w-[500px] bg-gray-100 flex flex-col items-center justify-center p-6">
       <h3 class="text-xl font-semibold mb-4 md:block hidden">Anteprima</h3>
-      <div class="qr-container" ref="qrCodeContainer"></div>
+      <div class="qr-container min-w-[320px] flex items-center justify-center" ref="qrCodeContainer"></div>
     </div>
   </div>
 </template>
@@ -418,33 +418,5 @@ input::placeholder {
   transition-property: transform;
   transition-duration: 300ms;
   transition-timing-function: ease;
-}
-
-.control-group {
-  margin-bottom: 1rem;
-}
-
-.slider {
-  height: 6px;
-  border-radius: 3px;
-  background: #e0e0e0;
-  outline: none;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #007bff;
-  cursor: pointer;
-}
-
-.qr-container {
-  min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>
