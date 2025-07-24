@@ -27,19 +27,13 @@
 
             <!-- Colori -->
             <div class="grid grid-cols-2 gap-4">
-              <div class="control-group">
-                <label class="text-lg font-medium mb-2 block">Colore Principale:</label>
-                <div class="flex items-center gap-2">
-                  <input v-model="foreground" type="color" class="w-12 h-10 rounded border-0" />
-                  <span class="text-sm">{{ foreground }}</span>
-                </div>
+              <div class="flex flex-row gap-2 items-center">
+                <colorPicker v-model="foreground" />
+                <h2>Colore principale</h2>
               </div>
-              <div class="control-group">
-                <label class="text-lg font-medium mb-2 block">Colore Sfondo:</label>
-                <div class="flex items-center gap-2">
-                  <input v-model="background" type="color" class="w-12 h-10 rounded border-0" />
-                  <span class="text-sm">{{ background }}</span>
-                </div>
+              <div class="flex flex-row gap-2 items-center">
+                <colorPicker v-model="background" />
+                <h2>Colore sfondo</h2>
               </div>
             </div>
 
@@ -79,22 +73,17 @@
               </div>
             </div>
 
+            <!-- Graident -->
             <checkbox @click="gradient = !gradient" :selected="gradient" label="Abilita Gradiente" :disabled="false" />
             <div v-if="gradient" class="ml-6 space-y-4">
               <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-medium mb-1 block">Colore iniziale:</label>
-                  <div class="flex items-center gap-2">
-                    <input v-model="gradientStartColor" type="color" class="w-10 h-8 rounded" />
-                    <span class="text-xs">{{ gradientStartColor }}</span>
-                  </div>
+                <div class="flex flex-row gap-2 items-center">
+                  <colorPicker v-model="gradientStartColor" />
+                  <h2>Colore iniziale</h2>
                 </div>
-                <div>
-                  <label class="text-sm font-medium mb-1 block">Colore finale:</label>
-                  <div class="flex items-center gap-2">
-                    <input v-model="gradientEndColor" type="color" class="w-10 h-8 rounded" />
-                    <span class="text-xs">{{ gradientEndColor }}</span>
-                  </div>
+                <div class="flex flex-row gap-2 items-center">
+                  <colorPicker v-model="gradientEndColor" />
+                  <h2>Colore finale</h2>
                 </div>
               </div>
               <div class="w-full max-w-[500px] flex flex-col">
@@ -110,8 +99,8 @@
                 <label class="text-sm font-medium mb-1 block">Scegli immagine:</label>
                 <div class="flex flex-col gap-2">
                   <div class="flex gap-2">
-                    <input ref="fileInput" type="file" accept="image/*" @change="handleImageUpload" class="hidden" />
-                    <buttonLg @click="$refs.fileInput.click()" type="button" variant="secondary" label="Carica Immagine" />
+                    <input ref="fileInput" @change="handleImageUpload" type="file" accept="image/*" class="hidden" />
+                    <buttonLg @click="handleOpenFile" type="button" variant="secondary" label="Carica Immagine" />
                     <buttonLg v-if="imageSettings.src" @click="removeImage" type="button" variant="secondary" label="Rimuovi" />
                   </div>
                   <div class="text-xs text-gray-500">Oppure inserisci un URL:</div>
@@ -186,6 +175,7 @@ import QRCodeStyling from 'qr-code-styling';
 import buttonLg from '../components/button/button-lg.vue';
 import sliderBar from '../components/slider/slider-bar.vue';
 import checkbox from '../components/toggle/checkbox.vue';
+import colorPicker from '../components/input/color-picker.vue';
 
 // ICONS
 import { ArrowUp, ArrowDown } from 'lucide-vue-next';
@@ -196,6 +186,7 @@ export default {
     buttonLg,
     sliderBar,
     checkbox,
+    colorPicker,
 
     // ICONS
     ArrowUp,
@@ -368,6 +359,15 @@ export default {
           extension: this.selectedFormat,
         });
       }
+    },
+    handleOpenFile() {
+      // Metodo più robusto per aprire il file input
+      this.$nextTick(() => {
+        const fileInput = this.$refs.fileInput;
+        if (fileInput) {
+          fileInput.click();
+        } else return false;
+      });
     },
     handleImageUpload(event) {
       const file = event.target.files[0];
