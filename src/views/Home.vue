@@ -4,7 +4,7 @@
       <div
         v-for="(step, stepIndex) in steps.steps"
         :key="stepIndex"
-        class="step-container w-full h-full md:px-9 px-3 pt-32 flex flex-none flex-col items-start justify-start"
+        class="step-container w-full h-full md:px-9 px-3 md:pt-32 pt-10 flex flex-none flex-col items-start justify-start"
         :style="{ transform: `translateY(-${(steps.currentStep - 1) * 100}%)` }"
       >
         <!-- Step 1: Inserisci il link -->
@@ -97,15 +97,7 @@
             <div v-if="showImage" class="ml-6 space-y-4">
               <div>
                 <label class="text-sm font-medium mb-1 block">Scegli immagine:</label>
-                <div class="flex flex-col gap-2">
-                  <div class="flex gap-2">
-                    <input ref="fileInput" @change="handleImageUpload" type="file" accept="image/*" class="hidden" />
-                    <buttonLg @click="handleOpenFile" type="button" variant="secondary" label="Carica Immagine" />
-                    <buttonLg v-if="imageSettings.src" @click="removeImage" type="button" variant="secondary" label="Rimuovi" />
-                  </div>
-                  <div class="text-xs text-gray-500">Oppure inserisci un URL:</div>
-                  <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
-                </div>
+                <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
               </div>
               <div class="w-full max-w-[500px] flex flex-col">
                 <h2>Dimensione</h2>
@@ -361,13 +353,10 @@ export default {
       }
     },
     handleOpenFile() {
-      // Metodo più robusto per aprire il file input
-      this.$nextTick(() => {
-        const fileInput = this.$refs.fileInput;
-        if (fileInput) {
-          fileInput.click();
-        } else return false;
-      });
+      const fileInput = this.$refs.fileInput;
+      if (fileInput) {
+        fileInput.click();
+      }
     },
     handleImageUpload(event) {
       const file = event.target.files[0];

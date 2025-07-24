@@ -10,7 +10,7 @@ const routes = [
     name: 'home',
     component: Home,
     props: true,
-    meta: { title: 'QRGenerator • Home' },
+    meta: { title: 'QRGenerator' },
   },
 ];
 
