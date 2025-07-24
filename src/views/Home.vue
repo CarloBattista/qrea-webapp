@@ -20,9 +20,9 @@
           <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
           <div class="mt-8 space-y-6">
             <!-- Dimensioni -->
-            <div class="control-group">
-              <label class="text-lg font-medium mb-2 block">Dimensioni: {{ qrSize }}px</label>
-              <input v-model="qrSize" type="range" min="200" max="500" class="w-full slider" />
+            <div class="w-full max-w-[500px] flex flex-col">
+              <h2>Dimensioni</h2>
+              <sliderBar v-model="qrSize" :min="200" :max="500" :step="1" previewExtraValue="px" />
             </div>
 
             <!-- Colori -->
@@ -130,9 +130,9 @@
             </div>
 
             <!-- Margine -->
-            <div class="control-group">
-              <label class="text-lg font-medium mb-2 block">Margine: {{ margin }}px</label>
-              <input v-model="margin" type="range" min="0" max="50" class="w-full slider" />
+            <div class="w-full max-w-[500px] flex flex-col">
+              <h2>Margine</h2>
+              <sliderBar v-model="margin" :min="0" :max="50" :step="1" previewExtraValue="px" />
             </div>
 
             <!-- Pulsanti Azione -->
