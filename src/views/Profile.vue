@@ -195,7 +195,7 @@ export default {
         const response = await fetch(`http://localhost:3001/api/payments/billing-history/${customerId}`);
         if (response.ok) {
           this.billingHistory.data = await response.json();
-          console.log(this.billingHistory);
+          // console.log(this.billingHistory);
         }
       } catch (e) {
         console.error(e);
@@ -221,6 +221,10 @@ export default {
       },
       deep: true,
     },
+  },
+  async mounted() {
+    if (this.auth.profile) await this.fetchSubscriptionDetails();
+    if (this.subscriptionDetails) await this.fetchBillingHistory();
   },
 };
 </script>

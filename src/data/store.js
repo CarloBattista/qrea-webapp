@@ -37,4 +37,47 @@ export const store = reactive({
       features: ['First', 'Two', 'Three'],
     },
   ],
+
+  qrConfig: {
+    value: '',
+    qrSize: 300,
+    background: '#ffffff',
+    foreground: '#000000',
+    margin: 10,
+    dotsStyle: 'square',
+    cornerStyle: 'square',
+    gradient: false,
+    gradientStartColor: '#000000',
+    gradientEndColor: '#38bdf8',
+    gradientRotation: 0,
+    showImage: false,
+    imageSize: 40,
+    imageSettings: {
+      src: '',
+    },
+    qrCode: null,
+
+    dotStyles: [
+      { label: 'Quadrato', value: 'square' },
+      { label: 'Arrotondato', value: 'rounded' },
+      { label: 'Punti', value: 'dots' },
+      { label: 'Elegante', value: 'classy' },
+      { label: 'Extra Arrotondato', value: 'extra-rounded' },
+    ],
+    cornerStyles: [
+      { label: 'Quadrato', value: 'square' },
+      { label: 'Punto', value: 'dot' },
+      { label: 'Arrotondato', value: 'rounded' },
+      { label: 'Extra Arrotondato', value: 'extra-rounded' },
+    ],
+
+    // Formati di download disponibili
+    selectedFormat: 'png',
+    downloadFormats: [
+      { label: 'PNG', value: 'png' },
+      { label: 'JPG', value: 'jpeg' },
+      { label: 'SVG', value: 'svg' },
+      { label: 'PDF', value: 'pdf' },
+    ],
+  },
 });
