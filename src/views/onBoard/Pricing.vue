@@ -82,7 +82,6 @@ export default {
     },
 
     async handleSubscription(plan) {
-      const stripe = await stripePromise;
       const priceId = plan.stripe_products_id[this.currentPlan];
 
       if (!this.auth.isAuthenticated) {
@@ -91,27 +90,39 @@ export default {
       }
 
       if (!priceId) {
-        throw new Error('Price ID not found');
+        console.error('Price ID non trovato');
+        return;
       }
 
       try {
-        const { error } = await stripe.redirectToCheckout({
-          lineItems: [
-            {
-              price: priceId,
-              quantity: 1,
-            },
-          ],
-          mode: 'subscription',
-          successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/cancel`,
+        const response = await fetch('http://localhost:3001/api/payments/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            priceId: priceId,
+            successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${window.location.origin}/cancel`,
+          }),
         });
 
-        if (error) {
-          throw new Error(error.message);
+        if (!response.ok) {
+          throw new Error(`Errore HTTP: ${response.status}`);
         }
-      } catch (e) {
-        console.error(e);
+
+        const { sessionId, url } = await response.json();
+
+        if (url) {
+          // Reindirizza direttamente all'URL di Stripe
+          window.location.href = url;
+        } else {
+          console.error('URL di checkout non ricevuto dal server');
+        }
+      } catch (error) {
+        console.error('Errore nella creazione della sessione di checkout:', error);
+        // Qui potresti mostrare un messaggio di errore all'utente
+        alert('Si è verificato un errore durante la creazione del pagamento. Riprova.');
       }
     },
   },
