@@ -4,6 +4,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Signup from '../views/onBoard/Signup.vue';
 import Signin from '../views/onBoard/Signin.vue';
 import Pricing from '../views/onBoard/Pricing.vue';
+import Success from '../views/onBoard/Success.vue';
+import Cancel from '../views/onBoard/Cancel.vue';
 
 // Profile
 import Profile from '../views/Profile.vue';
@@ -31,6 +33,20 @@ const routes = [
     path: '/pricing',
     name: 'pricing',
     component: Pricing,
+    props: true,
+    meta: { title: 'QRGenerator' },
+  },
+  {
+    path: '/success',
+    name: 'success',
+    component: Success,
+    props: true,
+    meta: { title: 'QRGenerator' },
+  },
+  {
+    path: '/cancel',
+    name: 'cancel',
+    component: Cancel,
     props: true,
     meta: { title: 'QRGenerator' },
   },

@@ -85,6 +85,11 @@ export default {
       const stripe = await stripePromise;
       const priceId = plan.stripe_products_id[this.currentPlan];
 
+      if (!this.auth.isAuthenticated) {
+        this.$router.push({ name: 'signin' });
+        return;
+      }
+
       if (!priceId) {
         throw new Error('Price ID not found');
       }
@@ -99,7 +104,7 @@ export default {
           ],
           mode: 'subscription',
           successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing`,
+          cancelUrl: `${window.location.origin}/cancel`,
         });
 
         if (error) {
