@@ -45,16 +45,19 @@
             </RouterLink>
           </div>
         </div>
-        <div v-if="false" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
+        <div v-if="billingHistory.data && billingHistory.data.length > 0" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">Billing History</h2>
           <div class="w-full flex flex-col">
-            <div class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal">
-              <h2 class="text-start">Pro plan - 10$</h2>
-              <span class="text-end">2025/07/07 17:39</span>
-            </div>
-            <div class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal">
-              <h2 class="text-start">Pro plan - 10$</h2>
-              <span class="text-end">2025/07/07 17:39</span>
+            <div
+              v-for="(payment, paymentIndex) in billingHistory.data"
+              :key="paymentIndex"
+              class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal"
+            >
+              <h2 class="text-start">{{ payment.currency === 'EUR' ? '€' : '$' }}{{ payment.amount }} - {{ formatPaymentStatus(payment.status) }}</h2>
+              <span class="text-end flex gap-2 items-center"
+                >{{ formatDate(payment.date) }}
+                <a v-if="payment.invoice_pdf" :href="payment.invoice_pdf" class="text-sm font-semibold underline">Scarica fattura</a></span
+              >
             </div>
           </div>
         </div>
@@ -81,6 +84,11 @@ export default {
     return {
       auth,
       subscriptionDetails: null,
+      billingHistory: {
+        data: null,
+        error: null,
+        loading: false,
+      },
     };
   },
   computed: {
@@ -114,6 +122,15 @@ export default {
         month: '2-digit',
         day: '2-digit',
       });
+    },
+    formatPaymentStatus(status) {
+      const statusMap = {
+        paid: 'Pagato',
+        open: 'In attesa',
+        void: 'Annullato',
+        uncollectible: 'Non riscuotibile',
+      };
+      return statusMap[status] || status;
     },
 
     async handleCancelSubscription() {
@@ -164,12 +181,42 @@ export default {
         console.error('Errore nel recupero dei dettagli abbonamento:', error);
       }
     },
+    async fetchBillingHistory() {
+      this.billingHistory.loading = true;
+
+      const customerId = this.subscriptionDetails.customer.id;
+
+      if (!customerId) {
+        this.billingHistory.loading = false;
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/payments/billing-history/${customerId}`);
+        if (response.ok) {
+          this.billingHistory.data = await response.json();
+          console.log(this.billingHistory);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.billingHistory.loading = false;
+      }
+    },
   },
   watch: {
     'auth.profile': {
       handler(value) {
         if (value) {
           this.fetchSubscriptionDetails();
+        }
+      },
+      deep: true,
+    },
+    subscriptionDetails: {
+      handler(value) {
+        if (value) {
+          this.fetchBillingHistory();
         }
       },
       deep: true,

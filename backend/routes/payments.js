@@ -75,4 +75,37 @@ router.get('/payment-intent/:paymentIntentId', async (req, res) => {
   }
 });
 
+// Ottieni cronologia pagamenti per un customer
+router.get('/billing-history/:customerId', async (req, res) => {
+  try {
+    const stripe = getStripe();
+    const { customerId } = req.params;
+
+    // Recupera le fatture del customer
+    const invoices = await stripe.invoices.list({
+      customer: customerId,
+      limit: 10, // Limita a 10 fatture più recenti
+      expand: ['data.subscription', 'data.payment_intent'],
+    });
+
+    // Formatta i dati per il frontend
+    const billingHistory = invoices.data.map((invoice) => ({
+      id: invoice.id,
+      amount: invoice.amount_paid / 100, // Converti da centesimi
+      currency: invoice.currency.toUpperCase(),
+      status: invoice.status,
+      date: invoice.created,
+      description: invoice.lines.data[0]?.description || 'Pro plan',
+      invoice_pdf: invoice.invoice_pdf,
+      period_start: invoice.period_start,
+      period_end: invoice.period_end,
+    }));
+
+    res.json(billingHistory);
+  } catch (error) {
+    console.error('Errore nel recupero della cronologia pagamenti:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
