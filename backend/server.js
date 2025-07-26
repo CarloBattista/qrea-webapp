@@ -10,6 +10,8 @@ import process from 'process';
 // Configura dotenv
 dotenv.config();
 
+import { supabase } from './supabase.js';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
@@ -166,8 +168,8 @@ async function handleSubscriptionCreated(subscription) {
 
     // Salva l'abbonamento nel database
     // await saveSubscriptionToDatabase(subscription);
-  } catch (error) {
-    console.error("❌ Errore nel creare l'abbonamento:", error);
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -179,10 +181,22 @@ async function handleSubscriptionUpdated(subscription) {
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
 
-    // Aggiorna l'abbonamento nel database
-    // await updateSubscriptionInDatabase(subscription);
-  } catch (error) {
-    console.error("❌ Errore nell'aggiornare l'abbonamento:", error);
+    // Aggiorna il profilo nel database Supabase
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        plan: subscription.status === 'active' && !subscription.cancel_at_period_end ? 'pro' : 'free',
+        subscription_status: subscription.status,
+        cancel_at_period_end: subscription.cancel_at_period_end,
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      })
+      .eq('stripe_id', subscription.customer);
+
+    if (error) {
+      console.error('Errore aggiornamento profilo:', error);
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -194,13 +208,22 @@ async function handleSubscriptionCanceled(subscription) {
       canceledAt: new Date(subscription.canceled_at * 1000),
     });
 
-    // Disattiva l'accesso dell'utente
-    // await deactivateUserAccess(subscription.customer);
+    // Aggiorna il profilo a piano gratuito
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        plan: 'free',
+        subscription_status: 'canceled',
+        stripe_id: null,
+        canceled_at: new Date(subscription.canceled_at * 1000).toISOString(),
+      })
+      .eq('stripe_id', subscription.customer);
 
-    // Invia email di cancellazione
-    // await sendCancellationEmail(subscription.customer);
-  } catch (error) {
-    console.error("❌ Errore nel cancellare l'abbonamento:", error);
+    if (error) {
+      console.error('Errore aggiornamento profilo:', error);
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 

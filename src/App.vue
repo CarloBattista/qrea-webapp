@@ -1,6 +1,6 @@
 <template>
   <div>
-    <RouterView />
+    <RouterView @load-profile="getProfile" />
   </div>
 </template>
 

@@ -20,7 +20,7 @@
             </div>
           </div>
         </div>
-        <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
+        <div v-if="subscriptionDetails" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">Subscription Plan</h2>
           <div class="w-full flex flex-col">
             <div class="w-full h-9 flex items-center justify-between text-base font-normal">
@@ -28,8 +28,18 @@
               <badge :label="typeSubscription" />
             </div>
           </div>
+          <div v-if="isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
+            <h2 class="text-start">Scade il</h2>
+            <span class="text-end">{{ formatDate(subscriptionDetails.cancel_at) }}</span>
+          </div>
           <div class="w-full mt-4 flex items-center justify-end">
-            <buttonLg v-if="typeSubscription === 'Pro'" type="button" variant="destructive" label="Disattiva abbonamento" />
+            <buttonLg
+              @click="handleCancelSubscription"
+              v-if="typeSubscription === 'Pro' && !isSubscriptionCancelled"
+              type="button"
+              variant="destructive"
+              label="Disattiva abbonamento"
+            />
             <RouterLink v-else-if="typeSubscription === 'Free'" to="/pricing">
               <buttonLg type="button" variant="primary" label="Upgrade to Pro" />
             </RouterLink>
@@ -70,10 +80,15 @@ export default {
   data() {
     return {
       auth,
+      subscriptionDetails: null,
     };
   },
   computed: {
     typeSubscription() {
+      if (!this.auth.profile) {
+        return 'Free';
+      }
+
       const plan = this.auth?.profile.plan;
 
       const freePlan = 'free';
@@ -86,6 +101,78 @@ export default {
       }
 
       return 'Free';
+    },
+    isSubscriptionCancelled() {
+      return this.subscriptionDetails?.cancel_at_period_end === true;
+    },
+  },
+  methods: {
+    formatDate(timestamp) {
+      const date = new Date(timestamp * 1000); // Stripe restituisce timestamp in secondi
+      return date.toLocaleDateString('it-IT', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    },
+
+    async handleCancelSubscription() {
+      const UID = this.auth.user.id;
+      const stripe_id = this.auth.profile.stripe_id;
+
+      if (!stripe_id && !UID) {
+        return;
+      }
+
+      // Conferma dall'utente
+      const confirmed = confirm(
+        'Sei sicuro di voler cancellare il tuo abbonamento? Rimarrà attivo fino alla fine del periodo di fatturazione corrente.'
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Errore HTTP: ${response.status}`);
+        }
+
+        const res = await response.json();
+        alert('Abbonamento cancellato con successo. Rimarrà attivo fino alla fine del periodo di fatturazione corrente.');
+
+        await this.fetchSubscriptionDetails();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async fetchSubscriptionDetails() {
+      try {
+        const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`);
+        if (response.ok) {
+          this.subscriptionDetails = await response.json();
+          // console.log(this.subscriptionDetails);
+        }
+      } catch (error) {
+        console.error('Errore nel recupero dei dettagli abbonamento:', error);
+      }
+    },
+  },
+  watch: {
+    'auth.profile': {
+      handler(value) {
+        if (value) {
+          this.fetchSubscriptionDetails();
+        }
+      },
+      deep: true,
     },
   },
 };

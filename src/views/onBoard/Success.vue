@@ -115,6 +115,7 @@ export default {
 
         if (!error) {
           // console.log('Abonamento aggiornato con successo');
+          this.$emit('load-profile');
         }
       } catch (e) {
         console.error(e);
