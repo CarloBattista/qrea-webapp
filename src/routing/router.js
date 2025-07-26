@@ -12,7 +12,6 @@ import Profile from '../views/Profile.vue';
 
 // General
 import Home from '../views/Home.vue';
-import MyQr from '../views/My-qr.vue';
 import NewQr from '../views/New-qr.vue';
 
 const routes = [
@@ -67,13 +66,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: Home,
-    props: true,
-    meta: { title: 'QRGenerator' },
-  },
-  {
-    path: '/my-qr',
-    name: 'my-qr',
-    component: MyQr,
     props: true,
     meta: { title: 'QRGenerator' },
   },

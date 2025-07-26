@@ -37,6 +37,11 @@ export const store = reactive({
       features: ['First', 'Two', 'Three'],
     },
   ],
+  qrCodes: {
+    data: null,
+    error: null,
+    loading: false,
+  },
 
   qrConfig: {
     value: '',

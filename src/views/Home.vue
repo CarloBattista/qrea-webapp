@@ -1,425 +1,70 @@
 <template>
   <navigation />
-  <div class="w-full md:h-svh h-[calc(100svh-300px)] flex md:flex-row flex-col items-start">
-    <div class="relative z-20 w-full h-full">
-      <div
-        v-for="(step, stepIndex) in steps.steps"
-        :key="stepIndex"
-        class="step-container w-full h-full md:px-9 px-3 md:pt-32 pt-10 flex flex-none flex-col items-start justify-start"
-        :style="{ transform: `translateY(-${(steps.currentStep - 1) * 100}%)` }"
-      >
-        <!-- Step 1: Inserisci il link -->
-        <div v-if="steps.currentStep === 1" class="w-full">
-          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
-          <div class="relative mt-32 w-full h-18">
-            <input v-model="value" type="text" placeholder="www.example.com" class="w-full h-full outline-0" />
-          </div>
-        </div>
-
-        <!-- Step 2: Scegli il tipo di QR -->
-        <div v-else-if="steps.currentStep === 2" class="w-full">
-          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
-          <div class="mt-8 space-y-6">
-            <!-- Dimensioni -->
-            <div class="w-full max-w-[500px] flex flex-col">
-              <h2>Dimensioni</h2>
-              <sliderBar v-model="qrSize" :min="200" :max="500" :step="1" previewExtraValue="px" />
-            </div>
-
-            <!-- Colori -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-row gap-2 items-center">
-                <colorPicker v-model="foreground" />
-                <h2>Colore principale</h2>
-              </div>
-              <div class="flex flex-row gap-2 items-center">
-                <colorPicker v-model="background" />
-                <h2>Colore sfondo</h2>
-              </div>
-            </div>
-
-            <!-- Stili -->
-            <div class="mb-4">
-              <label class="text-lg font-medium mb-2 block">Stile Punti:</label>
-              <div class="flex flex-wrap gap-2">
-                <buttonLg
-                  v-for="style in dotStyles"
-                  :key="style.value"
-                  @click="dotsStyle = style.value"
-                  type="button"
-                  :variant="dotsStyle === style.value ? 'primary' : 'secondary'"
-                  :label="style.label"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3: Personalizza il QR -->
-        <div v-else-if="steps.currentStep === 3" class="w-full">
-          <h2 class="text-black text-3xl font-semibold">{{ step.title }}</h2>
-          <div class="mt-8 space-y-6">
-            <!-- Stile Angoli -->
-            <div class="mb-4">
-              <label class="text-lg font-medium mb-2 block">Stile Angoli:</label>
-              <div class="flex flex-wrap gap-2">
-                <buttonLg
-                  v-for="style in cornerStyles"
-                  :key="style.value"
-                  @click="cornerStyle = style.value"
-                  type="button"
-                  :variant="cornerStyle === style.value ? 'primary' : 'secondary'"
-                  :label="style.label"
-                />
-              </div>
-            </div>
-
-            <!-- Graident -->
-            <checkbox @click="gradient = !gradient" :selected="gradient" label="Abilita Gradiente" :disabled="false" />
-            <div v-if="gradient" class="ml-6 space-y-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div class="flex flex-row gap-2 items-center">
-                  <colorPicker v-model="gradientStartColor" />
-                  <h2>Colore iniziale</h2>
-                </div>
-                <div class="flex flex-row gap-2 items-center">
-                  <colorPicker v-model="gradientEndColor" />
-                  <h2>Colore finale</h2>
-                </div>
-              </div>
-              <div class="w-full max-w-[500px] flex flex-col">
-                <h2>Rotazione</h2>
-                <sliderBar v-model="gradientRotation" :min="0" :max="360" :step="1" previewExtraValue="°" />
-              </div>
-            </div>
-
-            <!-- Logo -->
-            <checkbox @click="showImage = !showImage" :selected="showImage" label="Abilita Logo" :disabled="false" />
-            <div v-if="showImage" class="ml-6 space-y-4">
-              <div>
-                <label class="text-sm font-medium mb-1 block">Scegli immagine:</label>
-                <input v-model="imageSettings.src" type="text" placeholder="URL dell'immagine" class="w-full h-18 outline-0" />
-              </div>
-              <div class="w-full max-w-[500px] flex flex-col">
-                <h2>Dimensione</h2>
-                <sliderBar v-model="imageSize" :min="10" :max="50" :step="1" previewExtraValue="%" />
-              </div>
-            </div>
-
-            <!-- Margine -->
-            <div class="w-full max-w-[500px] flex flex-col">
-              <h2>Margine</h2>
-              <sliderBar v-model="margin" :min="0" :max="50" :step="1" previewExtraValue="px" />
-            </div>
-
-            <!-- Pulsanti Azione -->
-            <div class="flex gap-4 mt-8">
-              <buttonLg @click="resetToDefaults" type="button" variant="secondary" label="Reset" />
-              <buttonLg @click="downloadQR" :actions="true" type="button" variant="primary" label="Scarica QR">
-                <template #options>
-                  <div
-                    v-for="(option, optionIndex) in downloadFormats"
-                    :key="optionIndex"
-                    @click.stop="selectedFormat = option.value"
-                    class="w-full h-9 px-2 rounded-sm flex items-center text-sm cursor-pointer"
-                    :class="{
-                      'bg-transparent hover:bg-gray-100': selectedFormat !== option.value,
-                      'bg-black text-white': selectedFormat === option.value,
-                    }"
-                  >
-                    {{ option.label }}
-                  </div>
-                </template>
-              </buttonLg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="absolute top-0 right-0 w-16 h-full flex flex-col justify-between pointer-events-none">
-        <div
-          @click="handlePrevStep"
-          class="relative w-full aspect-square flex items-center justify-center pointer-events-auto"
-          :class="{ 'cursor-pointer': steps.currentStep >= 2 }"
-        >
-          <ArrowUp v-if="steps.currentStep >= 2" size="28" />
-        </div>
-        <div
-          @click="handleNextStep"
-          class="relative w-full aspect-square flex items-center justify-center pointer-events-auto"
-          :class="{ 'cursor-pointer': steps.currentStep < 3 }"
-        >
-          <ArrowDown v-if="steps.currentStep < 3" size="28" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Anteprima QR Code -->
-    <div class="relative z-30 w-full md:min-h-full min-h-[300px] md:max-w-[500px] bg-gray-100 flex flex-col items-center justify-center p-6">
-      <h3 class="text-xl font-semibold mb-4 md:block hidden">Anteprima</h3>
-      <div class="qr-container min-w-[320px] flex items-center justify-center" ref="qrCodeContainer"></div>
+  <div class="w-full md:px-6 px-3 pt-30 pb-10">
+    <div class="max-w-[768px] mx-auto grid grid-cols-2 md:grid-cols-3 gap-5">
+      <cardQr v-for="(qr, qrIndex) in store.qrCodes.data" :key="qrIndex" :data="qr" />
     </div>
   </div>
 </template>
 
 <script>
-import QRCodeStyling from 'qr-code-styling';
+import { supabase } from '../lib/supabase';
+import { auth } from '../data/auth';
+import { store } from '../data/store';
 
 import navigation from '../components/navigation/navigation.vue';
-import buttonLg from '../components/button/button-lg.vue';
-import sliderBar from '../components/slider/slider-bar.vue';
-import checkbox from '../components/toggle/checkbox.vue';
-import colorPicker from '../components/input/color-picker.vue';
-
-// ICONS
-import { ArrowUp, ArrowDown } from 'lucide-vue-next';
+import cardQr from '../components/card/card-qr.vue';
 
 export default {
-  name: 'Home',
+  name: 'My-qr',
   components: {
     navigation,
-    buttonLg,
-    sliderBar,
-    checkbox,
-    colorPicker,
-
-    // ICONS
-    ArrowUp,
-    ArrowDown,
+    cardQr,
   },
   data() {
     return {
-      steps: {
-        currentStep: 1,
-        steps: [
-          {
-            step: 1,
-            title: 'Inserisci il link',
-            description: '',
-          },
-          {
-            step: 2,
-            title: 'Scegli il tipo di QR',
-            description: '',
-          },
-          {
-            step: 3,
-            title: 'Personalizza il QR',
-            description: '',
-          },
-        ],
-      },
-
-      // QR Code settings
-      value: '',
-      qrSize: 300,
-      background: '#ffffff',
-      foreground: '#000000',
-      margin: 10,
-      dotsStyle: 'square',
-      cornerStyle: 'square',
-      gradient: false,
-      gradientStartColor: '#000000',
-      gradientEndColor: '#38bdf8',
-      gradientRotation: 0,
-      showImage: false,
-      imageSize: 40,
-      imageSettings: {
-        src: '',
-      },
-      qrCode: null,
-
-      dotStyles: [
-        { label: 'Quadrato', value: 'square' },
-        { label: 'Arrotondato', value: 'rounded' },
-        { label: 'Punti', value: 'dots' },
-        { label: 'Elegante', value: 'classy' },
-        { label: 'Extra Arrotondato', value: 'extra-rounded' },
-      ],
-
-      cornerStyles: [
-        { label: 'Quadrato', value: 'square' },
-        { label: 'Punto', value: 'dot' },
-        { label: 'Arrotondato', value: 'rounded' },
-        { label: 'Extra Arrotondato', value: 'extra-rounded' },
-      ],
-
-      // Formati di download disponibili
-      selectedFormat: 'png',
-      downloadFormats: [
-        { label: 'PNG', value: 'png' },
-        { label: 'JPG', value: 'jpeg' },
-        { label: 'SVG', value: 'svg' },
-        { label: 'PDF', value: 'pdf' },
-      ],
+      auth,
+      store,
     };
   },
-  computed: {
-    qrOptions() {
-      return {
-        width: this.qrSize,
-        height: this.qrSize,
-        type: 'svg',
-        data: this.value,
-        image: this.showImage ? this.imageSettings.src : undefined,
-        margin: this.margin,
-        dotsOptions: {
-          color: this.foreground,
-          type: this.dotsStyle,
-          gradient: this.gradient
-            ? {
-                type: 'linear',
-                rotation: (this.gradientRotation * Math.PI) / 180,
-                colorStops: [
-                  { offset: 0, color: this.gradientStartColor },
-                  { offset: 1, color: this.gradientEndColor },
-                ],
-              }
-            : undefined,
-        },
-        backgroundOptions: {
-          color: this.background,
-        },
-        cornersSquareOptions: {
-          type: this.cornerStyle,
-          color: this.foreground,
-        },
-        cornersDotOptions: {
-          type: this.cornerStyle === 'square' ? 'square' : 'dot',
-          color: this.foreground,
-        },
-        imageOptions: {
-          hideBackgroundDots: true,
-          imageSize: this.imageSize / 100,
-          margin: 5,
-          crossOrigin: 'anonymous',
-        },
-      };
-    },
-  },
   methods: {
-    handlePrevStep() {
-      if (this.steps.currentStep > 1) {
-        this.steps.currentStep--;
-      }
-    },
-    handleNextStep() {
-      if (this.steps.currentStep === 1 && !this.value) {
-        alert('Inserisci un link');
+    async getQrCodes() {
+      this.store.qrCodes.loading = true;
+
+      const PID = this.auth.profile.id;
+
+      if (!PID) {
+        this.store.qrCodes.loading = false;
         return;
       }
 
-      if (this.steps.currentStep < 3) {
-        this.steps.currentStep++;
-      }
-    },
-    generateQRCode() {
-      if (this.qrCode) {
-        this.$refs.qrCodeContainer.innerHTML = '';
-      }
+      try {
+        const { data, error } = await supabase.from('qr_codes').select('*').eq('pid', PID);
 
-      this.qrCode = new QRCodeStyling(this.qrOptions);
-      this.qrCode.append(this.$refs.qrCodeContainer);
-    },
-    resetToDefaults() {
-      if (confirm('Sei sicuro di voler resettare le impostazioni?')) {
-        this.value = '';
-        this.qrSize = 300;
-        this.background = '#ffffff';
-        this.foreground = '#000000';
-        this.margin = 10;
-        this.dotsStyle = 'square';
-        this.cornerStyle = 'square';
-        this.gradient = false;
-        this.gradientStartColor = '#000000';
-        this.gradientEndColor = '#38bdf8';
-        this.gradientRotation = 0;
-        this.showImage = false;
-        this.imageSize = 40;
-        this.imageSettings.src = '';
-        this.selectedFormat = 'png';
-
-        // Reset dell'input file
-        if (this.$refs.fileInput) {
-          this.$refs.fileInput.value = '';
+        if (!error) {
+          this.store.qrCodes.data = data;
         }
-
-        this.steps.currentStep = 1;
-      }
-    },
-    downloadQR() {
-      if (this.qrCode) {
-        this.qrCode.download({
-          name: 'personalized-qr-code',
-          extension: this.selectedFormat,
-        });
-      }
-    },
-    handleOpenFile() {
-      const fileInput = this.$refs.fileInput;
-      if (fileInput) {
-        fileInput.click();
-      }
-    },
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        // Verifica che sia un'immagine
-        if (!file.type.startsWith('image/')) {
-          alert('Per favore seleziona un file immagine valido.');
-          return;
-        }
-
-        // Verifica dimensione file (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          alert('Il file è troppo grande. Dimensione massima: 5MB.');
-          return;
-        }
-
-        // Crea URL temporaneo per l'immagine
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.imageSettings.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-    removeImage() {
-      this.imageSettings.src = '';
-      // Reset dell'input file
-      if (this.$refs.fileInput) {
-        this.$refs.fileInput.value = '';
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.store.qrCodes.loading = false;
       }
     },
   },
   watch: {
-    qrOptions: {
-      handler() {
-        this.generateQRCode();
+    'auth.profile': {
+      handler(value) {
+        if (value) {
+          this.getQrCodes();
+        }
       },
       deep: true,
     },
   },
-  mounted() {
-    this.generateQRCode();
+  async mounted() {
+    if (this.auth.profile) await this.getQrCodes();
   },
 };
 </script>
 
-<style scoped>
-input,
-input::placeholder {
-  font-size: 2rem;
-  color: #040f0f;
-}
-
-input::placeholder {
-  opacity: 0.3;
-}
-
-.step-container {
-  transition-property: transform;
-  transition-duration: 300ms;
-  transition-timing-function: ease;
-}
-</style>
+<style scoped></style>

@@ -2,7 +2,7 @@
   <div
     class="nav fixed z-[9999] top-7 md:left-7 left-3 w-fit h-fit p-2.5 rounded-full flex md:flex-col flex-row gap-2 items-center pr-shadow bg-white"
   >
-    <RouterLink to="/my-qr" class="md:order-1 order-2">
+    <RouterLink to="/" class="md:order-1 order-2">
       <iconButton icon="Grid2x2" :disabled="false" :loading="false" />
     </RouterLink>
     <RouterLink to="/new-qr" class="md:order-2 order-1">

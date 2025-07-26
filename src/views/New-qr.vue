@@ -10,6 +10,17 @@
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-1 order-2">
           <h2 class="text-xl font-semibold mb-6">Configurazione</h2>
 
+          <!-- Nome QR Code (nuovo campo) -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nome del QR Code</label>
+            <input
+              v-model="qrName"
+              type="text"
+              placeholder="Inserisci un nome per il tuo QR code..."
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+          </div>
+
           <!-- Contenuto QR -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Contenuto del QR Code</label>
@@ -142,16 +153,47 @@
           </div>
 
           <!-- Azioni -->
-          <div class="flex gap-3">
-            <button-lg variant="primary" label="Scarica QR Code" class="flex-1" @click="downloadQR" :disabled="!store.qrConfig.value" />
-            <button-lg variant="secondary" label="Reset" @click="resetToDefaults" />
+          <div class="space-y-3">
+            <div class="flex gap-3">
+              <button-lg variant="primary" label="Scarica QR Code" class="flex-1" @click="downloadQR" :disabled="!store.qrConfig.value" />
+              <button-lg variant="secondary" label="Reset" @click="resetToDefaults" />
+            </div>
+
+            <!-- Nuovo pulsante per salvare -->
+            <div class="flex gap-3">
+              <button-lg
+                v-if="!editingQrId"
+                variant="success"
+                :label="isSaving ? 'Salvando...' : 'Salva QR Code'"
+                class="flex-1"
+                @click="saveQRCode"
+                :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+              />
+              <button-lg
+                v-else
+                variant="success"
+                :label="isSaving ? 'Aggiornando...' : 'Aggiorna QR Code'"
+                class="flex-1"
+                @click="updateQRCode"
+                :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+              />
+              <button-lg v-if="editingQrId" variant="secondary" label="Nuovo QR" @click="createNewQR" />
+            </div>
+
+            <!-- Messaggio di stato -->
+            <div v-if="statusMessage" class="text-center text-sm" :class="statusMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
+              {{ statusMessage.text }}
+            </div>
+
+            <!-- Messaggio per utenti non autenticati -->
+            <div v-if="!auth.isAuthenticated" class="text-center text-sm text-gray-500">Effettua il login per salvare i tuoi QR code</div>
           </div>
         </div>
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-2 order-1">
           <div class="sticky top-8">
             <h2 class="text-xl font-semibold mb-6">Anteprima</h2>
             <div class="flex flex-col items-center">
-              <div class="qr-container flex items-center justify-center mb-6 p-8 bg-gray-50 rounded-xl" ref="qrCodeContainer">
+              <div ref="qrCodeContainer" class="qr-container aspect-square flex items-center justify-center mb-6 p-8 bg-gray-50 rounded-xl">
                 <div v-if="!store.qrConfig.value" class="text-gray-400 text-center">
                   <div class="w-64 h-64 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
                     <span class="text-sm">Inserisci un contenuto per vedere l'anteprima</span>
@@ -171,7 +213,7 @@
 </template>
 
 <script>
-// import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { auth } from '../data/auth';
 import { store } from '../data/store';
 
@@ -196,6 +238,10 @@ export default {
     return {
       auth,
       store,
+      qrName: '',
+      editingQrId: null,
+      isSaving: false,
+      statusMessage: null,
     };
   },
   computed: {
@@ -277,6 +323,143 @@ export default {
         });
       }
     },
+    createNewQR() {
+      this.editingQrId = null;
+      this.qrName = '';
+      this.resetToDefaults();
+      this.showStatusMessage('Pronto per creare un nuovo QR Code', 'success');
+    },
+    loadQRCode(qrCodeData) {
+      // Funzione per caricare un QR code esistente per la modifica
+      this.editingQrId = qrCodeData.id;
+      this.qrName = qrCodeData.name;
+      this.store.qrConfig.value = qrCodeData.content;
+
+      const config = qrCodeData.config;
+      this.store.qrConfig.qrSize = config.qrSize;
+      this.store.qrConfig.background = config.background;
+      this.store.qrConfig.foreground = config.foreground;
+      this.store.qrConfig.margin = config.margin;
+      this.store.qrConfig.dotsStyle = config.dotsStyle;
+      this.store.qrConfig.cornerStyle = config.cornerStyle;
+      this.store.qrConfig.gradient = config.gradient;
+      this.store.qrConfig.gradientStartColor = config.gradientStartColor;
+      this.store.qrConfig.gradientEndColor = config.gradientEndColor;
+      this.store.qrConfig.gradientRotation = config.gradientRotation;
+      this.store.qrConfig.showImage = config.showImage;
+      this.store.qrConfig.imageSettings = config.imageSettings;
+      this.store.qrConfig.selectedFormat = config.selectedFormat;
+    },
+    showStatusMessage(text, type) {
+      this.statusMessage = { text, type };
+      setTimeout(() => {
+        this.statusMessage = null;
+      }, 5000);
+    },
+
+    async loadQRCodeFromRoute() {
+      const qrId = this.$route.query.edit;
+      if (!qrId || !this.auth.isAuthenticated) return;
+
+      try {
+        const { data, error } = await supabase.from('qr_codes').select('*').eq('id', qrId).eq('user_id', this.auth.user.id).single();
+
+        if (error) throw error;
+
+        this.loadQRCode(data);
+      } catch (error) {
+        console.error('Errore nel caricare il QR Code:', error);
+        this.showStatusMessage('Errore nel caricare il QR Code', 'error');
+      }
+    },
+    async saveQRCode() {
+      this.isSaving = true;
+
+      const PID = this.auth.profile.id;
+
+      if ((!this.auth.isAuthenticated && !PID) || !this.qrName || !this.store.qrConfig.value) {
+        this.showStatusMessage('Assicurati di essere autenticato e di aver inserito nome e contenuto', 'error');
+        return;
+      }
+
+      try {
+        const qrData = {
+          name: this.qrName,
+          content: this.store.qrConfig.value,
+          config: {
+            qrSize: this.store.qrConfig.qrSize,
+            background: this.store.qrConfig.background,
+            foreground: this.store.qrConfig.foreground,
+            margin: this.store.qrConfig.margin,
+            dotsStyle: this.store.qrConfig.dotsStyle,
+            cornerStyle: this.store.qrConfig.cornerStyle,
+            gradient: this.store.qrConfig.gradient,
+            gradientStartColor: this.store.qrConfig.gradientStartColor,
+            gradientEndColor: this.store.qrConfig.gradientEndColor,
+            gradientRotation: this.store.qrConfig.gradientRotation,
+            showImage: this.store.qrConfig.showImage,
+            imageSettings: this.store.qrConfig.imageSettings,
+            selectedFormat: this.store.qrConfig.selectedFormat,
+          },
+          pid: PID,
+          created_at: new Date().toISOString(),
+        };
+
+        const { data, error } = await supabase.from('qr_codes').insert([qrData]).select();
+
+        if (error) {
+          throw error;
+        }
+
+        this.editingQrId = data[0].id;
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async updateQRCode() {
+      if (!this.auth.isAuthenticated || !this.qrName || !this.store.qrConfig.value || !this.editingQrId) {
+        return;
+      }
+
+      this.isSaving = true;
+
+      try {
+        const qrData = {
+          name: this.qrName,
+          content: this.store.qrConfig.value,
+          config: {
+            qrSize: this.store.qrConfig.qrSize,
+            background: this.store.qrConfig.background,
+            foreground: this.store.qrConfig.foreground,
+            margin: this.store.qrConfig.margin,
+            dotsStyle: this.store.qrConfig.dotsStyle,
+            cornerStyle: this.store.qrConfig.cornerStyle,
+            gradient: this.store.qrConfig.gradient,
+            gradientStartColor: this.store.qrConfig.gradientStartColor,
+            gradientEndColor: this.store.qrConfig.gradientEndColor,
+            gradientRotation: this.store.qrConfig.gradientRotation,
+            showImage: this.store.qrConfig.showImage,
+            imageSettings: this.store.qrConfig.imageSettings,
+            selectedFormat: this.store.qrConfig.selectedFormat,
+          },
+          updated_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase.from('qr_codes').update(qrData).eq('id', this.editingQrId).eq('user_id', this.auth.user.id);
+
+        if (error) {
+          throw error;
+        }
+
+        this.showStatusMessage('QR Code aggiornato con successo!', 'success');
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.isSaving = false;
+      }
+    },
   },
   watch: {
     qrOptions: {
@@ -288,6 +471,11 @@ export default {
   },
   mounted() {
     this.generateQRCode();
+
+    // Controlla se c'è un QR code da modificare nei parametri della route
+    if (this.$route.query.edit) {
+      this.loadQRCodeFromRoute();
+    }
   },
 };
 </script>
