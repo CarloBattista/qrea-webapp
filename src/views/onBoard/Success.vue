@@ -2,7 +2,7 @@
   <div class="w-full min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full mx-auto p-8">
       <div v-if="loading" class="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-      <div v-else-if="paymentStatus === 'success'" class="text-center">
+      <div v-else-if="!loading" class="text-center">
         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Check size="32" class="text-green-500" />
         </div>
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import { supabase } from '../../lib/supabase';
 import { auth } from '../../data/auth';
 import { store } from '../../data/store';
 
@@ -76,8 +77,7 @@ export default {
           this.sessionDetails = data;
 
           if (data.subscriptionId) {
-            // Qui potresti aggiornare lo stato dell'abbonamento dell'utente
-            console.log('Abbonamento attivato:', data.subscriptionId);
+            await this.updateSubscription(data);
           }
         } else {
           throw new Error(`Stato pagamento non valido: ${data.status}`);
@@ -91,6 +91,34 @@ export default {
     },
     async retryVerification() {
       await this.verifyPayment();
+    },
+    async updateSubscription(session) {
+      const UID = this.auth.user.id;
+
+      if (!UID) {
+        return;
+      }
+
+      let paymentDate;
+
+      if (session.session && session.session.created) {
+        paymentDate = new Date(session.session.created * 1000).toISOString();
+      } else {
+        paymentDate = new Date().toISOString();
+      }
+
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ plan: 'pro', stripe_id: session.subscriptionId, last_payment_date: paymentDate })
+          .eq('uid', UID);
+
+        if (!error) {
+          // console.log('Abonamento aggiornato con successo');
+        }
+      } catch (e) {
+        console.error(e);
+      }
     },
   },
   async mounted() {
