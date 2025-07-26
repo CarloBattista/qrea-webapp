@@ -5,14 +5,25 @@
       <h2 class="text-black text-base font-semibold">{{ data?.name }}</h2>
       <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
     </div>
+    <div class="w-full px-4 pt-2 flex gap-2 items-center justify-start">
+      <buttonLg @click="handleQrCode" variant="secondary" label="Edit" />
+      <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" />
+    </div>
   </div>
 </template>
 
 <script>
+import { supabase } from '../../lib/supabase';
+
 import QRCodeStyling from 'qr-code-styling';
+
+import buttonLg from '../button/button-lg.vue';
 
 export default {
   name: 'card-qr',
+  components: {
+    buttonLg,
+  },
   props: {
     data: {
       type: Object,
@@ -85,6 +96,28 @@ export default {
         console.error('Errore nella generazione del QR code:', error);
         // Mostra un messaggio di errore nel container
         this.$refs.qrCodeContainer.innerHTML = '<div class="text-red-500 text-xs text-center p-2">Errore nel caricamento</div>';
+      }
+    },
+    handleQrCode() {
+      const QR_ID = this.data.id;
+
+      if (!QR_ID) return;
+
+      console.log(QR_ID);
+    },
+
+    async deleteQrCode() {
+      if (confirm('Sei sicuro di voler eliminare il QR code?')) {
+        try {
+          const { error } = await supabase.from('qr_codes').delete().eq('id', this.data.id);
+
+          if (!error) {
+            // console.log(data);
+            this.$emit('load-qr-codes');
+          }
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
   },

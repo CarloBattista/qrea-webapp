@@ -8,8 +8,6 @@
 </template>
 
 <script>
-import { supabase } from '../lib/supabase';
-import { auth } from '../data/auth';
 import { store } from '../data/store';
 
 import navigation from '../components/navigation/navigation.vue';
@@ -23,46 +21,8 @@ export default {
   },
   data() {
     return {
-      auth,
       store,
     };
-  },
-  methods: {
-    async getQrCodes() {
-      this.store.qrCodes.loading = true;
-
-      const PID = this.auth.profile.id;
-
-      if (!PID) {
-        this.store.qrCodes.loading = false;
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.from('qr_codes').select('*').eq('pid', PID);
-
-        if (!error) {
-          this.store.qrCodes.data = data;
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        this.store.qrCodes.loading = false;
-      }
-    },
-  },
-  watch: {
-    'auth.profile': {
-      handler(value) {
-        if (value) {
-          this.getQrCodes();
-        }
-      },
-      deep: true,
-    },
-  },
-  async mounted() {
-    if (this.auth.profile) await this.getQrCodes();
   },
 };
 </script>

@@ -1,18 +1,20 @@
 <template>
   <div>
-    <RouterView @load-profile="getProfile" />
+    <RouterView @load-profile="getProfile" @load-qr-codes="getQrCodes" />
   </div>
 </template>
 
 <script>
 import { supabase } from './lib/supabase';
 import { auth } from './data/auth';
+import { store } from './data/store';
 
 export default {
   name: 'App',
   data() {
     return {
       auth,
+      store,
     };
   },
   methods: {
@@ -60,6 +62,29 @@ export default {
         console.error(e);
       }
     },
+
+    async getQrCodes() {
+      this.store.qrCodes.loading = true;
+
+      const PID = this.auth.profile.id;
+
+      if (!PID) {
+        this.store.qrCodes.loading = false;
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.from('qr_codes').select('*').eq('pid', PID);
+
+        if (!error) {
+          this.store.qrCodes.data = data;
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.store.qrCodes.loading = false;
+      }
+    },
   },
   watch: {
     'auth.user': {
@@ -71,9 +96,18 @@ export default {
       },
       deep: true,
     },
+    'auth.profile': {
+      handler(value) {
+        if (value) {
+          this.getQrCodes();
+        }
+      },
+      deep: true,
+    },
   },
-  mounted() {
-    this.getUser();
+  async mounted() {
+    await this.getUser();
+    if (this.auth.profile) await this.getQrCodes();
   },
 };
 </script>
