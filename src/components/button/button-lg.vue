@@ -3,7 +3,7 @@
     <button
       :type="type"
       :disabled="disabled"
-      class="btn-lg min-h-9 max-h-11 h-11 px-4 rounded-lg flex gap-2 items-center justify-center"
+      class="btn-lg w-[inherit] min-h-9 max-h-11 h-11 px-4 rounded-lg flex gap-2 items-center justify-center"
       :class="'color-' + variant + ' ' + { loading: loading }"
     >
       <div v-if="icon" class="h-full flex items-center justify-center">
@@ -91,10 +91,11 @@ export default {
 
 .btn-lg:disabled,
 .btn-lg.loading {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-lg:active {
+.btn-lg:not(:disabled):active {
   transform: scale(0.95);
   opacity: 0.75;
 }
@@ -105,7 +106,7 @@ export default {
   color: white;
 }
 
-.btn-lg.color-primary:hover {
+.btn-lg.color-primary:not(:disabled):hover {
   background-color: rgba(0, 0, 0, 0.75);
 }
 
@@ -116,7 +117,18 @@ export default {
   color: black;
 }
 
-.btn-lg.color-secondary:hover {
+.btn-lg.color-secondary:not(:disabled):hover {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Destructive */
+.btn-lg.color-destructive {
+  background-color: rgb(255, 35, 35);
+  border-color: transparent;
+  color: white;
+}
+
+.btn-lg.color-destructive:not(:disabled):hover {
+  background-color: rgba(255, 35, 35, 0.75);
 }
 </style>

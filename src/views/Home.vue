@@ -1,4 +1,5 @@
 <template>
+  <navigation />
   <div class="w-full md:h-svh h-[calc(100svh-300px)] flex md:flex-row flex-col items-start">
     <div class="relative z-20 w-full h-full">
       <div
@@ -164,6 +165,7 @@
 <script>
 import QRCodeStyling from 'qr-code-styling';
 
+import navigation from '../components/navigation/navigation.vue';
 import buttonLg from '../components/button/button-lg.vue';
 import sliderBar from '../components/slider/slider-bar.vue';
 import checkbox from '../components/toggle/checkbox.vue';
@@ -175,6 +177,7 @@ import { ArrowUp, ArrowDown } from 'lucide-vue-next';
 export default {
   name: 'Home',
   components: {
+    navigation,
     buttonLg,
     sliderBar,
     checkbox,
