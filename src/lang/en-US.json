@@ -8,10 +8,22 @@
         "signin": "Sign In",
         "signup": "Sign Up",
         "email": "Email address",
+        "emailPlaceholder": "Enter your email address",
         "password": "Password",
+        "passwordPlaceholder": "Enter your password",
         "firstName": "First name",
+        "firstNamePlaceholder": "Enter your first name",
         "lastName": "Last name",
-        "continue": "Continue"
+        "lastNamePlaceholder": "Enter your last name",
+        "or": "or",
+        "alreadyHaveAccount": "Already have an account?",
+        "dontHaveAccount": "Don't have an account?",
+        "forgotPassword": "Forgot password?",
+        "continue": "Continue",
+        "termsText": "By continuing you accept our",
+        "termsOfService": "Terms of Service",
+        "and": "and",
+        "privacyPolicy": "Privacy Policy"
     },
     "profile": {
         "title": "Profile and settings",
