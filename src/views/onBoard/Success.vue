@@ -1,7 +1,9 @@
 <template>
   <div class="w-full min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full mx-auto p-8">
-      <div v-if="loading" class="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+      <div v-if="loading" class="w-full flex items-center justify-center">
+        <loader />
+      </div>
       <div v-else-if="!loading" class="text-center">
         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Check size="32" class="text-green-500" />
@@ -23,6 +25,7 @@ import { auth } from '../../data/auth';
 import { store } from '../../data/store';
 
 import buttonLg from '../../components/button/button-lg.vue';
+import loader from '../../components/loader/loader.vue';
 
 // ICONS
 import { Check } from 'lucide-vue-next';
@@ -31,6 +34,7 @@ export default {
   name: 'Success',
   components: {
     buttonLg,
+    loader,
 
     // ICONS
     Check,
@@ -128,17 +132,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>
+<style scoped></style>

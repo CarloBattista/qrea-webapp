@@ -54,7 +54,7 @@
 <script>
 import { auth } from '../../data/auth';
 import { store } from '../../data/store';
-import { stripePromise } from '../../lib/stripe';
+// import { stripePromise } from '../../lib/stripe';
 
 import buttonLg from '../../components/button/button-lg.vue';
 
@@ -111,7 +111,7 @@ export default {
           throw new Error(`Errore HTTP: ${response.status}`);
         }
 
-        const { sessionId, url } = await response.json();
+        const { url } = await response.json();
 
         if (url) {
           // Reindirizza direttamente all'URL di Stripe

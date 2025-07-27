@@ -6,8 +6,8 @@
       <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
     </div>
     <div class="w-full px-4 pt-2 flex gap-2 items-center justify-start">
-      <buttonLg @click="handleQrCode" variant="secondary" label="Edit" />
-      <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" />
+      <buttonLg @click="handleQrCode" variant="secondary" label="Edit" :disabled="loading" />
+      <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" :disabled="loading" />
     </div>
   </div>
 </template>
@@ -25,6 +25,10 @@ export default {
     buttonLg,
   },
   props: {
+    loading: {
+      type: Boolean,
+      default: false,
+    },
     data: {
       type: Object,
       required: true,
