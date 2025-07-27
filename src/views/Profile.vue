@@ -18,6 +18,17 @@
               <h2 class="text-start">{{ $t('profile.email') }}</h2>
               <span class="text-end">{{ auth.user?.email }}</span>
             </div>
+            <div class="w-full h-9 flex items-center justify-between text-base font-normal">
+              <h2 class="text-start">{{ $t('profile.language') }}</h2>
+              <select
+                v-model="selectedLanguage"
+                @change="updateLanguage"
+                class="text-end bg-transparent border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="en-US">English</option>
+                <option value="it-IT">Italiano</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
@@ -70,6 +81,7 @@
 
 <script>
 import { auth } from '../data/auth';
+import { supabase } from '../lib/supabase';
 
 import navigation from '../components/navigation/navigation.vue';
 import buttonLg from '../components/button/button-lg.vue';
@@ -85,6 +97,7 @@ export default {
   data() {
     return {
       auth,
+      selectedLanguage: 'it-IT', // Default language
       subscriptionDetails: null,
       billingHistory: {
         data: null,
@@ -204,15 +217,47 @@ export default {
         this.billingHistory.loading = false;
       }
     },
+    async updateLanguage() {
+      if (!this.auth.user?.id) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
+
+        if (error) {
+          console.error('Error updating language:', error);
+          alert("Errore durante l'aggiornamento della lingua");
+          return;
+        }
+
+        // Update the local auth profile
+        if (this.auth.profile) {
+          this.auth.profile.lang = this.selectedLanguage;
+        }
+
+        // Change the app language
+        this.$i18n.locale = this.selectedLanguage;
+
+        alert('Lingua aggiornata con successo!');
+      } catch (error) {
+        console.error('Error updating language:', error);
+        alert("Errore durante l'aggiornamento della lingua");
+      }
+    },
   },
   watch: {
     'auth.profile': {
       handler(value) {
         if (value) {
+          // Set the selected language from the profile
+          this.selectedLanguage = value.lang || 'it-IT';
           this.fetchSubscriptionDetails();
         }
       },
       deep: true,
+      immediate: true,
     },
     subscriptionDetails: {
       handler(value) {
