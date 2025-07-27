@@ -22,14 +22,14 @@ const routes = [
     name: 'signup',
     component: Signup,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresGuest: true },
   },
   {
     path: '/signin',
     name: 'signin',
     component: Signin,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresGuest: true },
   },
   {
     path: '/pricing',
@@ -43,14 +43,14 @@ const routes = [
     name: 'success',
     component: Success,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
   {
     path: '/cancel',
     name: 'cancel',
     component: Cancel,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
 
   // Profile
@@ -59,7 +59,7 @@ const routes = [
     name: 'profile',
     component: Profile,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
 
   // General
@@ -68,21 +68,21 @@ const routes = [
     name: 'home',
     component: Home,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
   {
     path: '/new-qr',
     name: 'new-qr',
     component: NewQr,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
   {
     path: '/edit-qr/:id',
     name: 'edit-qr',
     component: EditQr,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator', requiresAuth: true },
   },
 ];
 
@@ -98,6 +98,22 @@ router.beforeEach((to, from, next) => {
   } else {
     document.title = 'QRGenerator';
   }
+
+  const isAuthenticated = localStorage.getItem('isAuthenticated');
+  const authIsParsed = JSON.parse(isAuthenticated);
+  console.log(authIsParsed);
+
+  if (to.meta.requiresGuest && authIsParsed) {
+    next({ name: 'home' });
+    return;
+  }
+
+  // Se la rotta richiede autenticazione e l'utente non è autenticato
+  if (to.meta.requiresAuth && !authIsParsed) {
+    next({ name: 'signin' });
+    return;
+  }
+
   next();
 });
 
