@@ -5,8 +5,8 @@
     <RouterLink to="/" class="md:order-1 order-2">
       <iconButton icon="Grid2x2" :disabled="false" :loading="false" />
     </RouterLink>
-    <RouterLink to="/new-qr" class="md:order-2 order-1">
-      <iconButton icon="Plus" :disabled="canCreateQR ? false : true" :loading="false" />
+    <RouterLink :to="canCreateQR ? '/pricing' : '/new-qr'" class="md:order-2 order-1">
+      <iconButton icon="Plus" :disabled="canCreateQR ? true : false" :loading="false" />
     </RouterLink>
     <RouterLink to="/profile" class="md:order-3 order-0 md:mt-1.5 md:mr-0 mr-1.5">
       <avatarRing :showRing="true" :initial="userInitials" :progress="qrProgress" />
@@ -34,33 +34,16 @@ export default {
     };
   },
   computed: {
-    userPlan() {
-      if (!this.auth.profile) {
-        return 'free';
-      }
-      return this.auth.profile.plan || 'free';
-    },
-    qrLimit() {
-      return this.userPlan === 'pro' ? 20 : 2;
-    },
-    currentQrCount() {
-      if (!this.store.qrCodes.data) {
-        return 0;
-      }
-      return this.store.qrCodes.data.length;
-    },
-    canCreateQR() {
-      return this.currentQrCount < this.qrLimit;
-    },
     qrProgress() {
-      if (this.qrLimit === 0) {
-        return 0;
+      if (this.store.planConfig.qr_limit === 0) {
+        return 100;
       }
-      return Math.min(100, (this.currentQrCount / this.qrLimit) * 100);
+      const usedPercentage = Math.min(100, (this.store.qrCodes.data?.length / this.store.planConfig.qr_limit) * 100);
+      return 100 - usedPercentage;
     },
     userInitials() {
       if (!this.auth.profile) {
-        return 'cb';
+        return '';
       }
 
       const firstName = this.auth.profile.first_name || '';
@@ -74,7 +57,7 @@ export default {
         return this.auth.user.email.substring(0, 2).toLowerCase();
       }
 
-      return 'NaN';
+      return '';
     },
   },
 };

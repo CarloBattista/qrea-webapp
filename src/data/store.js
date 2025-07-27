@@ -43,6 +43,13 @@ export const store = reactive({
     loading: false,
   },
 
+  planConfig: {
+    can_create_qr: true,
+    qr_limit: 0,
+    free_plan_limit_create_qr: 2,
+    pro_plan_limit_create_qr: 20,
+  },
+
   qrConfig: {
     value: '',
     qrSize: 300,

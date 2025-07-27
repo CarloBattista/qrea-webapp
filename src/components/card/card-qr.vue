@@ -1,13 +1,18 @@
 <template>
-  <div class="card-qr w-full rounded-2xl pr-shadow bg-white">
-    <div ref="qrCodeContainer" class="qr-container w-full max-h-[250px] px-4 aspect-square flex items-center justify-center"></div>
-    <div class="w-full px-4 pb-4 flex flex-col gap-1">
-      <h2 class="text-black text-base font-semibold">{{ data?.name }}</h2>
-      <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
-    </div>
-    <div class="w-full px-4 pt-2 flex gap-2 items-center justify-start">
-      <buttonLg @click="handleQrCode" variant="secondary" label="Edit" :disabled="loading" />
-      <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" :disabled="loading" />
+  <div class="card-qr w-full rounded-2xl flex md:flex-col flex-row items-start pr-shadow bg-white">
+    <div
+      ref="qrCodeContainer"
+      class="qr-container w-full max-h-[250px] px-4 md:py-0 py-4 aspect-square flex items-center justify-center overflow-hidden"
+    ></div>
+    <div class="w-full md:h-fit h-full md:py-0 py-4 flex flex-col justify-between">
+      <div class="w-full px-4 pb-4 flex flex-col gap-1">
+        <h2 class="text-black text-base font-semibold">{{ data?.name }}</h2>
+        <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
+      </div>
+      <div class="w-full px-4 py-2 flex gap-2 items-center justify-start">
+        <buttonLg @click="handleQrCode" variant="secondary" label="Edit" :disabled="loading" />
+        <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" :disabled="loading" />
+      </div>
     </div>
   </div>
 </template>
@@ -46,7 +51,9 @@ export default {
       const config = this.data.config;
 
       return {
-        type: 'svg',
+        width: 250,
+        height: 250,
+        type: 'canvas',
         data: this.data.content,
         image: config.showImage ? config.imageSettings?.src : undefined,
         margin: config.margin || 10,
@@ -96,10 +103,8 @@ export default {
       try {
         this.qrCode = new QRCodeStyling(this.qrOptions);
         this.qrCode.append(this.$refs.qrCodeContainer);
-      } catch (error) {
-        console.error('Errore nella generazione del QR code:', error);
-        // Mostra un messaggio di errore nel container
-        this.$refs.qrCodeContainer.innerHTML = '<div class="text-red-500 text-xs text-center p-2">Errore nel caricamento</div>';
+      } catch (e) {
+        console.error(e);
       }
     },
     handleQrCode() {
@@ -144,4 +149,12 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.qr-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+</style>

@@ -4,8 +4,8 @@
     <div v-if="store.qrCodes.loading" class="w-full flex items-center justify-center">
       <loader />
     </div>
-    <div v-else-if="!store.qrCodes.loading" class="max-w-[768px] mx-auto grid grid-cols-2 md:grid-cols-3 gap-5">
-      <cardQr v-for="(qr, qrIndex) in store.qrCodes.data" :key="qrIndex" :data="qr" />
+    <div v-else-if="!store.qrCodes.loading" class="max-w-[768px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+      <cardQr v-for="(qr, qrIndex) in store.qrCodes.data" :key="qrIndex" :data="qr" @load-qr-codes="$emit('load-qr-codes')" />
     </div>
   </div>
 </template>

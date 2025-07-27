@@ -161,7 +161,7 @@
                   @click="saveQRCode"
                   variant="primary"
                   :label="isSaving ? 'Salvando...' : 'Salva QR Code'"
-                  :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+                  :disabled="!store.qrConfig.value || !store.planConfig.can_create_qr || !qrName || !auth.isAuthenticated || isSaving"
                   class="sm:w-fit w-full"
                 />
               </div>
@@ -170,19 +170,9 @@
                 v-if="!editingQrId"
                 variant="primary"
                 label="Scarica QR Code"
-                :disabled="!store.qrConfig.value"
+                :disabled="!store.qrConfig.value || !store.planConfig.can_create_qr"
                 class="sm:w-fit w-full"
               />
-            </div>
-            <div class="w-full flex gap-3">
-              <button-lg
-                @click="updateQRCode"
-                variant="success"
-                :label="isSaving ? 'Aggiornando...' : 'Aggiorna QR Code'"
-                :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
-                class="sm:w-fit w-full"
-              />
-              <button-lg @click="createNewQR" v-if="editingQrId" variant="secondary" label="Nuovo QR" class="sm:w-fit w-full" />
             </div>
           </div>
         </div>
@@ -312,19 +302,36 @@ export default {
         this.store.qrConfig.selectedFormat = 'png';
       }
     },
+    resetToDefaultsWithoutConfirm() {
+      this.store.qrConfig.value = '';
+      this.store.qrConfig.qrSize = 300;
+      this.store.qrConfig.background = '#ffffff';
+      this.store.qrConfig.foreground = '#000000';
+      this.store.qrConfig.margin = 10;
+      this.store.qrConfig.dotsStyle = 'square';
+      this.store.qrConfig.cornerStyle = 'square';
+      this.store.qrConfig.gradient = false;
+      this.store.qrConfig.gradientStartColor = '#000000';
+      this.store.qrConfig.gradientEndColor = '#38bdf8';
+      this.store.qrConfig.gradientRotation = 0;
+      this.store.qrConfig.showImage = false;
+      this.store.qrConfig.imageSettings.size = 40;
+      this.store.qrConfig.imageSettings.src = '';
+      this.store.qrConfig.selectedFormat = 'png';
+    },
     downloadQR() {
+      const canCreate = this.store.planConfig.can_create_qr;
+
+      if (!canCreate) {
+        return;
+      }
+
       if (this.store.qrConfig.qrCode) {
         this.store.qrConfig.qrCode.download({
           name: 'personalized-qr-code',
           extension: this.store.qrConfig.selectedFormat,
         });
       }
-    },
-    createNewQR() {
-      this.editingQrId = null;
-      this.qrName = '';
-      this.resetToDefaults();
-      this.showStatusMessage('Pronto per creare un nuovo QR Code', 'success');
     },
     loadQRCode(qrCodeData) {
       // Funzione per caricare un QR code esistente per la modifica
@@ -347,12 +354,6 @@ export default {
       this.store.qrConfig.imageSettings = config.imageSettings;
       this.store.qrConfig.selectedFormat = config.selectedFormat;
     },
-    showStatusMessage(text, type) {
-      this.statusMessage = { text, type };
-      setTimeout(() => {
-        this.statusMessage = null;
-      }, 5000);
-    },
 
     async loadQRCodeFromRoute() {
       const qrId = this.$route.query.edit;
@@ -364,63 +365,25 @@ export default {
         if (error) throw error;
 
         this.loadQRCode(data);
-      } catch (error) {
-        console.error('Errore nel caricare il QR Code:', error);
-        this.showStatusMessage('Errore nel caricare il QR Code', 'error');
+      } catch (e) {
+        console.error(e);
       }
     },
     async saveQRCode() {
       this.isSaving = true;
 
       const PID = this.auth.profile.id;
+      const canCreate = this.store.planConfig.can_create_qr;
+
+      if (!canCreate) {
+        this.isSaving = false;
+        return;
+      }
 
       if ((!this.auth.isAuthenticated && !PID) || !this.qrName || !this.store.qrConfig.value) {
-        this.showStatusMessage('Assicurati di essere autenticato e di aver inserito nome e contenuto', 'error');
-        return;
-      }
-
-      try {
-        const qrData = {
-          name: this.qrName,
-          content: this.store.qrConfig.value,
-          config: {
-            qrSize: this.store.qrConfig.qrSize,
-            background: this.store.qrConfig.background,
-            foreground: this.store.qrConfig.foreground,
-            margin: this.store.qrConfig.margin,
-            dotsStyle: this.store.qrConfig.dotsStyle,
-            cornerStyle: this.store.qrConfig.cornerStyle,
-            gradient: this.store.qrConfig.gradient,
-            gradientStartColor: this.store.qrConfig.gradientStartColor,
-            gradientEndColor: this.store.qrConfig.gradientEndColor,
-            gradientRotation: this.store.qrConfig.gradientRotation,
-            showImage: this.store.qrConfig.showImage,
-            imageSettings: this.store.qrConfig.imageSettings,
-            selectedFormat: this.store.qrConfig.selectedFormat,
-          },
-          pid: PID,
-          created_at: new Date().toISOString(),
-        };
-
-        const { data, error } = await supabase.from('qr_codes').insert([qrData]).select();
-
-        if (error) {
-          throw error;
-        }
-
-        this.editingQrId = data[0].id;
-      } catch (e) {
-        console.error(e);
-      } finally {
         this.isSaving = false;
-      }
-    },
-    async updateQRCode() {
-      if (!this.auth.isAuthenticated || !this.qrName || !this.store.qrConfig.value || !this.editingQrId) {
         return;
       }
-
-      this.isSaving = true;
 
       try {
         const qrData = {
@@ -441,16 +404,32 @@ export default {
             imageSettings: this.store.qrConfig.imageSettings,
             selectedFormat: this.store.qrConfig.selectedFormat,
           },
-          updated_at: new Date().toISOString(),
         };
 
-        const { error } = await supabase.from('qr_codes').update(qrData).eq('id', this.editingQrId).eq('user_id', this.auth.user.id);
+        if (this.editingQrId) {
+          qrData.updated_at = new Date().toISOString();
 
-        if (error) {
-          throw error;
+          const { error } = await supabase.from('qr_codes').update(qrData).eq('id', this.editingQrId).eq('user_id', this.auth.user.id);
+
+          if (error) {
+            throw error;
+          }
+        } else {
+          qrData.pid = PID;
+          qrData.created_at = new Date().toISOString();
+
+          const { data, error } = await supabase.from('qr_codes').insert([qrData]).select();
+
+          if (error) {
+            throw error;
+          }
+
+          this.editingQrId = data[0].id;
         }
 
-        this.showStatusMessage('QR Code aggiornato con successo!', 'success');
+        this.resetToDefaultsWithoutConfirm();
+        this.$emit('load-qr-codes');
+        this.$router.push({ name: 'home' });
       } catch (e) {
         console.error(e);
       } finally {
@@ -469,7 +448,6 @@ export default {
   mounted() {
     this.generateQRCode();
 
-    // Controlla se c'è un QR code da modificare nei parametri della route
     if (this.$route.query.edit) {
       this.loadQRCodeFromRoute();
     }

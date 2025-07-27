@@ -29,7 +29,7 @@ export default {
     profile_image: String,
     progress: {
       type: Number,
-      default: 0,
+      default: 100,
       validator: (value) => value >= 0 && value <= 100,
     },
     showRing: {
@@ -47,13 +47,13 @@ export default {
     },
     dynamicRingColor() {
       if (this.progress === 0) {
-        return 'transparent';
-      } else if (this.progress < 25) {
-        return '#FF2323'; // Rosso
-      } else if (this.progress < 50) {
+        return 'transparent'; // Verde
+      } else if (this.progress <= 25) {
         return '#FF8623'; // Arancione
+      } else if (this.progress <= 50) {
+        return '#FF2323'; // Rosso
       } else {
-        return '#42FF42'; // Verde
+        return '#42FF42';
       }
     },
   },

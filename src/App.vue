@@ -17,6 +17,20 @@ export default {
       store,
     };
   },
+  computed: {
+    qrLimit() {
+      return this.auth.profile?.plan === 'pro' ? this.store.planConfig.pro_plan_limit_create_qr : this.store.planConfig.free_plan_limit_create_qr;
+    },
+    currentQrCount() {
+      if (!this.store.qrCodes.data) {
+        return 0;
+      }
+      return this.store.qrCodes.data.length;
+    },
+    canCreateQR() {
+      return this.currentQrCount < this.qrLimit;
+    },
+  },
   methods: {
     async getUser() {
       try {
@@ -103,6 +117,18 @@ export default {
         }
       },
       deep: true,
+    },
+    canCreateQR: {
+      handler(value) {
+        this.store.planConfig.can_create_qr = value;
+      },
+      immediate: true,
+    },
+    qrLimit: {
+      handler(value) {
+        this.store.planConfig.qr_limit = value;
+      },
+      immediate: true,
     },
   },
   async mounted() {
