@@ -45,8 +45,8 @@
             @click="handleSubscription(plan)"
             :variant="plan.value === 'free' ? 'secondary' : 'secondary-inverted'"
             leftIcon="ArrowRight"
-            :label="plan.value === 'free' ? 'Upgrade to Pro' : 'Start Today'"
-            :disabled="plan.value === 'free'"
+            :label="getButtonLabel(plan)"
+            :disabled="isButtonDisabled(plan)"
             class="w-full"
           />
           <div class="w-full flex flex-col gap-2.5">
@@ -91,9 +91,45 @@ export default {
     handlePlan(plan) {
       this.currentPlan = plan;
     },
+    getButtonLabel(plan) {
+      const profilePlan = this.auth.profile?.plan;
+
+      if (plan.value === 'free') {
+        // Se l'utente è già abbonato al piano Pro, mostra messaggio specifico
+        if (profilePlan === 'pro') {
+          return 'Sei già un utente Pro';
+        }
+        return 'Upgrade to Pro';
+      }
+
+      if (profilePlan === 'pro') {
+        return 'Piano già attivo';
+      }
+
+      return 'Start Today';
+    },
+    isButtonDisabled(plan) {
+      const profilePlan = this.auth.profile?.plan;
+
+      if (plan.value === 'free') {
+        return true;
+      }
+
+      // Disabilita il pulsante Pro se l'utente è già abbonato al piano Pro
+      if (plan.value === 'pro' && profilePlan === 'pro') {
+        return true;
+      }
+
+      return false;
+    },
 
     async handleSubscription(plan) {
       const priceId = plan.stripe_products_id[this.currentPlan];
+      const profilePlan = this.auth.profile.plan;
+
+      if (profilePlan === 'pro') {
+        return;
+      }
 
       if (!this.auth.isAuthenticated) {
         this.$router.push({ name: 'signin' });
@@ -130,10 +166,8 @@ export default {
         } else {
           console.error('URL di checkout non ricevuto dal server');
         }
-      } catch (error) {
-        console.error('Errore nella creazione della sessione di checkout:', error);
-        // Qui potresti mostrare un messaggio di errore all'utente
-        alert('Si è verificato un errore durante la creazione del pagamento. Riprova.');
+      } catch (e) {
+        console.error(e);
       }
     },
   },
