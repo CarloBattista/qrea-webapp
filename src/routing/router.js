@@ -13,7 +13,7 @@ import Profile from '../views/Profile.vue';
 // General
 import Home from '../views/Home.vue';
 import NewQr from '../views/New-qr.vue';
-import Qr from '../views/Qr.vue';
+import EditQr from '../views/Edit-qr.vue';
 
 const routes = [
   // OnBoard
@@ -78,9 +78,9 @@ const routes = [
     meta: { title: 'QRGenerator' },
   },
   {
-    path: '/qr/:id',
-    name: 'qr',
-    component: Qr,
+    path: '/edit-qr/:id',
+    name: 'edit-qr',
+    component: EditQr,
     props: true,
     meta: { title: 'QRGenerator' },
   },

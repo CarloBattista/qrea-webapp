@@ -103,7 +103,7 @@ export default {
 
       if (!QR_ID) return;
 
-      this.$router.push({ name: 'qr', params: { id: QR_ID } });
+      this.$router.push({ name: 'edit-qr', params: { id: QR_ID } });
     },
 
     async deleteQrCode() {

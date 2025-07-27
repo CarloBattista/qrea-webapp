@@ -1,5 +1,5 @@
 <template>
-  <div></div>
+  <div v-if="!qrCode.loading">{{ qrCode.data }}</div>
 </template>
 
 <script>
@@ -8,7 +8,7 @@ import { auth } from '../data/auth';
 import { store } from '../data/store';
 
 export default {
-  name: 'Qr',
+  name: 'Edit-qr',
   data() {
     return {
       auth,
@@ -64,6 +64,9 @@ export default {
       },
       deep: true,
     },
+  },
+  async mounted() {
+    if (this.auth.profile && this.qrCodeId) await this.getQrCode();
   },
 };
 </script>
