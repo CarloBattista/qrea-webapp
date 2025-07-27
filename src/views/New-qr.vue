@@ -68,7 +68,7 @@
                 :label="$t('editor.enableGradient')"
                 :disabled="isFreePlan"
               />
-              <badge v-if="auth.profile.plan === 'free'" label="Pro" />
+              <badge v-if="isFreePlan" label="Pro" />
             </div>
 
             <div v-if="store.qrConfig.gradient" class="space-y-4">
@@ -95,38 +95,32 @@
           <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('editor.styles') }}</h3>
             <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.dotsStyle') }}</label>
-                <select
-                  v-model="store.qrConfig.dotsStyle"
-                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                >
-                  <option
-                    v-for="style in store.qrConfig.dotStyles"
-                    :key="style.value"
-                    :value="style.value"
-                    :disabled="isFreePlan && (style.value === 'dots' || style.value === 'classy' || style.value === 'extra-rounded')"
-                  >
-                    {{ style.label }}
-                  </option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.cornersStyle') }}</label>
-                <select
-                  v-model="store.qrConfig.cornerStyle"
-                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                >
-                  <option
-                    v-for="style in store.qrConfig.cornerStyles"
-                    :key="style.value"
-                    :value="style.value"
-                    :disabled="isFreePlan && (style.value === 'rounded' || style.value === 'extra-rounded')"
-                  >
-                    {{ style.label }}
-                  </option>
-                </select>
-              </div>
+              <dropdown class="w-full" :label="$t('editor.dotsStyle')" :selected="selectedDotsStyleLabel" :disabled="false">
+                <template #content>
+                  <dropdownOption
+                    v-for="(option, optionIndex) in store.qrConfig.dotStyles"
+                    @click="handleDotsStyleChange(option)"
+                    :key="optionIndex"
+                    :value="option.value"
+                    :option="option.label"
+                    :selected="store.qrConfig.dotsStyle"
+                    :disabled="isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')"
+                  />
+                </template>
+              </dropdown>
+              <dropdown class="w-full" :label="$t('editor.cornersStyle')" :selected="selectedCornerStyleLabel" :disabled="false">
+                <template #content>
+                  <dropdownOption
+                    v-for="(option, optionIndex) in store.qrConfig.cornerStyles"
+                    @click="handleCornerStyleChange(option)"
+                    :key="optionIndex"
+                    :value="option.value"
+                    :option="option.label"
+                    :selected="store.qrConfig.cornerStyle"
+                    :disabled="isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')"
+                  />
+                </template>
+              </dropdown>
             </div>
           </div>
 
@@ -139,7 +133,7 @@
                 :label="$t('editor.addCenterImage')"
                 :disabled="isFreePlan"
               />
-              <badge v-if="auth.profile.plan === 'free'" label="Pro" />
+              <badge v-if="isFreePlan" label="Pro" />
             </div>
 
             <div v-if="store.qrConfig.showImage" class="space-y-4">
@@ -163,20 +157,19 @@
 
           <!-- Formato Download -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.downloadFormat') }}</label>
-            <select
-              v-model="store.qrConfig.selectedFormat"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-            >
-              <option
-                v-for="format in store.qrConfig.downloadFormats"
-                :key="format.value"
-                :value="format.value"
-                :disabled="isFreePlan && (format.value === 'svg' || format.value === 'pdf')"
-              >
-                {{ format.label }}
-              </option>
-            </select>
+            <dropdown class="w-full" :label="$t('editor.downloadFormat')" :selected="selectedFormatLabel" :disabled="false">
+              <template #content>
+                <dropdownOption
+                  v-for="(option, optionIndex) in store.qrConfig.downloadFormats"
+                  @click="handleFormatChange(option)"
+                  :key="optionIndex"
+                  :value="option.value"
+                  :option="option.label"
+                  :selected="store.qrConfig.selectedFormat"
+                  :disabled="isFreePlan && (option.value === 'svg' || option.value === 'pdf')"
+                />
+              </template>
+            </dropdown>
           </div>
 
           <!-- Azioni -->
@@ -239,6 +232,8 @@ import colorPicker from '../components/input/color-picker.vue';
 import checkbox from '../components/toggle/checkbox.vue';
 import buttonLg from '../components/button/button-lg.vue';
 import badge from '../components/badge/badge.vue';
+import dropdown from '../components/dropdown/dropdown.vue';
+import dropdownOption from '../components/dropdown/dropdown-option.vue';
 
 export default {
   name: 'New-qr',
@@ -249,6 +244,8 @@ export default {
     checkbox,
     buttonLg,
     badge,
+    dropdown,
+    dropdownOption,
   },
   data() {
     return {
@@ -305,15 +302,33 @@ export default {
     isFreePlan() {
       return !this.auth.profile || this.auth.profile.plan === 'free';
     },
+    selectedDotsStyleLabel() {
+      const selectedStyle = this.store.qrConfig.dotStyles.find((style) => style.value === this.store.qrConfig.dotsStyle);
+      return selectedStyle ? selectedStyle.label : '';
+    },
+    selectedCornerStyleLabel() {
+      const selectedStyle = this.store.qrConfig.cornerStyles.find((style) => style.value === this.store.qrConfig.cornerStyle);
+      return selectedStyle ? selectedStyle.label : '';
+    },
+    selectedFormatLabel() {
+      const selectedFormat = this.store.qrConfig.downloadFormats.find((format) => format.value === this.store.qrConfig.selectedFormat);
+      return selectedFormat ? selectedFormat.label : '';
+    },
   },
   methods: {
     generateQRCode() {
-      if (this.store.qrConfig.qrCode) {
-        this.$refs.qrCodeContainer.innerHTML = '';
-      }
+      this.$nextTick(() => {
+        if (!this.$refs.qrCodeContainer) {
+          return;
+        }
 
-      this.store.qrConfig.qrCode = new QRCodeStyling(this.qrOptions);
-      this.store.qrConfig.qrCode.append(this.$refs.qrCodeContainer);
+        if (this.store.qrConfig.qrCode) {
+          this.$refs.qrCodeContainer.innerHTML = '';
+        }
+
+        this.store.qrConfig.qrCode = new QRCodeStyling(this.qrOptions);
+        this.store.qrConfig.qrCode.append(this.$refs.qrCodeContainer);
+      });
     },
     resetToDefaults() {
       if (confirm('Sei sicuro di voler resettare le impostazioni?')) {
@@ -385,6 +400,28 @@ export default {
       this.store.qrConfig.showImage = config.showImage;
       this.store.qrConfig.imageSettings = config.imageSettings;
       this.store.qrConfig.selectedFormat = config.selectedFormat;
+    },
+
+    handleDotsStyleChange(option) {
+      if (this.isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')) {
+        this.$router.push({ name: 'pricing' });
+        return;
+      }
+      this.store.qrConfig.dotsStyle = option.value;
+    },
+    handleCornerStyleChange(option) {
+      if (this.isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')) {
+        this.$router.push({ name: 'pricing' });
+        return;
+      }
+      this.store.qrConfig.cornerStyle = option.value;
+    },
+    handleFormatChange(option) {
+      if (this.isFreePlan && (option.value === 'svg' || option.value === 'pdf')) {
+        this.$router.push({ name: 'pricing' });
+        return;
+      }
+      this.store.qrConfig.selectedFormat = option.value;
     },
 
     async loadQRCodeFromRoute() {
@@ -475,33 +512,6 @@ export default {
         this.generateQRCode();
       },
       deep: true,
-    },
-    'store.qrConfig.dotsStyle': {
-      handler(dotsStyle) {
-        if (this.isFreePlan && (dotsStyle === 'dots' || dotsStyle === 'classy' || dotsStyle === 'extra-rounded')) {
-          this.store.qrConfig.dotsStyle = 'square';
-          this.$router.push({ name: 'pricing' });
-        }
-      },
-      immediate: false,
-    },
-    'store.qrConfig.cornerStyle': {
-      handler(cornerStyle) {
-        if (this.isFreePlan && (cornerStyle === 'rounded' || cornerStyle === 'extra-rounded')) {
-          this.store.qrConfig.cornerStyle = 'square';
-          this.$router.push({ name: 'pricing' });
-        }
-      },
-      immediate: false,
-    },
-    'store.qrConfig.selectedFormat': {
-      handler(format) {
-        if (this.isFreePlan && (format === 'svg' || format === 'pdf')) {
-          this.store.qrConfig.selectedFormat = 'png';
-          this.$router.push({ name: 'pricing' });
-        }
-      },
-      immediate: false,
     },
   },
   mounted() {
