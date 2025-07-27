@@ -20,7 +20,7 @@
             </div>
           </div>
         </div>
-        <div v-if="subscriptionDetails" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
+        <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">Subscription Plan</h2>
           <div class="w-full flex flex-col">
             <div class="w-full h-9 flex items-center justify-between text-base font-normal">
@@ -28,7 +28,7 @@
               <badge :label="typeSubscription" />
             </div>
           </div>
-          <div v-if="isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
+          <div v-if="subscriptionDetails && isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
             <h2 class="text-start">Scade il</h2>
             <span class="text-end">{{ formatDate(subscriptionDetails.cancel_at) }}</span>
           </div>
@@ -175,10 +175,9 @@ export default {
         const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`);
         if (response.ok) {
           this.subscriptionDetails = await response.json();
-          // console.log(this.subscriptionDetails);
         }
-      } catch (error) {
-        console.error('Errore nel recupero dei dettagli abbonamento:', error);
+      } catch (e) {
+        console.error(e);
       }
     },
     async fetchBillingHistory() {

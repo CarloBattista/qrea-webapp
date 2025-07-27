@@ -101,7 +101,6 @@ router.beforeEach((to, from, next) => {
 
   const isAuthenticated = localStorage.getItem('isAuthenticated');
   const authIsParsed = JSON.parse(isAuthenticated);
-  console.log(authIsParsed);
 
   if (to.meta.requiresGuest && authIsParsed) {
     next({ name: 'home' });
