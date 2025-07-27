@@ -154,39 +154,36 @@
 
           <!-- Azioni -->
           <div class="space-y-3">
-            <div class="flex gap-3">
-              <button-lg variant="primary" label="Scarica QR Code" class="flex-1" @click="downloadQR" :disabled="!store.qrConfig.value" />
-              <button-lg variant="secondary" label="Reset" @click="resetToDefaults" />
-            </div>
-
-            <!-- Nuovo pulsante per salvare -->
-            <div class="flex gap-3">
+            <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
+              <div class="w-full flex gap-3 items-center">
+                <button-lg @click="resetToDefaults" variant="secondary" label="Reset" />
+                <button-lg
+                  @click="saveQRCode"
+                  variant="primary"
+                  :label="isSaving ? 'Salvando...' : 'Salva QR Code'"
+                  :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+                  class="sm:w-fit w-full"
+                />
+              </div>
               <button-lg
+                @click="downloadQR"
                 v-if="!editingQrId"
-                variant="success"
-                :label="isSaving ? 'Salvando...' : 'Salva QR Code'"
-                class="flex-1"
-                @click="saveQRCode"
-                :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+                variant="primary"
+                label="Scarica QR Code"
+                :disabled="!store.qrConfig.value"
+                class="sm:w-fit w-full"
               />
+            </div>
+            <div class="w-full flex gap-3">
               <button-lg
-                v-else
+                @click="updateQRCode"
                 variant="success"
                 :label="isSaving ? 'Aggiornando...' : 'Aggiorna QR Code'"
-                class="flex-1"
-                @click="updateQRCode"
                 :disabled="!store.qrConfig.value || !qrName || !auth.isAuthenticated || isSaving"
+                class="sm:w-fit w-full"
               />
-              <button-lg v-if="editingQrId" variant="secondary" label="Nuovo QR" @click="createNewQR" />
+              <button-lg @click="createNewQR" v-if="editingQrId" variant="secondary" label="Nuovo QR" class="sm:w-fit w-full" />
             </div>
-
-            <!-- Messaggio di stato -->
-            <div v-if="statusMessage" class="text-center text-sm" :class="statusMessage.type === 'success' ? 'text-green-600' : 'text-red-600'">
-              {{ statusMessage.text }}
-            </div>
-
-            <!-- Messaggio per utenti non autenticati -->
-            <div v-if="!auth.isAuthenticated" class="text-center text-sm text-gray-500">Effettua il login per salvare i tuoi QR code</div>
           </div>
         </div>
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-2 order-1">

@@ -9,7 +9,7 @@
       <div v-if="icon" class="h-full flex items-center justify-center">
         <component :is="icon" />
       </div>
-      <span v-if="label">{{ label }}</span>
+      <span v-if="label" class="overflow-text-ellipsis">{{ label }}</span>
       <div v-if="actions" @click.stop="dropdownIsOpen = !dropdownIsOpen" class="h-full flex items-center justify-center cursor-pointer">
         <ChevronDown size="20" />
       </div>

@@ -56,6 +56,12 @@ h6 {
   font-family: 'Bodoni Moda', serif;
 }
 
+.overflow-text-ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .pr-shadow {
   box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.25);
 }

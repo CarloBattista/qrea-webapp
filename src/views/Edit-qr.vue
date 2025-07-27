@@ -158,15 +158,19 @@
 
           <!-- Azioni -->
           <div class="space-y-3">
-            <div class="flex gap-3 items-center justify-between">
-              <button-lg
-                v-if="!editingQrId"
-                variant="primary"
-                :label="saving ? 'Salvando...' : 'Salva QR Code'"
-                @click="saveQrCode"
-                :disabled="!qrCode.data.content || !qrCode.data.name || !auth.isAuthenticated || saving"
-              />
-              <button-lg variant="secondary" label="Scarica QR Code" @click="downloadQR" :disabled="!qrCode.data.content" />
+            <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
+              <div class="w-full flex gap-3 items-center">
+                <button-lg @click="resetToDefaults" variant="secondary" label="Reset" />
+                <button-lg
+                  @click="saveQrCode"
+                  v-if="!editingQrId"
+                  variant="primary"
+                  :label="saving ? 'Salvando...' : 'Salva QR Code'"
+                  :disabled="!qrCode.data.content || !qrCode.data.name || !auth.isAuthenticated || saving"
+                  class="sm:w-fit w-full"
+                />
+              </div>
+              <button-lg @click="downloadQR" variant="secondary" label="Scarica QR Code" :disabled="!qrCode.data.content" class="sm:w-fit w-full" />
             </div>
           </div>
         </div>
