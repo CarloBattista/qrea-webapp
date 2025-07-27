@@ -61,8 +61,14 @@
 
           <!-- Gradiente -->
           <div class="mb-6">
-            <div class="flex items-center mb-4">
-              <checkbox :selected="store.qrConfig.gradient" @click="store.qrConfig.gradient = !store.qrConfig.gradient" label="Abilita gradiente" />
+            <div class="flex items-center justify-between mb-4">
+              <checkbox
+                :selected="store.qrConfig.gradient"
+                @click="store.qrConfig.gradient = !store.qrConfig.gradient"
+                label="Abilita gradiente"
+                :disabled="isFreePlan"
+              />
+              <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
 
             <div v-if="store.qrConfig.gradient" class="space-y-4">
@@ -93,7 +99,12 @@
                   v-model="store.qrConfig.dotsStyle"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 >
-                  <option v-for="style in store.qrConfig.dotStyles" :key="style.value" :value="style.value">
+                  <option
+                    v-for="style in store.qrConfig.dotStyles"
+                    :key="style.value"
+                    :value="style.value"
+                    :disabled="isFreePlan && (style.value === 'dots' || style.value === 'classy' || style.value === 'extra-rounded')"
+                  >
                     {{ style.label }}
                   </option>
                 </select>
@@ -104,7 +115,12 @@
                   v-model="store.qrConfig.cornerStyle"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 >
-                  <option v-for="style in store.qrConfig.cornerStyles" :key="style.value" :value="style.value">
+                  <option
+                    v-for="style in store.qrConfig.cornerStyles"
+                    :key="style.value"
+                    :value="style.value"
+                    :disabled="isFreePlan && (style.value === 'rounded' || style.value === 'extra-rounded')"
+                  >
                     {{ style.label }}
                   </option>
                 </select>
@@ -114,12 +130,14 @@
 
           <!-- Immagine -->
           <div class="mb-6">
-            <div class="flex items-center mb-4">
+            <div class="flex items-center justify-between mb-4">
               <checkbox
                 :selected="store.qrConfig.showImage"
                 @click="store.qrConfig.showImage = !store.qrConfig.showImage"
                 label="Aggiungi immagine centrale"
+                :disabled="isFreePlan"
               />
+              <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
 
             <div v-if="store.qrConfig.showImage" class="space-y-4">
@@ -146,7 +164,12 @@
               v-model="store.qrConfig.selectedFormat"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
             >
-              <option v-for="format in store.qrConfig.downloadFormats" :key="format.value" :value="format.value">
+              <option
+                v-for="format in store.qrConfig.downloadFormats"
+                :key="format.value"
+                :value="format.value"
+                :disabled="isFreePlan && (format.value === 'svg' || format.value === 'pdf')"
+              >
                 {{ format.label }}
               </option>
             </select>
@@ -211,6 +234,7 @@ import sliderBar from '../components/slider/slider-bar.vue';
 import colorPicker from '../components/input/color-picker.vue';
 import checkbox from '../components/toggle/checkbox.vue';
 import buttonLg from '../components/button/button-lg.vue';
+import badge from '../components/badge/badge.vue';
 
 export default {
   name: 'New-qr',
@@ -220,6 +244,7 @@ export default {
     colorPicker,
     checkbox,
     buttonLg,
+    badge,
   },
   data() {
     return {
@@ -272,6 +297,9 @@ export default {
           crossOrigin: 'anonymous',
         },
       };
+    },
+    isFreePlan() {
+      return !this.auth.profile || this.auth.profile.plan === 'free';
     },
   },
   methods: {
@@ -443,6 +471,33 @@ export default {
         this.generateQRCode();
       },
       deep: true,
+    },
+    'store.qrConfig.dotsStyle': {
+      handler(dotsStyle) {
+        if (this.isFreePlan && (dotsStyle === 'dots' || dotsStyle === 'classy' || dotsStyle === 'extra-rounded')) {
+          this.store.qrConfig.dotsStyle = 'square';
+          this.$router.push({ name: 'pricing' });
+        }
+      },
+      immediate: false,
+    },
+    'store.qrConfig.cornerStyle': {
+      handler(cornerStyle) {
+        if (this.isFreePlan && (cornerStyle === 'rounded' || cornerStyle === 'extra-rounded')) {
+          this.store.qrConfig.cornerStyle = 'square';
+          this.$router.push({ name: 'pricing' });
+        }
+      },
+      immediate: false,
+    },
+    'store.qrConfig.selectedFormat': {
+      handler(format) {
+        if (this.isFreePlan && (format === 'svg' || format === 'pdf')) {
+          this.store.qrConfig.selectedFormat = 'png';
+          this.$router.push({ name: 'pricing' });
+        }
+      },
+      immediate: false,
     },
   },
   mounted() {

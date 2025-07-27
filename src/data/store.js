@@ -14,7 +14,7 @@ export const store = reactive({
         monthly: null,
         yearly: null,
       },
-      features: ['Fino a 2 QR', 'Formati base (PNG, JPG)', 'Stili base'],
+      features: ['Fino a 2 QR', 'Formati base (PNG, JPG)', 'Dimensioni personalizzabili', 'Stili base'],
     },
     {
       value: 'pro',
