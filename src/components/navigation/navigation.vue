@@ -5,8 +5,8 @@
     <RouterLink to="/" class="md:order-1 order-2">
       <iconButton icon="Grid2x2" :disabled="false" :loading="false" />
     </RouterLink>
-    <RouterLink :to="canCreateQR ? '/pricing' : '/new-qr'" class="md:order-2 order-1">
-      <iconButton icon="Plus" :disabled="canCreateQR ? true : false" :loading="false" />
+    <RouterLink :to="store.planConfig.can_create_qr ? '/new-qr' : '/pricing'" class="md:order-2 order-1">
+      <iconButton icon="Plus" :disabled="store.planConfig.can_create_qr ? false : true" :loading="false" />
     </RouterLink>
     <RouterLink to="/profile" class="md:order-3 order-0 md:mt-1.5 md:mr-0 mr-1.5">
       <avatarRing :showRing="true" :initial="userInitials" :progress="qrProgress" />
