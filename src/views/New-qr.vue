@@ -134,7 +134,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Dimensione immagine ({{ store.qrConfig.imageSettings.size }}%)</label>
-                <slider-bar v-model="store.qrConfig.imageSettings.size" :min="10" :max="80" :step="1" preview-extra-value="%" />
+                <slider-bar v-model="store.qrConfig.imageSettings.size" :min="10" :max="60" :step="1" preview-extra-value="%" />
               </div>
             </div>
           </div>
