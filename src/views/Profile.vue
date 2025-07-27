@@ -46,7 +46,7 @@
           </div>
         </div>
         <div v-if="billingHistory.data && billingHistory.data.length > 0" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
-          <h2 class="text-sm font-medium text-gray-400">Billing History</h2>
+          <h2 class="text-sm font-medium text-gray-400">{{ $t('billing.history') }}</h2>
           <div class="w-full flex flex-col">
             <div
               v-for="(payment, paymentIndex) in billingHistory.data"

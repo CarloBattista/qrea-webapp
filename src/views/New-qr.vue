@@ -4,29 +4,29 @@
     <div class="max-w-6xl mx-auto">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $t('home.createFirstQr') }}</h1>
-        <p class="text-gray-600">Personalizza il tuo QR code con stili, colori e immagini</p>
+        <p class="text-gray-600">{{ $t('editor.title') }}</p>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-1 order-2">
-          <h2 class="text-xl font-semibold mb-6">Configurazione</h2>
+          <h2 class="text-xl font-semibold mb-6">{{ $t('editor.configuration') }}</h2>
 
           <!-- Nome QR Code (nuovo campo) -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nome del QR Code</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.qrName') }}</label>
             <input
               v-model="qrName"
               type="text"
-              placeholder="Inserisci un nome per il tuo QR code..."
+              :placeholder="$t('editor.qrNamePlaceholder')"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </div>
 
           <!-- Contenuto QR -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Contenuto del QR Code</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.qrContent') }}</label>
             <textarea
               v-model="store.qrConfig.value"
-              placeholder="Inserisci URL, testo o qualsiasi contenuto..."
+              :placeholder="$t('editor.qrContentPlaceholder')"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent resize-none"
               rows="3"
             ></textarea>
@@ -34,26 +34,26 @@
 
           <!-- Dimensioni -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Dimensioni ({{ store.qrConfig.qrSize }}px)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('qr.size') }} ({{ store.qrConfig.qrSize }}px)</label>
             <slider-bar v-model="store.qrConfig.qrSize" :min="200" :max="600" :step="10" preview-extra-value="px" />
           </div>
 
           <!-- Margine -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Margine ({{ store.qrConfig.margin }}px)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.margin') }} ({{ store.qrConfig.margin }}px)</label>
             <slider-bar v-model="store.qrConfig.margin" :min="0" :max="50" :step="1" preview-extra-value="px" />
           </div>
 
           <!-- Colori -->
           <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Colori</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('editor.colors') }}</h3>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Colore di sfondo</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.backgroundColor') }}</label>
                 <color-picker v-model="store.qrConfig.background" size="48px" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Colore principale</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.foregroundColor') }}</label>
                 <color-picker v-model="store.qrConfig.foreground" size="48px" />
               </div>
             </div>
@@ -65,7 +65,7 @@
               <checkbox
                 :selected="store.qrConfig.gradient"
                 @click="store.qrConfig.gradient = !store.qrConfig.gradient"
-                label="Abilita gradiente"
+                :label="$t('editor.enableGradient')"
                 :disabled="isFreePlan"
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
@@ -74,16 +74,18 @@
             <div v-if="store.qrConfig.gradient" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Colore iniziale</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
                   <color-picker v-model="store.qrConfig.gradientStartColor" size="48px" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Colore finale</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientEndColor') }}</label>
                   <color-picker v-model="store.qrConfig.gradientEndColor" size="48px" />
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Rotazione ({{ store.qrConfig.gradientRotation }}°)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >{{ $t('editor.gradientRotation') }} ({{ store.qrConfig.gradientRotation }}°)</label
+                >
                 <slider-bar v-model="store.qrConfig.gradientRotation" :min="0" :max="360" :step="1" preview-extra-value="°" />
               </div>
             </div>
@@ -91,10 +93,10 @@
 
           <!-- Stili -->
           <div class="mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Stili</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('editor.styles') }}</h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Stile dei punti</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.dotsStyle') }}</label>
                 <select
                   v-model="store.qrConfig.dotsStyle"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
@@ -110,7 +112,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Stile degli angoli</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.cornersStyle') }}</label>
                 <select
                   v-model="store.qrConfig.cornerStyle"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
@@ -134,7 +136,7 @@
               <checkbox
                 :selected="store.qrConfig.showImage"
                 @click="store.qrConfig.showImage = !store.qrConfig.showImage"
-                label="Aggiungi immagine centrale"
+                :label="$t('editor.addCenterImage')"
                 :disabled="isFreePlan"
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
@@ -142,16 +144,18 @@
 
             <div v-if="store.qrConfig.showImage" class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">URL dell'immagine</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
                 <input
                   v-model="store.qrConfig.imageSettings.src"
                   type="url"
-                  placeholder="https://esempio.com/immagine.png"
+                  :placeholder="$t('editor.imageUrlPlaceholder')"
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Dimensione immagine ({{ store.qrConfig.imageSettings.size }}%)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >{{ $t('editor.imageSize') }} ({{ store.qrConfig.imageSettings.size }}%)</label
+                >
                 <slider-bar v-model="store.qrConfig.imageSettings.size" :min="10" :max="60" :step="1" preview-extra-value="%" />
               </div>
             </div>
@@ -159,7 +163,7 @@
 
           <!-- Formato Download -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Formato di download</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.downloadFormat') }}</label>
             <select
               v-model="store.qrConfig.selectedFormat"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
@@ -183,7 +187,7 @@
                 <buttonLg
                   @click="saveQRCode"
                   variant="primary"
-                  :label="isSaving ? 'Salvando...' : 'Salva QR Code'"
+                  :label="isSaving ? $t('qr.saving') : $t('qr.saveQr')"
                   :disabled="!store.qrConfig.value || !store.planConfig.can_create_qr || !qrName || !auth.isAuthenticated || isSaving"
                   class="sm:w-fit w-full"
                 />
@@ -192,7 +196,7 @@
                 @click="downloadQR"
                 v-if="!editingQrId"
                 variant="primary"
-                label="Scarica QR Code"
+                :label="$t('qr.downloadQr')"
                 :disabled="!store.qrConfig.value || !store.planConfig.can_create_qr"
                 class="sm:w-fit w-full"
               />
@@ -201,18 +205,18 @@
         </div>
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-2 order-1">
           <div class="sticky top-8">
-            <h2 class="text-xl font-semibold mb-6">Anteprima</h2>
+            <h2 class="text-xl font-semibold mb-6">{{ $t('qr.preview') }}</h2>
             <div class="flex flex-col items-center">
               <div ref="qrCodeContainer" class="qr-container aspect-square flex items-center justify-center mb-6 p-8 bg-gray-50 rounded-xl">
                 <div v-if="!store.qrConfig.value" class="text-gray-400 text-center">
                   <div class="w-64 h-64 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                    <span class="text-sm">Inserisci un contenuto per vedere l'anteprima</span>
+                    <span class="text-sm">{{ $t('qr.previewPlaceholder') }}</span>
                   </div>
                 </div>
               </div>
               <div v-if="store.qrConfig.value" class="text-center text-sm text-gray-600">
-                <p>Dimensioni: {{ store.qrConfig.qrSize }}x{{ store.qrConfig.qrSize }}px</p>
-                <p>Formato: {{ store.qrConfig.selectedFormat.toUpperCase() }}</p>
+                <p>{{ $t('qr.size') }}: {{ store.qrConfig.qrSize }}x{{ store.qrConfig.qrSize }}px</p>
+                <p>{{ $t('qr.format') }}: {{ store.qrConfig.selectedFormat.toUpperCase() }}</p>
               </div>
             </div>
           </div>
