@@ -50,7 +50,7 @@ export default {
 
           localStorage.setItem('isAuthenticated', true);
 
-          this.$router.push({ name: 'pricing' });
+          this.$router.push({ name: 'home' });
         } else {
           this.retrieveError(error);
         }
