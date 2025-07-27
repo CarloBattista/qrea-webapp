@@ -5,11 +5,11 @@
         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <x size="32" class="text-red-500" />
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Pagamento Rifiutato!</h2>
-        <p class="text-gray-600 mb-6">Il tuo abbonamento non è stato attivato.</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $t('payment.paymentRejected') }}</h2>
+        <p class="text-gray-600 mb-6">{{ $t('payment.subscriptionNotActive') }}</p>
 
         <RouterLink to="/pricing">
-          <buttonLg variant="primary" label="Riprova" class="w-full" />
+          <buttonLg variant="primary" :label="$t('common.retry')" class="w-full" />
         </RouterLink>
       </div>
     </div>

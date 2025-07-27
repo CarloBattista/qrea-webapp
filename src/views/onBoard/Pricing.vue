@@ -1,8 +1,8 @@
 <template>
   <div class="w-full py-15">
     <div class="w-full mb-15 flex flex-col gap-5 items-center justify-center text-center">
-      <h1 class="text-black text-3xl font-bold">Pricing</h1>
-      <p class="text-[#373737] text-base font-normal">Get started for Free. Upgrade to increase limits.</p>
+      <h1 class="text-black text-3xl font-bold">{{ $t('pricing.title') }}</h1>
+      <p class="text-[#373737] text-base font-normal">{{ $t('pricing.subtitle') }}</p>
     </div>
     <div class="w-full mb-15 flex items-center justify-center">
       <div class="w-fit h-12 p-0.5 rounded-2xl flex items-center justify-center pr-shadow bg-[#373737]/20">
@@ -11,14 +11,14 @@
           class="min-w-[180px] h-full rounded-[15px] flex items-center justify-center text-base font-medium cursor-pointer"
           :class="{ 'bg-black text-white': currentPlan === 'monthly' }"
         >
-          Monthly
+          {{ $t('pricing.monthly') }}
         </div>
         <div
           @click="handlePlan('yearly')"
           class="min-w-[180px] h-full rounded-[15px] flex gap-2 items-center justify-center text-base font-medium cursor-pointer"
           :class="{ 'bg-black text-white': currentPlan === 'yearly' }"
         >
-          Yearly <span class="text-xs font-medium">Save 25%</span>
+          {{ $t('pricing.yearly') }} <span class="text-xs font-medium">{{ $t('pricing.savePercent') }}</span>
         </div>
       </div>
     </div>
@@ -38,7 +38,7 @@
             <h2 class="text-3xl font-semibold">&euro;{{ plan.prices[currentPlan] }}</h2>
             <span v-if="false" class="text-xs font-normal">/month</span>
           </div>
-          <span class="mt-1 text-xs font-normal">{{ currentPlan === 'yearly' ? 'paid annually' : 'paid monthly' }} </span>
+          <span class="mt-1 text-xs font-normal">{{ currentPlan === 'yearly' ? $t('pricing.paidAnnually') : $t('pricing.paidMonthly') }} </span>
         </div>
         <div class="w-full flex flex-col gap-5">
           <buttonLg
@@ -50,7 +50,7 @@
             class="w-full"
           />
           <div class="w-full flex flex-col gap-2.5">
-            <h2 class="text-sm font-semibold">What's included</h2>
+            <h2 class="text-sm font-semibold">{{ $t('pricing.whatsIncluded') }}</h2>
             <div v-for="(feature, featureIndex) in plan.features" :key="featureIndex" class="w-full flex gap-1.5 items-center text-xs font-normal">
               <Check size="14" />
               <span>{{ feature }}</span>
@@ -97,16 +97,16 @@ export default {
       if (plan.value === 'free') {
         // Se l'utente è già abbonato al piano Pro, mostra messaggio specifico
         if (profilePlan === 'pro') {
-          return 'Sei già un utente Pro';
+          return this.$t('pricing.alreadyPro');
         }
-        return 'Upgrade to Pro';
+        return this.$t('pricing.upgradeToPro');
       }
 
       if (profilePlan === 'pro') {
-        return 'Piano già attivo';
+        return this.$t('pricing.activePlan');
       }
 
-      return 'Start Today';
+      return this.$t('pricing.startToday');
     },
     isButtonDisabled(plan) {
       const profilePlan = this.auth.profile?.plan;

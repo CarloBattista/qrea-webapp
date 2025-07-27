@@ -10,8 +10,8 @@
         <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
       </div>
       <div class="w-full px-4 py-2 flex gap-2 items-center justify-start">
-        <buttonLg @click="handleQrCode" variant="secondary" label="Edit" :disabled="loading" />
-        <buttonLg @click="deleteQrCode" variant="destructive" label="Delete" :disabled="loading" />
+        <buttonLg @click="handleQrCode" variant="secondary" :label="$t('qr.edit')" :disabled="loading" />
+        <buttonLg @click="deleteQrCode" variant="destructive" :label="$t('qr.delete')" :disabled="loading" />
       </div>
     </div>
   </div>

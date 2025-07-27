@@ -3,7 +3,7 @@
   <div class="w-full min-h-screen bg-gray-50 md:px-6 px-3 pt-30 pb-10">
     <div class="max-w-6xl mx-auto">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Crea il tuo QR Code</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $t('home.createFirstQr') }}</h1>
         <p class="text-gray-600">Personalizza il tuo QR code con stili, colori e immagini</p>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -179,7 +179,7 @@
           <div class="space-y-3">
             <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
               <div class="w-full flex gap-3 items-center">
-                <buttonLg @click="resetToDefaults" variant="secondary" label="Reset" />
+                <buttonLg @click="resetToDefaults" variant="secondary" :label="$t('common.reset')" />
                 <buttonLg
                   @click="saveQRCode"
                   variant="primary"

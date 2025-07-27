@@ -8,6 +8,7 @@
 import { supabase } from './lib/supabase';
 import { auth } from './data/auth';
 import { store } from './data/store';
+import { syncLocaleWithProfile } from './lib/i18n';
 
 export default {
   name: 'App',
@@ -71,6 +72,7 @@ export default {
         if (!error) {
           // console.log(data);
           this.auth.profile = data;
+          syncLocaleWithProfile();
         }
       } catch (e) {
         console.error(e);

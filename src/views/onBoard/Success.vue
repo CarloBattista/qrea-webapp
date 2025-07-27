@@ -8,11 +8,11 @@
         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Check size="32" class="text-green-500" />
         </div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Pagamento Completato!</h2>
-        <p class="text-gray-600 mb-6">Il tuo abbonamento è ora attivo.</p>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $t('payment.paymentCompleted') }}</h2>
+        <p class="text-gray-600 mb-6">{{ $t('payment.subscriptionActive') }}</p>
 
         <RouterLink to="/">
-          <buttonLg variant="primary" label="Continua" class="w-full" />
+          <buttonLg variant="primary" :label="$t('common.continue')" class="w-full" />
         </RouterLink>
       </div>
     </div>

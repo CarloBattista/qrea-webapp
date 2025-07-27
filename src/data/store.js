@@ -1,11 +1,12 @@
 import { reactive } from 'vue';
+import i18n from '../lib/i18n';
 
 export const store = reactive({
   plans: [
     {
       value: 'free',
-      name: 'Free',
-      description: 'Perfetto per iniziare. Crea i tuoi primi QR code gratuitamente.',
+      name: i18n.global.t('pricing.free'),
+      description: i18n.global.t('pricing.freeDescription'),
       prices: {
         monthly: 0,
         yearly: 0,
@@ -14,12 +15,17 @@ export const store = reactive({
         monthly: null,
         yearly: null,
       },
-      features: ['Fino a 2 QR', 'Formati base (PNG, JPG)', 'Dimensioni personalizzabili', 'Stili base'],
+      features: [
+        i18n.global.t('pricing.freeFeatures.qrLimit'),
+        i18n.global.t('pricing.freeFeatures.formats'),
+        i18n.global.t('pricing.freeFeatures.customSizes'),
+        i18n.global.t('pricing.freeFeatures.basicStyles'),
+      ],
     },
     {
       value: 'pro',
       name: 'Pro',
-      description: 'La soluzione completa per professionisti e aziende che vogliono il massimo.',
+      description: i18n.global.t('pricing.proDescription'),
       prices: {
         monthly: 10,
         yearly: 7.5,
@@ -29,12 +35,12 @@ export const store = reactive({
         yearly: import.meta.env.VITE_STRIPE_PLAN_PRO_YEARLY_PRICE_ID,
       },
       features: [
-        'Fino a 20 QR',
-        'Tutti i formati (PNG, JPG, SVG, PDF)',
-        'Dimensioni personalizzabili',
-        'Tutti gli stili disponibili',
-        'Logo e immagine personalizzata',
-        'Download in alta risoluzione',
+        i18n.global.t('pricing.proFeatures.qrLimit'),
+        i18n.global.t('pricing.proFeatures.formats'),
+        i18n.global.t('pricing.proFeatures.customSizes'),
+        i18n.global.t('pricing.proFeatures.allStyles'),
+        i18n.global.t('pricing.proFeatures.customLogo'),
+        i18n.global.t('pricing.proFeatures.highResolution'),
       ],
     },
   ],

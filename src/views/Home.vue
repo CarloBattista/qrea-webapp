@@ -17,10 +17,10 @@
             d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 16h4.01M20 12h.01m-.01 4h.01m-1.01-4h.01M12 8h.01M8 12h.01M8 8h.01M8 16h.01"
           />
         </svg>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Nessun QR Code trovato</h3>
-        <p class="text-gray-500 mb-6">Non hai ancora creato nessun QR Code. Inizia creando il tuo primo QR!</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ $t('home.noQrFound') }}</h3>
+        <p class="text-gray-500 mb-6">{{ $t('home.noQrDescription') }}</p>
         <router-link to="/new-qr" class="w-full flex items-center justify-center">
-          <buttonLg variant="primary" label="Crea il tuo primo QR" />
+          <buttonLg variant="primary" :label="$t('home.createFirstQr')" />
         </router-link>
       </div>
     </div>

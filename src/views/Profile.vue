@@ -3,33 +3,33 @@
   <div class="w-full md:px-6 px-3 pt-30 pb-10">
     <div class="max-w-[550px] mx-auto">
       <div class="w-full flex flex-col gap-2">
-        <h2 class="text-black text-2xl font-semibold">Profile and settings</h2>
-        <p class="text-black text-base font-normal">Manage your profile</p>
+        <h2 class="text-black text-2xl font-semibold">{{ $t('profile.title') }}</h2>
+        <p class="text-black text-base font-normal">{{ $t('profile.subtitle') }}</p>
       </div>
       <div class="w-full my-8 flex flex-col gap-8">
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
-          <h2 class="text-sm font-medium text-gray-400">Account</h2>
+          <h2 class="text-sm font-medium text-gray-400">{{ $t('profile.account') }}</h2>
           <div class="w-full flex flex-col">
             <div class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal">
-              <h2 class="text-start">Full name</h2>
+              <h2 class="text-start">{{ $t('profile.fullName') }}</h2>
               <span class="text-end">{{ auth.profile?.first_name }} {{ auth.profile?.last_name }}</span>
             </div>
             <div class="w-full h-9 flex items-center justify-between text-base font-normal">
-              <h2 class="text-start">Email</h2>
+              <h2 class="text-start">{{ $t('profile.email') }}</h2>
               <span class="text-end">{{ auth.user?.email }}</span>
             </div>
           </div>
         </div>
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
-          <h2 class="text-sm font-medium text-gray-400">Subscription Plan</h2>
+          <h2 class="text-sm font-medium text-gray-400">{{ $t('profile.subscriptionPlan') }}</h2>
           <div class="w-full flex flex-col">
             <div class="w-full h-9 flex items-center justify-between text-base font-normal">
-              <h2 class="text-start">Subscription</h2>
+              <h2 class="text-start">{{ $t('profile.subscription') }}</h2>
               <badge :label="typeSubscription" />
             </div>
           </div>
           <div v-if="subscriptionDetails && isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
-            <h2 class="text-start">Scade il</h2>
+            <h2 class="text-start">{{ $t('profile.expiresOn') }}</h2>
             <span class="text-end">{{ formatDate(subscriptionDetails.cancel_at) }}</span>
           </div>
           <div class="w-full mt-4 flex items-center justify-end">
@@ -38,10 +38,10 @@
               v-if="typeSubscription === 'Pro' && !isSubscriptionCancelled"
               type="button"
               variant="destructive"
-              label="Disattiva abbonamento"
+              :label="$t('profile.deactivateSubscription')"
             />
             <RouterLink v-else-if="typeSubscription === 'Free'" to="/pricing">
-              <buttonLg type="button" variant="primary" label="Upgrade to Pro" />
+              <buttonLg type="button" variant="primary" :label="$t('profile.upgradeToPro')" />
             </RouterLink>
           </div>
         </div>
@@ -56,7 +56,9 @@
               <h2 class="text-start">{{ payment.currency === 'EUR' ? '€' : '$' }}{{ payment.amount }} - {{ formatPaymentStatus(payment.status) }}</h2>
               <span class="text-end flex gap-2 items-center"
                 >{{ formatDate(payment.date) }}
-                <a v-if="payment.invoice_pdf" :href="payment.invoice_pdf" class="text-sm font-semibold underline">Scarica fattura</a></span
+                <a v-if="payment.invoice_pdf" :href="payment.invoice_pdf" class="text-sm font-semibold underline">{{
+                  $t('profile.downloadInvoice')
+                }}</a></span
               >
             </div>
           </div>

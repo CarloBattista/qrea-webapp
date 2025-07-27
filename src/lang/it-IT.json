@@ -1,0 +1,137 @@
+{
+    "navigation": {
+        "home": "Home",
+        "newQr": "Nuovo QR",
+        "profile": "Profilo"
+    },
+    "auth": {
+        "signin": "Accedi",
+        "signup": "Registrati",
+        "email": "Indirizzo email",
+        "password": "Password",
+        "firstName": "Nome",
+        "lastName": "Cognome",
+        "continue": "Continua"
+    },
+    "profile": {
+        "title": "Profilo e impostazioni",
+        "subtitle": "Gestisci il tuo profilo",
+        "account": "Account",
+        "fullName": "Nome completo",
+        "email": "Email",
+        "subscription": "Abbonamento",
+        "subscriptionPlan": "Piano di abbonamento",
+        "expiresOn": "Scade il",
+        "deactivateSubscription": "Disattiva abbonamento",
+        "upgradeToPro": "Passa a Pro",
+        "downloadInvoice": "Scarica fattura",
+        "language": "Lingua",
+        "selectLanguage": "Seleziona lingua"
+    },
+    "home": {
+        "noQrFound": "Nessun QR Code trovato",
+        "noQrDescription": "Non hai ancora creato nessun QR Code. Inizia creando il tuo primo QR!",
+        "createFirstQr": "Crea il tuo primo QR",
+        "limitWarning": "Stai raggiungendo il limite del tuo piano"
+    },
+    "qr": {
+        "name": "Nome QR",
+        "content": "Contenuto",
+        "save": "Salva",
+        "edit": "Modifica",
+        "delete": "Elimina",
+        "download": "Scarica",
+        "downloadQr": "Scarica QR Code",
+        "saveQr": "Salva QR Code",
+        "saving": "Salvando...",
+        "preview": "Anteprima",
+        "previewPlaceholder": "Inserisci un contenuto per vedere l'anteprima",
+        "size": "Dimensioni",
+        "format": "Formato"
+    },
+    "editor": {
+        "title": "Personalizza il tuo QR code con stili, colori e immagini",
+        "editTitle": "Modifica il tuo QR Code",
+        "editSubtitle": "Personalizza il tuo QR code con stili, colori e immagini",
+        "configuration": "Configurazione",
+        "qrName": "Nome del QR Code",
+        "qrNamePlaceholder": "Inserisci un nome per il tuo QR code...",
+        "qrContent": "Contenuto del QR Code",
+        "qrContentPlaceholder": "Inserisci URL, testo o qualsiasi contenuto...",
+        "margin": "Margine",
+        "colors": "Colori",
+        "backgroundColor": "Colore di sfondo",
+        "foregroundColor": "Colore principale",
+        "enableGradient": "Abilita gradiente",
+        "gradientStartColor": "Colore iniziale",
+        "gradientEndColor": "Colore finale",
+        "gradientRotation": "Rotazione",
+        "styles": "Stili",
+        "dotsStyle": "Stile dei punti",
+        "cornersStyle": "Stile degli angoli",
+        "addCenterImage": "Aggiungi immagine centrale",
+        "imageUrl": "URL dell'immagine",
+        "imageUrlPlaceholder": "https://esempio.com/immagine.png",
+        "imageSize": "Dimensione immagine",
+        "downloadFormat": "Formato di download"
+    },
+    "billing": {
+        "history": "Cronologia fatturazione"
+    },
+    "pricing": {
+        "title": "Prezzi",
+        "subtitle": "Inizia gratis. Fai l'upgrade per aumentare i limiti.",
+        "monthly": "Mensile",
+        "yearly": "Annuale",
+        "savePercent": "Risparmia il 25%",
+        "month": "mese",
+        "paidAnnually": "pagato annualmente",
+        "paidMonthly": "pagato mensilmente",
+        "whatsIncluded": "Cosa è incluso",
+        "alreadyPro": "Sei già un utente Pro",
+        "activePlan": "Piano già attivo",
+        "upgradeToPro": "Passa a Pro",
+        "startToday": "Inizia oggi",
+        "free": "Gratuito",
+        "freeDescription": "Perfetto per iniziare. Crea i tuoi primi QR code gratuitamente.",
+        "proDescription": "La soluzione completa per professionisti e aziende che vogliono il massimo.",
+        "freeFeatures": {
+            "qrLimit": "Fino a 2 QR",
+            "formats": "Formati base (PNG, JPG)",
+            "customSizes": "Dimensioni personalizzabili",
+            "basicStyles": "Stili base"
+        },
+        "proFeatures": {
+            "qrLimit": "Fino a 20 QR",
+            "formats": "Tutti i formati (PNG, JPG, SVG, PDF)",
+            "customSizes": "Dimensioni personalizzabili",
+            "allStyles": "Tutti gli stili disponibili",
+            "customLogo": "Logo e immagine personalizzata",
+            "highResolution": "Download in alta risoluzione"
+        }
+    },
+    "subscription": {
+        "paid": "Pagato",
+        "pending": "In attesa",
+        "canceled": "Annullato",
+        "uncollectible": "Non riscuotibile",
+        "cancelConfirmation": "Sei sicuro di voler cancellare il tuo abbonamento? Rimarrà attivo fino alla fine del periodo di fatturazione corrente.",
+        "cancelSuccess": "Abbonamento cancellato con successo. Rimarrà attivo fino alla fine del periodo di fatturazione corrente."
+    },
+    "payment": {
+        "paymentCompleted": "Pagamento Completato!",
+        "paymentRejected": "Pagamento Rifiutato!",
+        "subscriptionActive": "Il tuo abbonamento è ora attivo.",
+        "subscriptionNotActive": "Il tuo abbonamento non è stato attivato."
+    },
+    "common": {
+        "loading": "Caricamento...",
+        "reset": "Ripristina",
+        "save": "Salva",
+        "cancel": "Annulla",
+        "retry": "Riprova",
+        "confirm": "Conferma",
+        "continue": "Continua",
+        "close": "Chiudi"
+    }
+}

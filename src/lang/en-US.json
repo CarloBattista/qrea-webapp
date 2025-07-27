@@ -1,0 +1,137 @@
+{
+    "navigation": {
+        "home": "Home",
+        "newQr": "New QR",
+        "profile": "Profile"
+    },
+    "auth": {
+        "signin": "Sign In",
+        "signup": "Sign Up",
+        "email": "Email address",
+        "password": "Password",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "continue": "Continue"
+    },
+    "profile": {
+        "title": "Profile and settings",
+        "subtitle": "Manage your profile",
+        "account": "Account",
+        "fullName": "Full name",
+        "email": "Email",
+        "subscription": "Subscription",
+        "subscriptionPlan": "Subscription Plan",
+        "expiresOn": "Expires on",
+        "deactivateSubscription": "Deactivate subscription",
+        "upgradeToPro": "Upgrade to Pro",
+        "downloadInvoice": "Download invoice",
+        "language": "Language",
+        "selectLanguage": "Select language"
+    },
+    "home": {
+        "noQrFound": "No QR Code found",
+        "noQrDescription": "You haven't created any QR Code yet. Start by creating your first QR!",
+        "createFirstQr": "Create your first QR",
+        "limitWarning": "You are reaching your plan limit"
+    },
+    "qr": {
+        "name": "QR Name",
+        "content": "Content",
+        "save": "Save",
+        "edit": "Edit",
+        "delete": "Delete",
+        "download": "Download",
+        "downloadQr": "Download QR Code",
+        "saveQr": "Save QR Code",
+        "saving": "Saving...",
+        "preview": "Preview",
+        "previewPlaceholder": "Enter content to see preview",
+        "size": "Size",
+        "format": "Format"
+    },
+    "editor": {
+        "title": "Customize your QR code with styles, colors and images",
+        "editTitle": "Edit your QR Code",
+        "editSubtitle": "Customize your QR code with styles, colors and images",
+        "configuration": "Configuration",
+        "qrName": "QR Code Name",
+        "qrNamePlaceholder": "Enter a name for your QR code...",
+        "qrContent": "QR Code Content",
+        "qrContentPlaceholder": "Enter URL, text or any content...",
+        "margin": "Margin",
+        "colors": "Colors",
+        "backgroundColor": "Background color",
+        "foregroundColor": "Foreground color",
+        "enableGradient": "Enable gradient",
+        "gradientStartColor": "Start color",
+        "gradientEndColor": "End color",
+        "gradientRotation": "Rotation",
+        "styles": "Styles",
+        "dotsStyle": "Dots style",
+        "cornersStyle": "Corners style",
+        "addCenterImage": "Add center image",
+        "imageUrl": "Image URL",
+        "imageUrlPlaceholder": "https://example.com/image.png",
+        "imageSize": "Image size",
+        "downloadFormat": "Download format"
+    },
+    "billing": {
+        "history": "Billing History"
+    },
+    "pricing": {
+        "title": "Pricing",
+        "subtitle": "Get started for Free. Upgrade to increase limits.",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "savePercent": "Save 25%",
+        "month": "month",
+        "paidAnnually": "paid annually",
+        "paidMonthly": "paid monthly",
+        "whatsIncluded": "What's included",
+        "alreadyPro": "You are already a Pro user",
+        "activePlan": "Plan already active",
+        "upgradeToPro": "Upgrade to Pro",
+        "startToday": "Start Today",
+        "free": "Free",
+        "freeDescription": "Perfect to get started. Create your first QR codes for free.",
+        "proDescription": "The complete solution for professionals and businesses who want the best.",
+        "freeFeatures": {
+            "qrLimit": "Up to 2 QR codes",
+            "formats": "Basic formats (PNG, JPG)",
+            "customSizes": "Customizable sizes",
+            "basicStyles": "Basic styles"
+        },
+        "proFeatures": {
+            "qrLimit": "Up to 20 QR codes",
+            "formats": "All formats (PNG, JPG, SVG, PDF)",
+            "customSizes": "Customizable sizes",
+            "allStyles": "All available styles",
+            "customLogo": "Custom logo and image",
+            "highResolution": "High resolution downloads"
+        }
+    },
+    "subscription": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "canceled": "Canceled",
+        "uncollectible": "Uncollectible",
+        "cancelConfirmation": "Are you sure you want to cancel your subscription? It will remain active until the end of the current billing period.",
+        "cancelSuccess": "Subscription canceled successfully. It will remain active until the end of the current billing period."
+    },
+    "payment": {
+        "paymentCompleted": "Payment Completed!",
+        "paymentRejected": "Payment Rejected!",
+        "subscriptionActive": "Your subscription is now active.",
+        "subscriptionNotActive": "Your subscription has not been activated."
+    },
+    "common": {
+        "loading": "Loading...",
+        "reset": "Reset",
+        "save": "Save",
+        "cancel": "Cancel",
+        "retry": "Retry",
+        "confirm": "Confirm",
+        "continue": "Continue",
+        "close": "Close"
+    }
+}
