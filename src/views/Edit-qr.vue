@@ -160,8 +160,8 @@
           <div class="space-y-3">
             <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
               <div class="w-full flex gap-3 items-center">
-                <button-lg @click="resetToDefaults" variant="secondary" label="Reset" />
-                <button-lg
+                <buttonLg @click="resetToDefaults" variant="secondary" label="Reset" />
+                <buttonLg
                   @click="saveQrCode"
                   v-if="!editingQrId"
                   variant="primary"
@@ -170,7 +170,7 @@
                   class="sm:w-fit w-full"
                 />
               </div>
-              <button-lg @click="downloadQR" variant="secondary" label="Scarica QR Code" :disabled="!qrCode.data.content" class="sm:w-fit w-full" />
+              <buttonLg @click="downloadQR" variant="secondary" label="Scarica QR Code" :disabled="!qrCode.data.content" class="sm:w-fit w-full" />
             </div>
           </div>
         </div>
