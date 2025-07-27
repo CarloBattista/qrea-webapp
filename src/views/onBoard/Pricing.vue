@@ -1,50 +1,61 @@
 <template>
-  <div class="w-full">
-    <div class="w-full my-15 flex flex-col gap-5 items-center justify-center text-center">
+  <div class="w-full py-15">
+    <div class="w-full mb-15 flex flex-col gap-5 items-center justify-center text-center">
       <h1 class="text-black text-3xl font-bold">Pricing</h1>
-      <p class="text-gray-400 text-base font-normal">Get started for Free. Upgrade to increase limits.</p>
+      <p class="text-[#373737] text-base font-normal">Get started for Free. Upgrade to increase limits.</p>
     </div>
     <div class="w-full mb-15 flex items-center justify-center">
-      <div class="w-fit h-12 p-1 rounded-2xl flex items-center justify-center bg-gray-200">
+      <div class="w-fit h-12 p-0.5 rounded-2xl flex items-center justify-center pr-shadow bg-[#373737]/20">
         <div
           @click="handlePlan('monthly')"
-          class="min-w-[180px] h-full rounded-xl flex items-center justify-center text-black text-base font-medium cursor-pointer"
-          :class="{ 'bg-gray-400': currentPlan === 'monthly' }"
+          class="min-w-[180px] h-full rounded-[15px] flex items-center justify-center text-base font-medium cursor-pointer"
+          :class="{ 'bg-black text-white': currentPlan === 'monthly' }"
         >
           Monthly
         </div>
         <div
           @click="handlePlan('yearly')"
-          class="min-w-[180px] h-full rounded-xl flex gap-2 items-center justify-center text-black text-base font-medium cursor-pointer"
-          :class="{ 'bg-gray-400': currentPlan === 'yearly' }"
+          class="min-w-[180px] h-full rounded-[15px] flex gap-2 items-center justify-center text-base font-medium cursor-pointer"
+          :class="{ 'bg-black text-white': currentPlan === 'yearly' }"
         >
           Yearly <span class="text-xs font-medium">Save 25%</span>
         </div>
       </div>
     </div>
-    <div class="max-w-[960px] mx-auto md:px-7 px-3 grid md:grid-cols-2 grid-cols-1 gap-5">
-      <div v-for="(plan, planIndex) in store.plans" :key="planIndex" class="w-full py-9 px-6 rounded-2xl bg-gray-200">
-        <div class="w-full flex flex-col gap-2">
-          <h2 class="text-black text-xl font-semibold">{{ plan.name }}</h2>
-          <h2 class="text-black text-2xl font-semibold">&dollar;{{ plan.prices[currentPlan] }}</h2>
-          <p class="text-black text-base font-medium flex gap-1 items-center">
-            <span v-if="currentPlan === 'yearly' && plan.value === 'pro'" class="text-xl font-semibold line-through opacity-60"
-              >&dollar;{{ plan.prices.monthly }}</span
-            >{{ plan.descriptions[currentPlan] }}
-          </p>
+    <div class="max-w-[768px] mx-auto md:px-7 px-3 grid md:grid-cols-2 grid-cols-1 gap-5">
+      <div
+        v-for="(plan, planIndex) in store.plans"
+        :key="planIndex"
+        class="card-plan w-full py-[50px] px-8 rounded-4xl pr-shadow"
+        :class="{ 'plan-free md:order-1 order-2': plan.value === 'free', 'plan-pro md:order-2 order-1': plan.value === 'pro' }"
+      >
+        <div class="w-full mb-10 flex flex-col">
+          <h2 class="text-2xl font-semibold">{{ plan.name }}</h2>
+          <p class="text-sm font-normal">{{ plan.description }}</p>
         </div>
-        <buttonLg
-          @click="handleSubscription(plan)"
-          variant="primary"
-          :label="plan.value === 'free' ? 'Upgrade to Pro' : 'Get started'"
-          :disabled="plan.value === 'free'"
-          class="w-full mt-10"
-        />
-        <div class="w-full mt-4 flex flex-col">
-          <span v-for="(feature, featureIndex) in plan.features" :key="featureIndex" class="w-full flex gap-1 items-center text-sm">
-            <Check size="14" />
-            {{ feature }}
-          </span>
+        <div class="w-full mb-10 flex flex-col">
+          <div class="flex items-baseline">
+            <h2 class="text-3xl font-semibold">&euro;{{ plan.prices[currentPlan] }}</h2>
+            <span v-if="false" class="text-xs font-normal">/month</span>
+          </div>
+          <span class="mt-1 text-xs font-normal">{{ currentPlan === 'yearly' ? 'paid annually' : 'paid monthly' }} </span>
+        </div>
+        <div class="w-full flex flex-col gap-5">
+          <buttonLg
+            @click="handleSubscription(plan)"
+            :variant="plan.value === 'free' ? 'secondary' : 'secondary-inverted'"
+            leftIcon="ArrowRight"
+            :label="plan.value === 'free' ? 'Upgrade to Pro' : 'Start Today'"
+            :disabled="plan.value === 'free'"
+            class="w-full"
+          />
+          <div class="w-full flex flex-col gap-2.5">
+            <h2 class="text-sm font-semibold">What's included</h2>
+            <div v-for="(feature, featureIndex) in plan.features" :key="featureIndex" class="w-full flex gap-1.5 items-center text-xs font-normal">
+              <Check size="14" />
+              <span>{{ feature }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -129,4 +140,14 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.card-plan.plan-free {
+  background-color: white;
+  color: black;
+}
+
+.card-plan.plan-pro {
+  background-color: black;
+  color: white;
+}
+</style>

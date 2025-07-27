@@ -5,10 +5,7 @@ export const store = reactive({
     {
       value: 'free',
       name: 'Free',
-      descriptions: {
-        monthly: 'per month, no credit card required',
-        yearly: 'per month, no credit card required',
-      },
+      description: 'Perfetto per iniziare. Crea i tuoi primi QR code gratuitamente.',
       prices: {
         monthly: 0,
         yearly: 0,
@@ -17,15 +14,12 @@ export const store = reactive({
         monthly: null,
         yearly: null,
       },
-      features: ['First', 'Two', 'Three'],
+      features: ['Fino a 2 QR', 'Formati base (PNG, JPG)', 'Stili base'],
     },
     {
       value: 'pro',
       name: 'Pro',
-      descriptions: {
-        monthly: 'per month, billed monthly',
-        yearly: 'per month, billed yearly',
-      },
+      description: 'La soluzione completa per professionisti e aziende che vogliono il massimo.',
       prices: {
         monthly: 10,
         yearly: 7.5,
@@ -34,7 +28,14 @@ export const store = reactive({
         monthly: import.meta.env.VITE_STRIPE_PLAN_PRO_MONTHLY_PRICE_ID,
         yearly: import.meta.env.VITE_STRIPE_PLAN_PRO_YEARLY_PRICE_ID,
       },
-      features: ['First', 'Two', 'Three'],
+      features: [
+        'Fino a 20 QR',
+        'Tutti i formati (PNG, JPG, SVG, PDF)',
+        'Dimensioni personalizzabili',
+        'Tutti gli stili disponibili',
+        'Logo e immagine personalizzata',
+        'Download in alta risoluzione',
+      ],
     },
   ],
   qrCodes: {

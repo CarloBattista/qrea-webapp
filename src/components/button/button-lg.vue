@@ -3,13 +3,16 @@
     <button
       :type="type"
       :disabled="disabled"
-      class="btn-lg w-[inherit] min-h-9 max-h-11 h-11 px-4 rounded-lg flex gap-2 items-center justify-center"
+      class="btn-lg w-[inherit] min-h-9 max-h-11 h-11 px-4 rounded-[10px] flex gap-2 items-center justify-center"
       :class="'color-' + variant + ' ' + { loading: loading }"
     >
-      <div v-if="icon" class="h-full flex items-center justify-center">
-        <component :is="icon" />
+      <div v-if="leftIcon" class="h-full flex items-center justify-center">
+        <component :is="leftIcon" size="20" />
       </div>
       <span v-if="label" class="overflow-text-ellipsis">{{ label }}</span>
+      <div v-if="rightIcon" class="h-full flex items-center justify-center">
+        <component :is="rightIcon" size="20" />
+      </div>
       <div v-if="actions" @click.stop="dropdownIsOpen = !dropdownIsOpen" class="h-full flex items-center justify-center cursor-pointer">
         <ChevronDown size="20" />
       </div>
@@ -25,13 +28,14 @@
 
 <script>
 // ICONS
-import { ChevronDown } from 'lucide-vue-next';
+import { ChevronDown, ArrowRight } from 'lucide-vue-next';
 
 export default {
   name: 'button-lg',
   components: {
     // ICONS
     ChevronDown,
+    ArrowRight,
   },
   props: {
     type: {
@@ -46,7 +50,8 @@ export default {
       type: Boolean,
       default: false,
     },
-    icon: String,
+    leftIcon: String,
+    rightIcon: String,
     label: String,
     loading: {
       type: Boolean,
@@ -100,25 +105,53 @@ export default {
   opacity: 0.75;
 }
 
+.btn-lg:not(:disabled):focus::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: '';
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  outline-width: 1px;
+  outline-offset: 1px;
+  outline-style: solid;
+  outline-color: white;
+}
+
 /* Primary */
 .btn-lg.color-primary {
   background-color: black;
   color: white;
 }
 
-.btn-lg.color-primary:not(:disabled):hover {
+.btn-lg.color-primary:not(:disabled):hover,
+.btn-lg.color-primary:not(:disabled):focus {
   background-color: rgba(0, 0, 0, 0.75);
 }
 
 /* Secondary */
 .btn-lg.color-secondary {
-  background-color: white;
+  background-color: transparent;
   border-color: black;
   color: black;
 }
 
-.btn-lg.color-secondary:not(:disabled):hover {
-  background-color: rgba(0, 0, 0, 0.1);
+.btn-lg.color-secondary:not(:disabled):hover,
+.btn-lg.color-secondary:not(:disabled):focus {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Secondary inverted */
+.btn-lg.color-secondary-inverted {
+  background-color: transparent;
+  border-color: white;
+  color: white;
+}
+
+.btn-lg.color-secondary-inverted:not(:disabled):hover,
+.btn-lg.color-secondary-inverted:not(:disabled):focus {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Destructive */
@@ -128,7 +161,8 @@ export default {
   color: white;
 }
 
-.btn-lg.color-destructive:not(:disabled):hover {
+.btn-lg.color-destructive:not(:disabled):hover,
+.btn-lg.color-destructive:not(:disabled):focus {
   background-color: rgba(255, 35, 35, 0.75);
 }
 </style>
