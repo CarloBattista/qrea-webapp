@@ -15,6 +15,9 @@ import Home from '../views/Home.vue';
 import NewQr from '../views/New-qr.vue';
 import EditQr from '../views/Edit-qr.vue';
 
+// Error
+import NotFound from '../views/Error/Not-found.vue';
+
 const routes = [
   // OnBoard
   {
@@ -83,6 +86,19 @@ const routes = [
     component: EditQr,
     props: true,
     meta: { title: 'QRGenerator', requiresAuth: true },
+  },
+
+  // Error
+  {
+    path: '/not-found',
+    name: 'not-found',
+    component: NotFound,
+    props: true,
+    meta: { title: 'QRGenerator' },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/not-found',
   },
 ];
 

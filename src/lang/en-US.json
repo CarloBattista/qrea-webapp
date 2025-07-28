@@ -146,5 +146,14 @@
         "confirm": "Confirm",
         "continue": "Continue",
         "close": "Close"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "description": "The page you're looking for doesn't exist or has been moved.",
+        "backToHome": "Back to Home",
+        "goBack": "Go back",
+        "helpText": "Or try one of these helpful links:",
+        "createQr": "Create new QR",
+        "profile": "My profile"
     }
 }

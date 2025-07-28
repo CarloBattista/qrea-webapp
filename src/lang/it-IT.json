@@ -146,5 +146,14 @@
         "confirm": "Conferma",
         "continue": "Continua",
         "close": "Chiudi"
+    },
+    "notFound": {
+        "title": "Pagina non trovata",
+        "description": "La pagina che stai cercando non esiste o è stata spostata.",
+        "backToHome": "Torna alla Home",
+        "goBack": "Torna indietro",
+        "helpText": "Oppure prova uno di questi link utili:",
+        "createQr": "Crea nuovo QR",
+        "profile": "Il mio profilo"
     }
 }

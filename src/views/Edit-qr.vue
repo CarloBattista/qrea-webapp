@@ -401,6 +401,8 @@ export default {
 
         if (!error && data) {
           this.qrCode.data = data;
+        } else if (error.code === '22P02') {
+          this.$router.push({ name: 'not-found' });
         }
       } catch (e) {
         console.error(e);
