@@ -64,7 +64,7 @@
             <p v-if="user.error.password" class="text-red-500 text-sm">{{ user.error.password }}</p>
           </div>
           <div class="pt-4">
-            <button-lg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
+            <buttonLg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
           </div>
         </form>
         <div class="relative my-6">

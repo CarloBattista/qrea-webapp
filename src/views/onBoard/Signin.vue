@@ -39,7 +39,7 @@
             <a href="#" class="text-sm text-gray-600 hover:text-black transition-colors duration-200">{{ $t('auth.forgotPassword') }}</a>
           </div>
           <div class="pt-4">
-            <button-lg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
+            <buttonLg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
           </div>
         </form>
         <div class="relative my-6">

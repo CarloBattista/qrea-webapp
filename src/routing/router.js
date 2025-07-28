@@ -26,35 +26,35 @@ const routes = [
     name: 'signup',
     component: Signup,
     props: true,
-    meta: { title: 'QRGenerator • Registrati', requiresGuest: true },
+    meta: { title: 'Qrea • Registrati', requiresGuest: true },
   },
   {
     path: '/signin',
     name: 'signin',
     component: Signin,
     props: true,
-    meta: { title: 'QRGenerator • Accedi', requiresGuest: true },
+    meta: { title: 'Qrea • Accedi', requiresGuest: true },
   },
   {
     path: '/pricing',
     name: 'pricing',
     component: Pricing,
     props: true,
-    meta: { title: 'QRGenerator • Prezzi' },
+    meta: { title: 'Qrea • Prezzi' },
   },
   {
     path: '/success',
     name: 'success',
     component: Success,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'Qrea', requiresAuth: true },
   },
   {
     path: '/cancel',
     name: 'cancel',
     component: Cancel,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'Qrea', requiresAuth: true },
   },
 
   // Profile
@@ -63,37 +63,37 @@ const routes = [
     name: 'profile',
     component: Profile,
     props: true,
-    meta: { title: 'QRGenerator • Profile', requiresAuth: true },
+    meta: { title: 'Qrea • Profile', requiresAuth: true },
   },
 
   // General
   {
-    path: '/landing-page',
+    path: '/',
     name: 'landing-page',
     component: LandingPage,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'Qrea' },
   },
   {
-    path: '/',
+    path: '/home',
     name: 'home',
     component: Home,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'Qrea', requiresAuth: true },
   },
   {
     path: '/new-qr',
     name: 'new-qr',
     component: NewQr,
     props: true,
-    meta: { title: 'QRGenerator • Crea un nuovo QR', requiresAuth: true },
+    meta: { title: 'Qrea • Crea un nuovo QR', requiresAuth: true },
   },
   {
     path: '/edit-qr/:id',
     name: 'edit-qr',
     component: EditQr,
     props: true,
-    meta: { title: 'QRGenerator • Modifica QR', requiresAuth: true },
+    meta: { title: 'Qrea • Modifica QR', requiresAuth: true },
   },
 
   // Error
@@ -102,7 +102,7 @@ const routes = [
     name: 'not-found',
     component: NotFound,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'Qrea' },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -120,7 +120,7 @@ router.beforeEach((to, from, next) => {
   if (pageTitle) {
     document.title = pageTitle;
   } else {
-    document.title = 'QRGenerator';
+    document.title = 'Qrea';
   }
 
   const isAuthenticated = localStorage.getItem('isAuthenticated');

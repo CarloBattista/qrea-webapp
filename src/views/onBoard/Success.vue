@@ -11,7 +11,7 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $t('payment.paymentCompleted') }}</h2>
         <p class="text-gray-600 mb-6">{{ $t('payment.subscriptionActive') }}</p>
 
-        <RouterLink to="/">
+        <RouterLink to="/home">
           <buttonLg variant="primary" :label="$t('common.continue')" class="w-full" />
         </RouterLink>
       </div>
