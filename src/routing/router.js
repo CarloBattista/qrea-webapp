@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import i18n from '../lib/i18n';
 
 // OnBoard
 import Signup from '../views/onBoard/Signup.vue';
@@ -12,6 +11,7 @@ import Cancel from '../views/onBoard/Cancel.vue';
 import Profile from '../views/Profile.vue';
 
 // General
+import LandingPage from '../views/Landing-page.vue';
 import Home from '../views/Home.vue';
 import NewQr from '../views/New-qr.vue';
 import EditQr from '../views/Edit-qr.vue';
@@ -67,6 +67,13 @@ const routes = [
   },
 
   // General
+  {
+    path: '/landing-page',
+    name: 'landing-page',
+    component: LandingPage,
+    props: true,
+    meta: { title: 'QRGenerator' },
+  },
   {
     path: '/',
     name: 'home',
