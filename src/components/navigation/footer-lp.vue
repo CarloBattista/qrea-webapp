@@ -7,7 +7,7 @@
         </div>
         <div class="w-full flex flex-col gap-4">
           <h3 class="fooHead">Prodotto</h3>
-          <RouterLink to="/" class="fooItem">Funzionalità</RouterLink>
+          <a @click="scrollToFeatures" class="fooItem">Funzionalità</a>
           <RouterLink to="/pricing" class="fooItem">Prezzi</RouterLink>
         </div>
         <div class="w-full flex flex-col gap-4">
@@ -47,6 +47,18 @@ export default {
       company,
     };
   },
+  methods: {
+    scrollToFeatures() {
+      const featuresElement = document.getElementById('features');
+
+      if (featuresElement) {
+        featuresElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    },
+  },
 };
 </script>
 
@@ -61,6 +73,7 @@ export default {
   color: #ccc;
   font-size: 14px;
   font-weight: 400;
+  cursor: pointer;
   transition: color 200ms ease;
 }
 
