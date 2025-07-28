@@ -401,7 +401,7 @@ export default {
 
         if (!error && data) {
           this.qrCode.data = data;
-        } else if (error.code === '22P02') {
+        } else if (error.code === '22P02' || error.code === 'PGRST116') {
           this.$router.push({ name: 'not-found' });
         }
       } catch (e) {
