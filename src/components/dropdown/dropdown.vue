@@ -11,6 +11,7 @@
     <Transition name="appear-fade">
       <div
         v-if="isOpen"
+        @option-selected="handleOptionSelected"
         class="absolute z-[9999] mt-2.5 top-full left-0 w-full min-h-11 max-h-[220px] rounded-[10px] pxl-shadow bg-white overflow-y-auto cursor-default"
       >
         <slot name="content" />
@@ -42,6 +43,11 @@ export default {
       isOpen: false,
     };
   },
+  provide() {
+    return {
+      selectOption: this.handleOptionSelected,
+    };
+  },
   methods: {
     handleDropdown() {
       if (this.disabled) {
@@ -54,6 +60,10 @@ export default {
       if (this.$refs.dropdownContainer && !this.$refs.dropdownContainer.contains(event.target)) {
         this.isOpen = false;
       }
+    },
+    handleOptionSelected(value) {
+      this.$emit('option-selected', value);
+      this.isOpen = false;
     },
   },
   mounted() {

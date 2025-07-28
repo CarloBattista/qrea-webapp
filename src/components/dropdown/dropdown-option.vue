@@ -19,6 +19,7 @@ export default {
     // ICONS
     Check,
   },
+  inject: ['selectOption'],
   props: {
     value: String,
     option: String,
@@ -29,11 +30,12 @@ export default {
     },
   },
   methods: {
-    handleClick(event) {
-      if (!this.disabled) {
-        event.stopPropagation();
-        this.$emit('click');
+    handleClick() {
+      if (this.disabled) {
+        return;
       }
+
+      this.selectOption(this.value);
     },
   },
 };

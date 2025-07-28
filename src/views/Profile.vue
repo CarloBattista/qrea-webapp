@@ -10,24 +10,28 @@
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">{{ $t('profile.account') }}</h2>
           <div class="w-full flex flex-col">
-            <div class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal">
+            <div class="w-full mt-4 h-9 flex gap-8 items-center justify-between text-base font-normal">
               <h2 class="text-start">{{ $t('profile.fullName') }}</h2>
               <span class="text-end">{{ auth.profile?.first_name }} {{ auth.profile?.last_name }}</span>
             </div>
-            <div class="w-full h-9 flex items-center justify-between text-base font-normal">
+            <div class="w-full h-9 flex gap-8 items-center justify-between text-base font-normal">
               <h2 class="text-start">{{ $t('profile.email') }}</h2>
               <span class="text-end">{{ auth.user?.email }}</span>
             </div>
-            <div class="w-full h-9 flex items-center justify-between text-base font-normal">
+            <div class="w-full flex gap-8 items-center justify-between text-base font-normal">
               <h2 class="text-start">{{ $t('profile.language') }}</h2>
-              <select
-                v-model="selectedLanguage"
-                @change="updateLanguage"
-                class="text-end bg-transparent border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
-              >
-                <option value="en-US">English</option>
-                <option value="it-IT">Italiano</option>
-              </select>
+              <dropdown class="w-full" :selected="selectedLanguageLabel" :disabled="false">
+                <template #content>
+                  <dropdownOption
+                    v-for="(option, optionIndex) in store.languages"
+                    @click="updateLanguage(option.value)"
+                    :key="optionIndex"
+                    :value="option.value"
+                    :option="option.name"
+                    :selected="selectedLanguage"
+                  />
+                </template>
+              </dropdown>
             </div>
           </div>
         </div>
@@ -89,12 +93,15 @@
 </template>
 
 <script>
-import { auth } from '../data/auth';
 import { supabase } from '../lib/supabase';
+import { auth } from '../data/auth';
+import { store } from '../data/store';
 
 import navigation from '../components/navigation/navigation.vue';
 import buttonLg from '../components/button/button-lg.vue';
 import badge from '../components/badge/badge.vue';
+import dropdown from '../components/dropdown/dropdown.vue';
+import dropdownOption from '../components/dropdown/dropdown-option.vue';
 
 export default {
   name: 'Profile',
@@ -102,10 +109,13 @@ export default {
     navigation,
     buttonLg,
     badge,
+    dropdown,
+    dropdownOption,
   },
   data() {
     return {
       auth,
+      store,
       selectedLanguage: 'it-IT', // Default language
       subscriptionDetails: {
         data: null,
@@ -145,6 +155,10 @@ export default {
     },
     isSubscriptionCancelled() {
       return this.subscriptionDetails?.cancel_at_period_end === true;
+    },
+    selectedLanguageLabel() {
+      const selectedLanguage = this.store.languages.find((language) => language.value === this.selectedLanguage);
+      return selectedLanguage ? selectedLanguage.name : '';
     },
   },
   methods: {
@@ -258,16 +272,17 @@ export default {
         this.nextPayment.loading = false;
       }
     },
-    async updateLanguage() {
+    async updateLanguage(lang) {
       if (!this.auth.user?.id) {
         return;
       }
+
+      this.selectedLanguage = lang;
 
       try {
         const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
 
         if (error) {
-          console.error('Error updating language:', error);
           alert("Errore durante l'aggiornamento della lingua");
           return;
         }

@@ -2,6 +2,16 @@ import { reactive } from 'vue';
 import i18n from '../lib/i18n';
 
 export const store = reactive({
+  languages: [
+    {
+      value: 'it-IT',
+      name: 'Italiano',
+    },
+    {
+      value: 'en-US',
+      name: 'English',
+    },
+  ],
   plans: [
     {
       value: 'free',
