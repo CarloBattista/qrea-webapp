@@ -64,14 +64,13 @@
             <div class="flex items-center justify-between mb-4">
               <checkbox
                 :selected="qrCode.data.config.gradient"
-                @click="qrCode.data.config.gradient = !qrCode.data.config.gradient"
+                @click="handleGradientToggle"
                 :label="$t('editor.enableGradient')"
                 :disabled="isFreePlan"
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
-
-            <div v-if="qrCode.data.config.gradient" class="space-y-4">
+            <div v-if="isFreePlan && qrCode.data.config.gradient" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
@@ -99,7 +98,10 @@
                 <template #content>
                   <dropdownOption
                     v-for="(option, optionIndex) in store.qrConfig.dotStyles"
-                    @click="handleDotsStyleChange(option)"
+                    @click="
+                      qrCode.data.config.dotsStyle = option.value;
+                      disabledFunctionRedirect(option);
+                    "
                     :key="optionIndex"
                     :value="option.value"
                     :option="option.label"
@@ -112,7 +114,10 @@
                 <template #content>
                   <dropdownOption
                     v-for="(option, optionIndex) in store.qrConfig.cornerStyles"
-                    @click="handleCornerStyleChange(option)"
+                    @click="
+                      qrCode.data.config.cornerStyle = option.value;
+                      disabledFunctionRedirect(option);
+                    "
                     :key="optionIndex"
                     :value="option.value"
                     :option="option.label"
@@ -129,14 +134,13 @@
             <div class="flex items-center mb-4 justify-between">
               <checkbox
                 :selected="qrCode.data.config.showImage"
-                @click="qrCode.data.config.showImage = !qrCode.data.config.showImage"
+                @click="handleImageToggle"
                 :label="$t('editor.addCenterImage')"
                 :disabled="isFreePlan"
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
-
-            <div v-if="qrCode.data.config.showImage" class="space-y-4">
+            <div v-if="isFreePlan && qrCode.data.config.showImage" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
                 <input
@@ -161,7 +165,10 @@
               <template #content>
                 <dropdownOption
                   v-for="(option, optionIndex) in store.qrConfig.downloadFormats"
-                  @click="handleFormatChange(option)"
+                  @click="
+                    qrCode.data.config.format = option.value;
+                    disabledFunctionRedirect(option);
+                  "
                   :key="optionIndex"
                   :value="option.value"
                   :option="option.label"
@@ -344,26 +351,27 @@ export default {
         });
       }
     },
-    handleDotsStyleChange(option) {
-      if (this.isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')) {
+    disabledFunctionRedirect(option) {
+      if (this.isFreePlan && option.for_pro_user) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.qrCode.data.config.dotsStyle = option.value;
     },
-    handleCornerStyleChange(option) {
-      if (this.isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')) {
+    handleGradientToggle() {
+      if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.qrCode.data.config.cornerStyle = option.value;
+      this.qrCode.data.config.gradient = !this.qrCode.data.config.gradient;
+      window.location.reload();
     },
-    handleFormatChange(option) {
-      if (this.isFreePlan && (option.value === 'svg' || option.value === 'pdf')) {
+    handleImageToggle() {
+      if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.qrCode.data.config.format = option.value;
+      this.qrCode.data.config.showImage = !this.qrCode.data.config.showImage;
+      window.location.reload();
     },
 
     async getQrCode() {

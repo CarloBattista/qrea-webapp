@@ -87,26 +87,25 @@ export const store = reactive({
     qrCode: null,
 
     dotStyles: [
-      { label: 'Quadrato', value: 'square' },
-      { label: 'Arrotondato', value: 'rounded' },
-      { label: 'Punti', value: 'dots' },
-      { label: 'Elegante', value: 'classy' },
-      { label: 'Extra Arrotondato', value: 'extra-rounded' },
+      { label: 'Quadrato', value: 'square', for_pro_user: false },
+      { label: 'Arrotondato', value: 'rounded', for_pro_user: false },
+      { label: 'Punti', value: 'dots', for_pro_user: true },
+      { label: 'Elegante', value: 'classy', for_pro_user: true },
+      { label: 'Extra Arrotondato', value: 'extra-rounded', for_pro_user: true },
     ],
     cornerStyles: [
-      { label: 'Quadrato', value: 'square' },
-      { label: 'Punto', value: 'dot' },
-      { label: 'Arrotondato', value: 'rounded' },
-      { label: 'Extra Arrotondato', value: 'extra-rounded' },
+      { label: 'Quadrato', value: 'square', for_pro_user: false },
+      { label: 'Punto', value: 'dot', for_pro_user: false },
+      { label: 'Arrotondato', value: 'rounded', for_pro_user: true },
+      { label: 'Extra Arrotondato', value: 'extra-rounded', for_pro_user: true },
     ],
 
-    // Formati di download disponibili
     selectedFormat: 'png',
     downloadFormats: [
-      { label: 'PNG', value: 'png' },
-      { label: 'JPG', value: 'jpeg' },
-      { label: 'SVG', value: 'svg' },
-      { label: 'PDF', value: 'pdf' },
+      { label: 'PNG', value: 'png', for_pro_user: false },
+      { label: 'JPG', value: 'jpeg', for_pro_user: false },
+      { label: 'SVG', value: 'svg', for_pro_user: true },
+      { label: 'PDF', value: 'pdf', for_pro_user: true },
     ],
   },
 });

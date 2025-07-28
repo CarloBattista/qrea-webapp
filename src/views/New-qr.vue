@@ -64,14 +64,13 @@
             <div class="flex items-center justify-between mb-4">
               <checkbox
                 :selected="store.qrConfig.gradient"
-                @click="store.qrConfig.gradient = !store.qrConfig.gradient"
+                @click="handleGradientToggle"
                 :label="$t('editor.enableGradient')"
                 :disabled="isFreePlan"
               />
               <badge v-if="isFreePlan" label="Pro" />
             </div>
-
-            <div v-if="store.qrConfig.gradient" class="space-y-4">
+            <div v-if="isFreePlan && store.qrConfig.gradient" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
@@ -99,12 +98,15 @@
                 <template #content>
                   <dropdownOption
                     v-for="(option, optionIndex) in store.qrConfig.dotStyles"
-                    @click="handleDotsStyleChange(option)"
+                    @click="
+                      store.qrConfig.dotsStyle = option.value;
+                      disabledFunctionRedirect(option);
+                    "
                     :key="optionIndex"
                     :value="option.value"
                     :option="option.label"
                     :selected="store.qrConfig.dotsStyle"
-                    :disabled="isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')"
+                    :disabled="isFreePlan && option.for_pro_user"
                   />
                 </template>
               </dropdown>
@@ -112,12 +114,15 @@
                 <template #content>
                   <dropdownOption
                     v-for="(option, optionIndex) in store.qrConfig.cornerStyles"
-                    @click="handleCornerStyleChange(option)"
+                    @click="
+                      store.qrConfig.cornerStyle = option.value;
+                      disabledFunctionRedirect(option);
+                    "
                     :key="optionIndex"
                     :value="option.value"
                     :option="option.label"
                     :selected="store.qrConfig.cornerStyle"
-                    :disabled="isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')"
+                    :disabled="isFreePlan && option.for_pro_user"
                   />
                 </template>
               </dropdown>
@@ -127,16 +132,10 @@
           <!-- Immagine -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
-              <checkbox
-                :selected="store.qrConfig.showImage"
-                @click="store.qrConfig.showImage = !store.qrConfig.showImage"
-                :label="$t('editor.addCenterImage')"
-                :disabled="isFreePlan"
-              />
+              <checkbox :selected="store.qrConfig.showImage" @click="handleImageToggle" :label="$t('editor.addCenterImage')" :disabled="isFreePlan" />
               <badge v-if="isFreePlan" label="Pro" />
             </div>
-
-            <div v-if="store.qrConfig.showImage" class="space-y-4">
+            <div v-if="isFreePlan && store.qrConfig.showImage" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
                 <input
@@ -161,12 +160,15 @@
               <template #content>
                 <dropdownOption
                   v-for="(option, optionIndex) in store.qrConfig.downloadFormats"
-                  @click="handleFormatChange(option)"
+                  @click="
+                    store.qrConfig.selectedFormat = option.value;
+                    disabledFunctionRedirect(option);
+                  "
                   :key="optionIndex"
                   :value="option.value"
                   :option="option.label"
                   :selected="store.qrConfig.selectedFormat"
-                  :disabled="isFreePlan && (option.value === 'svg' || option.value === 'pdf')"
+                  :disabled="isFreePlan && option.for_pro_user"
                 />
               </template>
             </dropdown>
@@ -401,27 +403,27 @@ export default {
       this.store.qrConfig.imageSettings = config.imageSettings;
       this.store.qrConfig.selectedFormat = config.selectedFormat;
     },
-
-    handleDotsStyleChange(option) {
-      if (this.isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')) {
+    disabledFunctionRedirect(option) {
+      if (this.isFreePlan && option.for_pro_user) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.store.qrConfig.dotsStyle = option.value;
     },
-    handleCornerStyleChange(option) {
-      if (this.isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')) {
+    handleGradientToggle() {
+      if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.store.qrConfig.cornerStyle = option.value;
+      this.store.qrConfig.gradient = !this.store.qrConfig.gradient;
+      window.location.reload();
     },
-    handleFormatChange(option) {
-      if (this.isFreePlan && (option.value === 'svg' || option.value === 'pdf')) {
+    handleImageToggle() {
+      if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
         return;
       }
-      this.store.qrConfig.selectedFormat = option.value;
+      this.store.qrConfig.showImage = !this.store.qrConfig.showImage;
+      window.location.reload();
     },
 
     async loadQRCodeFromRoute() {
