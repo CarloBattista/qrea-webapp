@@ -187,5 +187,11 @@
         "helpCenter": "Centro assistenza",
         "contact": "Contatti",
         "privacy": "Privacy"
+    },
+    "meta": {
+        "title": "Qrea - Generatore QR Code Professionale | Personalizza e Scarica",
+        "description": "Qrea: Crea QR code personalizzati con stili, colori e logo. Generatore QR professionale con formati multipli (PNG, JPG, SVG, PDF). Personalizza, scansiona e condividi in pochi click.",
+        "ogTitle": "Qrea: Generatore QR Professionale",
+        "ogDescription": "Qrea:Il generatore QR perfetto per il tuo brand. Personalizza colori, forme e aggiungi il tuo logo per creare QR code brandizzati. Scarica in PNG, JPG, SVG e PDF."
     }
 }

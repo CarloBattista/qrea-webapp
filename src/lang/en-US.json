@@ -187,5 +187,11 @@
         "helpCenter": "Help Center",
         "contact": "Contact",
         "privacy": "Privacy"
+    },
+    "meta": {
+        "title": "Qrea - Professional QR Code Generator | Customize and Download",
+        "description": "Qrea: Create custom QR codes with styles, colors and logos. Professional QR generator with multiple formats (PNG, JPG, SVG, PDF). Customize, scan and share in just a few clicks.",
+        "ogTitle": "Qrea: Professional QR Generator",
+        "ogDescription": "Qrea: The perfect QR generator for your brand. Customize colors, shapes and add your logo to create branded QR codes. Download in PNG, JPG, SVG and PDF formats."
     }
 }
