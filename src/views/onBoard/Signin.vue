@@ -1,11 +1,13 @@
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-gray-50">
     <div class="w-full max-w-md px-6">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-black mb-2">{{ $t('auth.signin') }}</h1>
-        <p class="text-gray-600"></p>
+      <div class="w-full mb-8 flex items-center justify-center">
+        <appLogo class="relative max-w-30" />
       </div>
-      <div class="sm:bg-white bg-transparent rounded-2xl sm:p-8 sm:pr-shadow">
+      <div class="card-form-comtainer sm:bg-white bg-transparent rounded-2xl sm:p-8">
+        <div class="text-start mb-8">
+          <h1 class="text-xl font-medium text-black">{{ $t('auth.signin') }}</h1>
+        </div>
         <form @submit.prevent="actionSignin" class="space-y-6">
           <div class="space-y-2">
             <label for="email" class="block text-sm font-medium text-gray-700">{{ $t('auth.email') }}</label>
@@ -37,7 +39,7 @@
             <a href="#" class="text-sm text-gray-600 hover:text-black transition-colors duration-200">{{ $t('auth.forgotPassword') }}</a>
           </div>
           <div class="pt-4">
-            <button-lg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
+            <button-lg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
           </div>
         </form>
         <div class="relative my-6">
@@ -73,11 +75,13 @@ import { auth } from '../../data/auth';
 
 import supportedDomains from '../../json/supported_domains.json';
 
+import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
 
 export default {
   name: 'Signin',
   components: {
+    appLogo,
     ButtonLg,
   },
   data() {
@@ -169,7 +173,17 @@ export default {
 </script>
 
 <style scoped>
+.card-form-comtainer {
+  box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
 input:focus {
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+@media only screen and (max-width: 768px) {
+  .card-form-comtainer {
+    box-shadow: none;
+  }
 }
 </style>

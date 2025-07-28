@@ -6,10 +6,11 @@
       class="btn-lg w-[inherit] min-h-9 max-h-11 h-11 px-4 rounded-[10px] flex gap-2 items-center justify-center"
       :class="'color-' + variant + ' ' + { loading: loading }"
     >
+      <span v-if="loading" class="loader"></span>
       <div v-if="leftIcon" class="h-full flex items-center justify-center">
         <component :is="leftIcon" size="20" />
       </div>
-      <span v-if="label" class="overflow-text-ellipsis">{{ label }}</span>
+      <span v-if="label" class="font-medium overflow-text-ellipsis">{{ label }}</span>
       <div v-if="rightIcon" class="h-full flex items-center justify-center">
         <component :is="rightIcon" size="20" />
       </div>
@@ -113,10 +114,10 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 10px;
-  outline-width: 1px;
-  outline-offset: 1px;
+  outline-width: 2px;
+  outline-offset: 2px;
   outline-style: solid;
-  outline-color: white;
+  outline-color: black;
 }
 
 /* Primary */
@@ -128,6 +129,10 @@ export default {
 .btn-lg.color-primary:not(:disabled):hover,
 .btn-lg.color-primary:not(:disabled):focus {
   background-color: rgba(0, 0, 0, 0.75);
+}
+
+.btn-lg.color-primary .loader::before {
+  border-color: white;
 }
 
 /* Secondary */
@@ -142,6 +147,10 @@ export default {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
+.btn-lg.color-secondary .loader::before {
+  border-color: black;
+}
+
 /* Secondary inverted */
 .btn-lg.color-secondary-inverted {
   background-color: transparent;
@@ -154,6 +163,10 @@ export default {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+.btn-lg.color-secondary-inverted .loader::before {
+  border-color: white;
+}
+
 /* Destructive */
 .btn-lg.color-destructive {
   background-color: rgb(255, 35, 35);
@@ -164,5 +177,52 @@ export default {
 .btn-lg.color-destructive:not(:disabled):hover,
 .btn-lg.color-destructive:not(:disabled):focus {
   background-color: rgba(255, 35, 35, 0.75);
+}
+
+.btn-lg.color-destructive .loader::before {
+  border-color: white;
+}
+
+/* Loader */
+.loader {
+  width: 22px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  position: relative;
+  animation: rotate 1s linear infinite;
+}
+
+.loader::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  inset: 0px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  animation: prixClipFix 2s linear infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes prixClipFix {
+  0% {
+    clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+  }
+  25% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+  }
+  50% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+  }
+  75% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0);
+  }
 }
 </style>

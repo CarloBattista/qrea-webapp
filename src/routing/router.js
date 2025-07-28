@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import i18n from '../lib/i18n';
 
 // OnBoard
 import Signup from '../views/onBoard/Signup.vue';
@@ -25,21 +26,21 @@ const routes = [
     name: 'signup',
     component: Signup,
     props: true,
-    meta: { title: 'QRGenerator', requiresGuest: true },
+    meta: { title: 'QRGenerator • Registrati', requiresGuest: true },
   },
   {
     path: '/signin',
     name: 'signin',
     component: Signin,
     props: true,
-    meta: { title: 'QRGenerator', requiresGuest: true },
+    meta: { title: 'QRGenerator • Accedi', requiresGuest: true },
   },
   {
     path: '/pricing',
     name: 'pricing',
     component: Pricing,
     props: true,
-    meta: { title: 'QRGenerator' },
+    meta: { title: 'QRGenerator • Prezzi' },
   },
   {
     path: '/success',
@@ -62,7 +63,7 @@ const routes = [
     name: 'profile',
     component: Profile,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'QRGenerator • Profile', requiresAuth: true },
   },
 
   // General
@@ -78,14 +79,14 @@ const routes = [
     name: 'new-qr',
     component: NewQr,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'QRGenerator • Crea un nuovo QR', requiresAuth: true },
   },
   {
     path: '/edit-qr/:id',
     name: 'edit-qr',
     component: EditQr,
     props: true,
-    meta: { title: 'QRGenerator', requiresAuth: true },
+    meta: { title: 'QRGenerator • Modifica QR', requiresAuth: true },
   },
 
   // Error
