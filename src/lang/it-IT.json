@@ -38,7 +38,8 @@
         "upgradeToPro": "Passa a Pro",
         "downloadInvoice": "Scarica fattura",
         "language": "Lingua",
-        "selectLanguage": "Seleziona lingua"
+        "selectLanguage": "Seleziona lingua",
+        "upcoming": "Prossimo pagamento"
     },
     "home": {
         "noQrFound": "Nessun QR Code trovato",

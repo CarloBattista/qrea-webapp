@@ -108,4 +108,58 @@ router.get('/billing-history/:customerId', async (req, res) => {
   }
 });
 
+// Ottieni informazioni sul prossimo pagamento
+router.get('/upcoming-invoice/:customerId', async (req, res) => {
+  try {
+    const stripe = getStripe();
+    const { customerId } = req.params;
+
+    // Ottieni le sottoscrizioni attive del cliente
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: 'active',
+      limit: 1,
+      expand: ['data.items.data.price'], // Espandi i dettagli del prezzo
+    });
+
+    if (subscriptions.data.length === 0) {
+      return res.json(null);
+    }
+
+    const subscription = subscriptions.data[0];
+
+    // Verifica che ci siano items e prezzi
+    if (!subscription.items || !subscription.items.data || subscription.items.data.length === 0) {
+      return res.json(null);
+    }
+
+    const firstItem = subscription.items.data[0];
+
+    // Usa current_period_end dall'item della sottoscrizione, non dalla sottoscrizione principale
+    if (!firstItem.current_period_end) {
+      return res.json(null);
+    }
+
+    if (!firstItem.price) {
+      return res.json(null);
+    }
+
+    const price = firstItem.price;
+
+    const nextPayment = {
+      date: new Date(firstItem.current_period_end * 1000).toISOString(),
+      amount: (price.unit_amount || 0) / 100,
+      currency: (price.currency || 'eur').toUpperCase(),
+    };
+
+    res.json(nextPayment);
+  } catch (error) {
+    console.error('Errore nel recupero del prossimo pagamento:', error);
+    res.status(500).json({
+      error: 'Errore nel recupero del prossimo pagamento',
+      details: error.message,
+    });
+  }
+});
+
 export default router;

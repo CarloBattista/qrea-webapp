@@ -59,6 +59,7 @@
         </div>
       </div>
     </div>
+    <buttonLg @click="handleSubscriptionTest" variant="primary" leftIcon="ArrowRight" label="Test sub" :disabled="false" />
   </div>
 </template>
 
@@ -162,6 +163,47 @@ export default {
 
         if (url) {
           // Reindirizza direttamente all'URL di Stripe
+          window.location.href = url;
+        } else {
+          console.error('URL di checkout non ricevuto dal server');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async handleSubscriptionTest() {
+      const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;
+
+      if (!priceId) {
+        console.error('Price ID non trovato');
+        return;
+      }
+
+      if (!this.auth.isAuthenticated) {
+        this.$router.push({ name: 'signin' });
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3001/api/payments/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            priceId: priceId,
+            successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${window.location.origin}/cancel`,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Errore HTTP: ${response.status}`);
+        }
+
+        const { url } = await response.json();
+
+        if (url) {
           window.location.href = url;
         } else {
           console.error('URL di checkout non ricevuto dal server');

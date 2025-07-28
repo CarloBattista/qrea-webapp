@@ -39,9 +39,9 @@
               <badge :label="typeSubscription" />
             </div>
           </div>
-          <div v-if="subscriptionDetails && isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
+          <div v-if="subscriptionDetails.data && isSubscriptionCancelled" class="w-full h-9 flex items-center justify-between text-base font-normal">
             <h2 class="text-start">{{ $t('profile.expiresOn') }}</h2>
-            <span class="text-end">{{ formatDate(subscriptionDetails.cancel_at) }}</span>
+            <span class="text-end">{{ formatDate(subscriptionDetails.data.cancel_at) }}</span>
           </div>
           <div class="w-full mt-4 flex items-center justify-end">
             <buttonLg
@@ -59,6 +59,15 @@
         <div v-if="billingHistory.data && billingHistory.data.length > 0" class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">{{ $t('billing.history') }}</h2>
           <div class="w-full flex flex-col">
+            <div
+              v-if="nextPayment.data && typeSubscription === 'Pro'"
+              class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal border-b border-gray-200 pb-2"
+            >
+              <h2 class="text-start">
+                {{ nextPayment.data.currency === 'EUR' ? '€' : '$' }}{{ nextPayment.data.amount }} - {{ $t('profile.upcoming') }}
+              </h2>
+              <span class="text-end">{{ formatDate(new Date(nextPayment.data.date).getTime() / 1000) }}</span>
+            </div>
             <div
               v-for="(payment, paymentIndex) in billingHistory.data"
               :key="paymentIndex"
@@ -98,7 +107,16 @@ export default {
     return {
       auth,
       selectedLanguage: 'it-IT', // Default language
-      subscriptionDetails: null,
+      subscriptionDetails: {
+        data: null,
+        error: null,
+        loading: false,
+      },
+      nextPayment: {
+        data: null,
+        error: null,
+        loading: false,
+      },
       billingHistory: {
         data: null,
         error: null,
@@ -186,19 +204,23 @@ export default {
       }
     },
     async fetchSubscriptionDetails() {
+      this.billingHistory.loading = true;
+
       try {
         const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`);
         if (response.ok) {
-          this.subscriptionDetails = await response.json();
+          this.subscriptionDetails.data = await response.json();
         }
       } catch (e) {
         console.error(e);
+      } finally {
+        this.billingHistory.loading = false;
       }
     },
     async fetchBillingHistory() {
       this.billingHistory.loading = true;
 
-      const customerId = this.subscriptionDetails.customer.id;
+      const customerId = this.subscriptionDetails.data?.customer?.id;
 
       if (!customerId) {
         this.billingHistory.loading = false;
@@ -217,14 +239,32 @@ export default {
         this.billingHistory.loading = false;
       }
     },
-    async updateLanguage() {
-      if (!this.auth.user?.id) {
-        console.error('User not authenticated');
+    async fetchNextPayment() {
+      this.nextPayment.loading = true;
+
+      if (!this.subscriptionDetails.data?.customer?.id) {
+        this.nextPayment.loading = false;
         return;
       }
 
       try {
-        const { data, error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
+        const response = await fetch(`http://localhost:3001/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
+        if (response.ok) {
+          this.nextPayment.data = await response.json();
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.nextPayment.loading = false;
+      }
+    },
+    async updateLanguage() {
+      if (!this.auth.user?.id) {
+        return;
+      }
+
+      try {
+        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
 
         if (error) {
           console.error('Error updating language:', error);
@@ -232,18 +272,14 @@ export default {
           return;
         }
 
-        // Update the local auth profile
         if (this.auth.profile) {
           this.auth.profile.lang = this.selectedLanguage;
         }
 
-        // Change the app language
         this.$i18n.locale = this.selectedLanguage;
-
         alert('Lingua aggiornata con successo!');
-      } catch (error) {
-        console.error('Error updating language:', error);
-        alert("Errore durante l'aggiornamento della lingua");
+      } catch (e) {
+        console.error(e);
       }
     },
   },
@@ -263,6 +299,7 @@ export default {
       handler(value) {
         if (value) {
           this.fetchBillingHistory();
+          this.fetchNextPayment();
         }
       },
       deep: true,
@@ -270,7 +307,10 @@ export default {
   },
   async mounted() {
     if (this.auth.profile) await this.fetchSubscriptionDetails();
-    if (this.subscriptionDetails) await this.fetchBillingHistory();
+    if (this.subscriptionDetails) {
+      await this.fetchBillingHistory();
+      await this.fetchNextPayment();
+    }
   },
 };
 </script>
