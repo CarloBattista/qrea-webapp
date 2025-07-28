@@ -12,7 +12,8 @@
       <div
         v-if="isOpen"
         @option-selected="handleOptionSelected"
-        class="absolute z-[9999] mt-2.5 top-full left-0 w-full min-h-11 max-h-[220px] rounded-[10px] pxl-shadow bg-white overflow-y-auto cursor-default"
+        class="absolute z-[9999] left-0 w-full min-h-11 max-h-[220px] rounded-[10px] pxl-shadow bg-white overflow-y-auto cursor-default"
+        :class="dropdownPositionClasses"
       >
         <slot name="content" />
       </div>
@@ -41,7 +42,16 @@ export default {
   data() {
     return {
       isOpen: false,
+      showAbove: false,
     };
+  },
+  computed: {
+    dropdownPositionClasses() {
+      if (this.showAbove) {
+        return 'bottom-11 mb-2.5';
+      }
+      return 'top-full mt-2.5';
+    },
   },
   provide() {
     return {
@@ -54,7 +64,25 @@ export default {
         return;
       }
 
+      if (!this.isOpen) {
+        this.checkSpaceAndPosition();
+      }
       this.isOpen = !this.isOpen;
+    },
+    checkSpaceAndPosition() {
+      this.$nextTick(() => {
+        if (!this.$refs.dropdownContainer) return;
+
+        const container = this.$refs.dropdownContainer;
+        const rect = container.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const dropdownHeight = 220; // max-height del dropdown
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        // Se non c'è abbastanza spazio sotto ma c'è spazio sopra
+        this.showAbove = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
+      });
     },
     handleClickOutside(event) {
       if (this.$refs.dropdownContainer && !this.$refs.dropdownContainer.contains(event.target)) {
@@ -104,6 +132,11 @@ export default {
   transition-property: opacity, transform;
   transition-duration: 200ms;
   transition-timing-function: ease;
+}
+
+.dropdown-container .appear-fade-enter-active[class*='bottom-'],
+.dropdown-container .appear-fade-leave-active[class*='bottom-'] {
+  transform-origin: bottom center;
 }
 
 .appear-fade-enter-from,

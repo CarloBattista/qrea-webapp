@@ -174,13 +174,13 @@
                 <dropdownOption
                   v-for="(option, optionIndex) in store.qrConfig.downloadFormats"
                   @click="
-                    qrCode.data.config.format = option.value;
+                    qrCode.data.config.selectedFormat = option.value;
                     disabledFunctionRedirect(option);
                   "
                   :key="optionIndex"
                   :value="option.value"
                   :option="option.label"
-                  :selected="qrCode.data.config.format"
+                  :selected="qrCode.data.config.selectedFormat"
                   :disabled="isFreePlan && option.for_pro_user"
                 >
                   <template #badge>
