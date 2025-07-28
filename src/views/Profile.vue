@@ -321,6 +321,8 @@ export default {
     },
   },
   async mounted() {
+    window.scrollTo(0, 0);
+
     if (this.auth.profile) await this.fetchSubscriptionDetails();
     if (this.subscriptionDetails) {
       await this.fetchBillingHistory();

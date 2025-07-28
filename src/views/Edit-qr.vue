@@ -462,6 +462,8 @@ export default {
     },
   },
   async mounted() {
+    window.scrollTo(0, 0);
+
     this.generateQRCode();
 
     if (this.auth.profile && this.qrCodeId) await this.getQrCode();

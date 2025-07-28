@@ -134,6 +134,8 @@ export default {
     },
   },
   async mounted() {
+    window.scrollTo(0, 0);
+
     await this.getUser();
     if (this.auth.profile) await this.getQrCodes();
   },

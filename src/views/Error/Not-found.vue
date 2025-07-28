@@ -41,6 +41,9 @@ export default {
   components: {
     buttonLg,
   },
+  mounted() {
+    window.scrollTo(0, 0);
+  },
 };
 </script>
 

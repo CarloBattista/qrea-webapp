@@ -82,6 +82,9 @@ export default {
       return `Stai per arrivare al limite di creazione di QR. Puoi creare un massimo di ${this.store.planConfig.free_plan_limit_create_qr} QR con il piano gratuito`;
     },
   },
+  mounted() {
+    window.scrollTo(0, 0);
+  },
 };
 </script>
 
