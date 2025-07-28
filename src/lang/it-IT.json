@@ -158,5 +158,34 @@
         "helpText": "Oppure prova uno di questi link utili:",
         "createQr": "Crea nuovo QR",
         "profile": "Il mio profilo"
+    },
+    "landing": {
+        "title": "il generatore QR perfetto per il tuo brand",
+        "subtitle": "Personalizza, scansiona e condividi. Logo, colori e contenuti tuoi, in pochi click.",
+        "seePricing": "Vedi i prezzi",
+        "features": "Funzionalità",
+        "professionalQr": "QR code professionali con opzioni di personalizzazione avanzate",
+        "customStyle": "Stile personalizzato",
+        "customStyleDesc": "Personalizza colori, forme e aggiungi il tuo logo per creare QR code brandizzati.",
+        "lightningFast": "Veloce come un Fulmine",
+        "lightningFastDesc": "Genera QR code di alta qualità istantaneamente con il nostro motore ottimizzato.",
+        "multipleFormats": "Formati Multipli",
+        "multipleFormatsDesc": "Scarica i tuoi QR code in vari formati: PNG, SVG e PDF per ogni esigenza.",
+        "securePrivate": "Sicuro e Privato",
+        "securePrivateDesc": "I tuoi dati sono protetti e non vengono mai condivisi con terze parti.",
+        "detailedAnalytics": "Analisi Dettagliate",
+        "detailedAnalyticsDesc": "Traccia le scansioni e ottieni insights dettagliati sui tuoi QR code.",
+        "mobileOptimized": "Ottimizzato Mobile",
+        "mobileOptimizedDesc": "Interfaccia responsive perfetta per dispositivi mobili e desktop.",
+        "readyToCreate": "Sei pronto a creare il tuo primo QR Code?",
+        "joinThousands": "Unisciti a migliaia di utenti che si fidano della nostra piattaforma per le loro esigenze di QR code.",
+        "startCreating": "Inizia a creare ora"
+    },
+    "footer": {
+        "product": "Prodotto",
+        "support": "Supporto",
+        "helpCenter": "Centro assistenza",
+        "contact": "Contatti",
+        "privacy": "Privacy"
     }
 }

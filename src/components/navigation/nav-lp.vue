@@ -5,7 +5,7 @@
         <appLogo class="relative md:h-9 h-7" />
       </RouterLink>
       <div class="absolute top-1/2 left-1/2 h-full -translate-y-1/2 -translate-x-1/2 md:flex hidden gap-8 items-center justify-center">
-        <a @click="scrollToFeatures" class="navItem">Funzionalità</a>
+        <a @click="scrollToFeatures" class="navItem">{{ $t('landing.features') }}</a>
         <RouterLink to="/pricing" class="navItem">{{ $t('pricing.title') }}</RouterLink>
       </div>
       <div class="md:flex hidden gap-4 items-center justify-end">
@@ -26,7 +26,7 @@
     <transition name="slide-fade">
       <div v-if="isMenuOpen" class="absolute top-16 left-0 w-full h-[calc(100svh-4rem)] px-4 bg-white">
         <div class="w-full flex flex-col">
-          <a @click="scrollToFeatures" class="navItem-mob">Funzionalità</a>
+          <a @click="scrollToFeatures" class="navItem-mob">{{ $t('landing.features') }}</a>
           <RouterLink to="/pricing" class="navItem-mob">{{ $t('pricing.title') }}</RouterLink>
           <div class="w-full mt-8 flex flex-col gap-4 items-center justify-end">
             <RouterLink to="/signin" class="w-full">

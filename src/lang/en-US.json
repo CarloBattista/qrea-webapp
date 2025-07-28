@@ -158,5 +158,34 @@
         "helpText": "Or try one of these helpful links:",
         "createQr": "Create new QR",
         "profile": "My profile"
+    },
+    "landing": {
+        "title": "the perfect QR generator for your brand",
+        "subtitle": "Customize, scan and share. Your logo, colors and content, in just a few clicks.",
+        "seePricing": "See Pricing",
+        "features": "Features",
+        "professionalQr": "Professional QR codes with advanced customization options",
+        "customStyle": "Custom Style",
+        "customStyleDesc": "Customize colors, shapes and add your logo to create branded QR codes.",
+        "lightningFast": "Lightning Fast",
+        "lightningFastDesc": "Generate high-quality QR codes instantly with our optimized engine.",
+        "multipleFormats": "Multiple Formats",
+        "multipleFormatsDesc": "Download your QR codes in various formats: PNG, SVG and PDF for every need.",
+        "securePrivate": "Secure and Private",
+        "securePrivateDesc": "Your data is protected and never shared with third parties.",
+        "detailedAnalytics": "Detailed Analytics",
+        "detailedAnalyticsDesc": "Track scans and get detailed insights on your QR codes.",
+        "mobileOptimized": "Mobile Optimized",
+        "mobileOptimizedDesc": "Responsive interface perfect for mobile devices and desktop.",
+        "readyToCreate": "Ready to create your first QR Code?",
+        "joinThousands": "Join thousands of users who trust our platform for their QR code needs.",
+        "startCreating": "Start creating now"
+    },
+    "footer": {
+        "product": "Product",
+        "support": "Support",
+        "helpCenter": "Help Center",
+        "contact": "Contact",
+        "privacy": "Privacy"
     }
 }

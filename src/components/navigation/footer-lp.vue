@@ -6,15 +6,15 @@
           <appLogo variant="white" class="relative h-10" />
         </div>
         <div class="w-full flex flex-col gap-4">
-          <h3 class="fooHead">Prodotto</h3>
-          <a @click="scrollToFeatures" class="fooItem">Funzionalità</a>
-          <RouterLink to="/pricing" class="fooItem">Prezzi</RouterLink>
+          <h3 class="fooHead">{{ $t('footer.product') }}</h3>
+          <a @click="scrollToFeatures" class="fooItem">{{ $t('landing.features') }}</a>
+          <RouterLink to="/pricing" class="fooItem">{{ $t('pricing.title') }}</RouterLink>
         </div>
         <div class="w-full flex flex-col gap-4">
-          <h3 class="fooHead">Supporto</h3>
-          <RouterLink to="/" class="fooItem">Centro assistenza</RouterLink>
-          <RouterLink to="/" class="fooItem">Contatti</RouterLink>
-          <RouterLink to="/" class="fooItem">Privacy</RouterLink>
+          <h3 class="fooHead">{{ $t('footer.support') }}</h3>
+          <RouterLink to="/" class="fooItem">{{ $t('footer.helpCenter') }}</RouterLink>
+          <RouterLink to="/" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
+          <RouterLink to="/" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
         </div>
       </div>
       <div class="w-full pb-5 flex gap-4 items-center sm:justify-end justify-start border-b border-solid border-[#373737]">
