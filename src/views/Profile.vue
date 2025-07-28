@@ -292,7 +292,7 @@ export default {
         }
 
         this.$i18n.locale = this.selectedLanguage;
-        alert('Lingua aggiornata con successo!');
+        alert(this.$t('profile.languageUpdated'));
       } catch (e) {
         console.error(e);
       }

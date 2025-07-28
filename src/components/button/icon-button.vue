@@ -11,7 +11,7 @@
 
 <script>
 // ICONS
-import { Grid2x2, Plus } from 'lucide-vue-next';
+import { Grid2x2, Plus, DoorOpen } from 'lucide-vue-next';
 
 export default {
   name: 'icon-button',
@@ -19,6 +19,7 @@ export default {
     // ICONS
     Grid2x2,
     Plus,
+    DoorOpen,
   },
   props: {
     type: {

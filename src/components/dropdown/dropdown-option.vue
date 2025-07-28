@@ -86,5 +86,6 @@ export default {
   background-color: #eee;
   color: black;
   font-weight: 600;
+  pointer-events: none;
 }
 </style>

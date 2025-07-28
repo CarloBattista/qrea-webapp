@@ -2,7 +2,8 @@
     "navigation": {
         "home": "Home",
         "newQr": "New QR",
-        "profile": "Profile"
+        "profile": "Profile",
+        "signOutConfirm": "Are you sure you want to sign out?"
     },
     "auth": {
         "signin": "Sign In",
@@ -39,7 +40,8 @@
         "downloadInvoice": "Download invoice",
         "language": "Language",
         "selectLanguage": "Select language",
-        "upcoming": "Upcoming payment"
+        "upcoming": "Upcoming payment",
+        "languageUpdated": "Language updated successfully!"
     },
     "home": {
         "noQrFound": "No QR Code found",
