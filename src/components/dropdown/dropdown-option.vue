@@ -4,8 +4,9 @@
     class="dropdown-option w-full h-11 max-h-11 px-3.5 flex items-center justify-between"
     :class="{ disabled: disabled, 'dropdown-selected': value === selected }"
   >
-    <span>{{ option }}</span>
-    <Check v-if="value === selected" size="18" />
+    <span class="option-label">{{ option }}</span>
+    <Check v-if="value === selected" size="18" class="option-icon" />
+    <slot name="badge" class="pointer-events-none" />
   </div>
 </template>
 
@@ -56,6 +57,12 @@ export default {
 }
 
 .dropdown-option.disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.dropdown-option.disabled .option-label,
+.dropdown-option.disabled .option-icon {
   pointer-events: none;
   cursor: not-allowed;
   opacity: 0.25;

@@ -107,7 +107,11 @@
                     :option="option.label"
                     :selected="store.qrConfig.dotsStyle"
                     :disabled="isFreePlan && option.for_pro_user"
-                  />
+                  >
+                    <template #badge>
+                      <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                    </template>
+                  </dropdownOption>
                 </template>
               </dropdown>
               <dropdown class="w-full" :label="$t('editor.cornersStyle')" :selected="selectedCornerStyleLabel" :disabled="false">
@@ -123,7 +127,11 @@
                     :option="option.label"
                     :selected="store.qrConfig.cornerStyle"
                     :disabled="isFreePlan && option.for_pro_user"
-                  />
+                  >
+                    <template #badge>
+                      <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                    </template>
+                  </dropdownOption>
                 </template>
               </dropdown>
             </div>
@@ -169,7 +177,11 @@
                   :option="option.label"
                   :selected="store.qrConfig.selectedFormat"
                   :disabled="isFreePlan && option.for_pro_user"
-                />
+                >
+                  <template #badge>
+                    <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                  </template>
+                </dropdownOption>
               </template>
             </dropdown>
           </div>

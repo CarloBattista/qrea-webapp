@@ -106,8 +106,12 @@
                     :value="option.value"
                     :option="option.label"
                     :selected="qrCode.data.config.dotsStyle"
-                    :disabled="isFreePlan && (option.value === 'dots' || option.value === 'classy' || option.value === 'extra-rounded')"
-                  />
+                    :disabled="isFreePlan && option.for_pro_user"
+                  >
+                    <template #badge>
+                      <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                    </template>
+                  </dropdownOption>
                 </template>
               </dropdown>
               <dropdown class="w-full" :label="$t('editor.cornersStyle')" :selected="selectedCornerStyleLabel" :disabled="false">
@@ -122,8 +126,12 @@
                     :value="option.value"
                     :option="option.label"
                     :selected="qrCode.data.config.cornerStyle"
-                    :disabled="isFreePlan && (option.value === 'rounded' || option.value === 'extra-rounded')"
-                  />
+                    :disabled="isFreePlan && option.for_pro_user"
+                  >
+                    <template #badge>
+                      <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                    </template>
+                  </dropdownOption>
                 </template>
               </dropdown>
             </div>
@@ -173,8 +181,12 @@
                   :value="option.value"
                   :option="option.label"
                   :selected="qrCode.data.config.format"
-                  :disabled="isFreePlan && (option.value === 'svg' || option.value === 'pdf')"
-                />
+                  :disabled="isFreePlan && option.for_pro_user"
+                >
+                  <template #badge>
+                    <badge v-if="isFreePlan && option.for_pro_user" label="Pro" />
+                  </template>
+                </dropdownOption>
               </template>
             </dropdown>
           </div>
