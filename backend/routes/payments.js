@@ -17,11 +17,12 @@ function getStripe() {
 router.post('/create-checkout-session', async (req, res) => {
   try {
     const stripe = getStripe();
-    const { priceId, successUrl, cancelUrl } = req.body;
+    const { email, priceId, successUrl, cancelUrl } = req.body;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
+      customer_email: email,
       line_items: [
         {
           price: priceId,
