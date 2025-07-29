@@ -104,6 +104,7 @@
 import { supabase } from '../lib/supabase';
 import { auth } from '../data/auth';
 import { store } from '../data/store';
+import { setLocale } from '../lib/i18n';
 
 import navigation from '../components/navigation/navigation.vue';
 import buttonLg from '../components/button/button-lg.vue';
@@ -197,19 +198,14 @@ export default {
       this.selectedLanguage = lang;
 
       try {
-        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
+        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('uid', this.auth.user.id);
 
-        if (error) {
-          alert("Errore durante l'aggiornamento della lingua");
-          return;
-        }
-
-        if (this.auth.profile) {
+        if (!error) {
           this.auth.profile.lang = this.selectedLanguage;
+          setLocale(this.selectedLanguage);
+          this.$emit('load-profile');
+          alert(this.$t('profile.languageUpdated'));
         }
-
-        this.$i18n.locale = this.selectedLanguage;
-        alert(this.$t('profile.languageUpdated'));
       } catch (e) {
         console.error(e);
       }
