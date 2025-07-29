@@ -36,7 +36,9 @@
             <p v-if="user.error.password" class="text-red-500 text-sm">{{ user.error.password }}</p>
           </div>
           <div class="text-right">
-            <a href="#" class="text-sm text-gray-600 hover:text-black transition-colors duration-200">{{ $t('auth.forgotPassword') }}</a>
+            <RouterLink to="/forgot-password" class="text-sm text-gray-600 hover:text-black transition-colors duration-200">{{
+              $t('auth.forgotPassword')
+            }}</RouterLink>
           </div>
           <div class="pt-4">
             <buttonLg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
@@ -53,7 +55,7 @@
         <div class="text-center">
           <p class="text-sm text-gray-600">
             {{ $t('auth.dontHaveAccount') }}
-            <router-link to="/signup" class="font-medium text-black hover:underline"> {{ $t('auth.signup') }} </router-link>
+            <RouterLink to="/signup" class="font-medium text-black hover:underline"> {{ $t('auth.signup') }} </RouterLink>
           </p>
         </div>
       </div>

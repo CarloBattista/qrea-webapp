@@ -7,6 +7,10 @@ import Pricing from '../views/onBoard/Pricing.vue';
 import Success from '../views/onBoard/Success.vue';
 import Cancel from '../views/onBoard/Cancel.vue';
 
+// Forgot
+import ForgotPassword from '../views/Forgot/Forgot-password.vue';
+import ResetPassword from '../views/Forgot/Reset-password.vue';
+
 // Profile
 import Profile from '../views/Profile.vue';
 
@@ -59,6 +63,22 @@ const routes = [
     component: Cancel,
     props: true,
     meta: { title: 'Qrea', requiresAuth: true },
+  },
+
+  // Forgot
+  {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: ForgotPassword,
+    props: true,
+    meta: { title: 'Qrea', requiresGuest: true },
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: ResetPassword,
+    props: true,
+    meta: { title: 'Qrea', requiresGuest: true },
   },
 
   // Profile

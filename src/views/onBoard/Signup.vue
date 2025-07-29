@@ -78,7 +78,7 @@
         <div class="text-center">
           <p class="text-sm text-gray-600">
             {{ $t('auth.alreadyHaveAccount') }}
-            <router-link to="/signin" class="font-medium text-black hover:underline"> {{ $t('auth.signin') }} </router-link>
+            <RouterLink to="/signin" class="font-medium text-black hover:underline">{{ $t('auth.signin') }}</RouterLink>
           </p>
         </div>
       </div>
