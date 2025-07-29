@@ -97,13 +97,24 @@ export default {
       immediate: true,
       deep: true,
     },
+    $route() {
+      if (this.isMenuOpen) {
+        this.isMenuOpen = false;
+      }
+      document.body.classList.remove('overflow-hidden');
+    },
   },
   mounted() {
     this.handleResize();
     window.addEventListener('resize', this.handleResize);
   },
   beforeUnmount() {
+    if (this.isMenuOpen) {
+      this.isMenuOpen = false;
+    }
+
     window.removeEventListener('resize', this.handleResize);
+    document.body.classList.remove('overflow-hidden');
   },
 };
 </script>

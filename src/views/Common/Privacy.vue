@@ -54,6 +54,8 @@ export default {
     },
   },
   async mounted() {
+    window.scrollTo(0, 0);
+
     await this.loadContent();
   },
 };
