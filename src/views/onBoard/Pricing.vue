@@ -127,9 +127,9 @@ export default {
     async handleSubscription(plan) {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-      const userEmail = this.auth.user.email;
       const priceId = plan.stripe_products_id[this.currentPlan];
-      const profilePlan = this.auth.profile.plan;
+      const profilePlan = this.auth.profile?.plan;
+      const userEmail = this.auth.user?.email;
 
       if (profilePlan === 'pro') {
         return;
@@ -181,8 +181,9 @@ export default {
     },
     async handleSubscriptionTest() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;
-      const userEmail = this.auth.user.email;
+      const userEmail = this.auth.user?.email;
 
       if (!priceId) {
         console.error('Price ID non trovato');

@@ -160,7 +160,13 @@ export default {
 
           localStorage.setItem('isAuthenticated', true);
 
-          this.$router.push({ name: 'home' });
+          await this.getProfile(data.user.id);
+
+          if (this.auth.profile?.plan === 'pro') {
+            this.$router.push({ name: 'home' });
+          } else {
+            this.$router.push({ name: 'pricing' });
+          }
         } else {
           this.retrieveError(error);
         }
@@ -168,6 +174,17 @@ export default {
         console.error(e);
       } finally {
         this.user.loading = false;
+      }
+    },
+    async getProfile(userId) {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').eq('uid', userId).maybeSingle();
+
+        if (!error && data) {
+          this.auth.profile = data;
+        }
+      } catch (e) {
+        console.error(e);
       }
     },
   },

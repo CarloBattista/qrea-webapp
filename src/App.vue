@@ -88,6 +88,23 @@ export default {
         console.error(e);
       }
     },
+    async noUser() {
+      try {
+        const { error } = await supabase.auth.signOut();
+
+        if (!error) {
+          this.auth.user = null;
+          this.auth.session = null;
+          this.auth.profile = null;
+          this.auth.isAuthenticated = false;
+          localStorage.removeItem('isAuthenticated');
+
+          this.$router.push({ name: 'signin' });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
     async sencStripeCustomer() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -187,6 +204,7 @@ export default {
     window.scrollTo(0, 0);
 
     await this.getUser();
+
     if (this.auth.profile) {
       await this.getQrCodes();
       await this.sencStripeCustomer();
