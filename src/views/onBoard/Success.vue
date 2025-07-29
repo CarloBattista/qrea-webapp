@@ -64,7 +64,7 @@ export default {
         }
 
         // Verifica la sessione tramite il backend
-        const response = await fetch(`${BACKEND_URL}api/payments/verify-session/${sessionId}`, {
+        const response = await fetch(`${BACKEND_URL}/api/payments/verify-session/${sessionId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
