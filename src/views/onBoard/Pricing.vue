@@ -145,7 +145,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
+        const response = await fetch(`${BACKEND_URL}api/payments/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
+        const response = await fetch(`${BACKEND_URL}api/payments/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

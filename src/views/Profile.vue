@@ -233,7 +233,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`, {
+        const response = await fetch(`${BACKEND_URL}api/subscriptions/${this.auth.profile.stripe_id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ export default {
       this.billingHistory.loading = true;
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`);
+        const response = await fetch(`${BACKEND_URL}api/subscriptions/${this.auth.profile.stripe_id}`);
         if (response.ok) {
           this.subscriptionDetails.data = await response.json();
         }
@@ -284,7 +284,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/billing-history/${customerId}`);
+        const response = await fetch(`${BACKEND_URL}api/payments/billing-history/${customerId}`);
         if (response.ok) {
           this.billingHistory.data = await response.json();
           // console.log(this.billingHistory);
@@ -306,7 +306,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
+        const response = await fetch(`${BACKEND_URL}api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
         if (response.ok) {
           this.nextPayment.data = await response.json();
         }
@@ -325,7 +325,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/complete-invoice/${invoiceId}`, {
+        const response = await fetch(`${BACKEND_URL}api/payments/complete-invoice/${invoiceId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
