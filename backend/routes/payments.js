@@ -162,4 +162,55 @@ router.get('/upcoming-invoice/:customerId', async (req, res) => {
   }
 });
 
+// Completa manualmente una fattura in stato draft
+router.post('/complete-invoice/:invoiceId', async (req, res) => {
+  try {
+    const stripe = getStripe();
+    const { invoiceId } = req.params;
+
+    // Prima recupera la fattura per verificare lo stato
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+
+    // Verifica se la fattura è già stata pagata
+    if (invoice.status === 'paid') {
+      return res.status(400).json({
+        success: false,
+        error: 'La fattura è già stata pagata',
+        invoice: invoice,
+      });
+    }
+
+    // Verifica se la fattura è in uno stato che può essere completata
+    if (invoice.status !== 'draft' && invoice.status !== 'open') {
+      return res.status(400).json({
+        success: false,
+        error: `Impossibile completare la fattura. Stato attuale: ${invoice.status}`,
+        invoice: invoice,
+      });
+    }
+
+    let finalizedInvoice = invoice;
+
+    // Finalizza solo se è in stato draft
+    if (invoice.status === 'draft') {
+      finalizedInvoice = await stripe.invoices.finalizeInvoice(invoiceId);
+    }
+
+    // Paga la fattura
+    const paidInvoice = await stripe.invoices.pay(invoiceId);
+
+    res.json({
+      success: true,
+      invoice: paidInvoice,
+      message: 'Fattura completata con successo',
+    });
+  } catch (error) {
+    console.error('Errore nel completamento della fattura:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 export default router;

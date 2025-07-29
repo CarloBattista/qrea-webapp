@@ -53,41 +53,47 @@ app.post('/webhook', async (req, res) => {
   // Gestisci gli eventi
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('🎉 Pagamento completato:', session.id);
         await handleSuccessfulPayment(session);
         break;
+      }
 
-      case 'invoice.payment_succeeded':
+      case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
         console.log('💰 Pagamento ricorrente riuscito:', invoice.id);
         await handleRecurringPayment(invoice);
         break;
+      }
 
-      case 'customer.subscription.created':
+      case 'customer.subscription.created': {
         const newSubscription = event.data.object;
         console.log('📝 Nuovo abbonamento creato:', newSubscription.id);
         await handleSubscriptionCreated(newSubscription);
         break;
+      }
 
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
         const updatedSubscription = event.data.object;
         console.log('🔄 Abbonamento aggiornato:', updatedSubscription.id);
         await handleSubscriptionUpdated(updatedSubscription);
         break;
+      }
 
-      case 'customer.subscription.deleted':
+      case 'customer.subscription.deleted': {
         const deletedSubscription = event.data.object;
         console.log('❌ Abbonamento cancellato:', deletedSubscription.id);
         await handleSubscriptionCanceled(deletedSubscription);
         break;
+      }
 
-      case 'invoice.payment_failed':
+      case 'invoice.payment_failed': {
         const failedInvoice = event.data.object;
         console.log('⚠️ Pagamento fallito:', failedInvoice.id);
         await handleFailedPayment(failedInvoice);
         break;
+      }
 
       default:
         console.log(`ℹ️ Evento non gestito: ${event.type}`);
@@ -150,8 +156,25 @@ async function handleRecurringPayment(invoice) {
       },
     });
 
-    // Estendi l'accesso dell'utente
-    // await extendUserAccess(invoice.customer, invoice.subscription);
+    // Aggiorna il profilo dell'utente nel database Supabase
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        plan: 'pro',
+        last_payment_date: new Date().toISOString(),
+        current_period_end: new Date(invoice.period_end * 1000).toISOString(),
+        subscription_status: 'active',
+      })
+      .eq('stripe_id', invoice.customer);
+
+    if (error) {
+      console.error('❌ Errore aggiornamento profilo dopo pagamento ricorrente:', error);
+    } else {
+      console.log('✅ Profilo aggiornato con successo dopo pagamento ricorrente');
+    }
+
+    // Opzionale: invia email di conferma del rinnovo
+    // await sendRenewalConfirmationEmail(invoice.customer, invoice.amount_paid);
   } catch (error) {
     console.error('❌ Errore nel processare il pagamento ricorrente:', error);
   }

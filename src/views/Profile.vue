@@ -78,12 +78,20 @@
               class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal"
             >
               <h2 class="text-start">{{ payment.currency === 'EUR' ? '€' : '$' }}{{ payment.amount }} - {{ formatPaymentStatus(payment.status) }}</h2>
-              <span class="text-end flex gap-2 items-center"
-                >{{ formatDate(payment.date) }}
+              <span class="text-end flex gap-2 items-center">
+                {{ formatDate(payment.date) }}
                 <a v-if="payment.invoice_pdf" :href="payment.invoice_pdf" class="text-sm font-semibold underline">{{
                   $t('profile.downloadInvoice')
-                }}</a></span
-              >
+                }}</a>
+                <button
+                  v-if="payment.status === 'draft'"
+                  @click="completePayment(payment.id)"
+                  class="text-sm font-semibold text-blue-600 hover:text-blue-800 underline ml-2 cursor-pointer"
+                  :disabled="payment.completing"
+                >
+                  {{ payment.completing ? 'Completando...' : 'Completa Pagamento' }}
+                </button>
+              </span>
             </div>
           </div>
         </div>
@@ -174,6 +182,7 @@ export default {
       const statusMap = {
         paid: 'Pagato',
         open: 'In attesa',
+        draft: 'In attesa',
         void: 'Annullato',
         uncollectible: 'Non riscuotibile',
       };
@@ -295,6 +304,33 @@ export default {
         alert(this.$t('profile.languageUpdated'));
       } catch (e) {
         console.error(e);
+      }
+    },
+    async completePayment(invoiceId) {
+      // Trova la fattura nell'array e imposta lo stato di caricamento
+      const payment = this.billingHistory.data.find((p) => p.id === invoiceId);
+      if (payment) {
+        payment.completing = true;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/payments/complete-invoice/${invoiceId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Pagamento completato con successo!');
+          await this.fetchBillingHistory();
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        payment.completing = false;
       }
     },
   },
