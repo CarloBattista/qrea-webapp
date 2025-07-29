@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.52.1",
     "@tailwindcss/vite": "^4.1.11",
     "lucide-vue-next": "^0.525.0",
+    "marked": "^16.1.1",
     "qr-code-styling": "^1.9.2",
     "qrcode.vue": "^3.6.0",
     "tailwindcss": "^4.1.11",

@@ -8,14 +8,14 @@
       <div class="w-fit h-12 p-0.5 rounded-2xl flex items-center justify-center pr-shadow bg-[#373737]/20">
         <div
           @click="handlePlan('monthly')"
-          class="min-w-[180px] h-full rounded-[15px] flex items-center justify-center text-base font-medium cursor-pointer"
+          class="min-w-[180px] h-full px-4 rounded-[15px] flex items-center justify-center text-base font-medium cursor-pointer"
           :class="{ 'bg-black text-white': currentPlan === 'monthly' }"
         >
           {{ $t('pricing.monthly') }}
         </div>
         <div
           @click="handlePlan('yearly')"
-          class="min-w-[180px] h-full rounded-[15px] flex gap-2 items-center justify-center text-base font-medium cursor-pointer"
+          class="min-w-[180px] h-full px-4 rounded-[15px] flex gap-2 items-center justify-center text-base font-medium cursor-pointer"
           :class="{ 'bg-black text-white': currentPlan === 'yearly' }"
         >
           {{ $t('pricing.yearly') }} <span class="text-xs font-medium">{{ $t('pricing.savePercent') }}</span>

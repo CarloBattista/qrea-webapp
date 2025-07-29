@@ -14,7 +14,8 @@
           <h3 class="fooHead">{{ $t('footer.support') }}</h3>
           <RouterLink to="/" class="fooItem">{{ $t('footer.helpCenter') }}</RouterLink>
           <RouterLink to="/" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
-          <RouterLink to="/" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
+          <RouterLink to="/privacy-policy" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
+          <RouterLink to="/terms-and-conditions" class="fooItem">{{ $t('footer.terms') }}</RouterLink>
         </div>
       </div>
       <div class="w-full pb-5 flex gap-4 items-center sm:justify-end justify-start border-b border-solid border-[#373737]">

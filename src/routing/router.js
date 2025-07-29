@@ -16,6 +16,10 @@ import Home from '../views/Home.vue';
 import NewQr from '../views/New-qr.vue';
 import EditQr from '../views/Edit-qr.vue';
 
+// Common
+import Privacy from '../views/Common/Privacy.vue';
+import Terms from '../views/Common/Terms.vue';
+
 // Error
 import NotFound from '../views/Error/Not-found.vue';
 
@@ -94,6 +98,22 @@ const routes = [
     component: EditQr,
     props: true,
     meta: { title: 'Qrea • Modifica QR', requiresAuth: true },
+  },
+
+  // Common
+  {
+    path: '/privacy-policy',
+    name: 'privacy-policy',
+    component: Privacy,
+    props: true,
+    meta: { title: 'Qrea • Privacy Policy' },
+  },
+  {
+    path: '/terms-and-conditions',
+    name: 'terms-and-conditions',
+    component: Terms,
+    props: true,
+    meta: { title: 'Qrea • Privacy Policy' },
   },
 
   // Error
