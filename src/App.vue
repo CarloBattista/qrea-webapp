@@ -89,7 +89,7 @@ export default {
       }
     },
     async sencStripeCustomer() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
       if (!this.auth.profile && !this.auth.profile.stripe_id) {
         return;

@@ -50,10 +50,11 @@ export default {
   },
   methods: {
     async verifyPayment() {
-      try {
-        this.loading = true;
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-        // Ottieni il session_id dall'URL
+      this.loading = true;
+
+      try {
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');
 
@@ -63,7 +64,7 @@ export default {
         }
 
         // Verifica la sessione tramite il backend
-        const response = await fetch(`http://localhost:3001/api/payments/verify-session/${sessionId}`, {
+        const response = await fetch(`${BACKEND_URL}/api/payments/verify-session/${sessionId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

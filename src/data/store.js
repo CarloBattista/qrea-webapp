@@ -83,6 +83,7 @@ export const store = reactive({
     imageSize: 40,
     imageSettings: {
       src: '',
+      size: 40,
     },
     qrCode: null,
 

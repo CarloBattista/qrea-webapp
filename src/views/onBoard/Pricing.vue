@@ -125,6 +125,8 @@ export default {
     },
 
     async handleSubscription(plan) {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       const priceId = plan.stripe_products_id[this.currentPlan];
       const profilePlan = this.auth.profile.plan;
 
@@ -143,7 +145,7 @@ export default {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/payments/create-checkout-session', {
+        const response = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -172,6 +174,7 @@ export default {
       }
     },
     async handleSubscriptionTest() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;
 
       if (!priceId) {
@@ -185,7 +188,7 @@ export default {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/payments/create-checkout-session', {
+        const response = await fetch(`${BACKEND_URL}/api/payments/create-checkout-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

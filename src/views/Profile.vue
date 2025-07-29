@@ -215,6 +215,7 @@ export default {
       }
     },
     async handleCancelSubscription() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const UID = this.auth.user.id;
       const stripe_id = this.auth.profile.stripe_id;
 
@@ -232,7 +233,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`, {
+        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -255,10 +256,12 @@ export default {
       }
     },
     async fetchSubscriptionDetails() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       this.billingHistory.loading = true;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/subscriptions/${this.auth.profile.stripe_id}`);
+        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`);
         if (response.ok) {
           this.subscriptionDetails.data = await response.json();
         }
@@ -269,6 +272,8 @@ export default {
       }
     },
     async fetchBillingHistory() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       this.billingHistory.loading = true;
 
       const customerId = this.subscriptionDetails.data?.customer?.id;
@@ -279,7 +284,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/payments/billing-history/${customerId}`);
+        const response = await fetch(`${BACKEND_URL}/api/payments/billing-history/${customerId}`);
         if (response.ok) {
           this.billingHistory.data = await response.json();
           // console.log(this.billingHistory);
@@ -291,6 +296,8 @@ export default {
       }
     },
     async fetchNextPayment() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       this.nextPayment.loading = true;
 
       if (!this.subscriptionDetails.data?.customer?.id) {
@@ -299,7 +306,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
+        const response = await fetch(`${BACKEND_URL}/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
         if (response.ok) {
           this.nextPayment.data = await response.json();
         }
@@ -310,14 +317,15 @@ export default {
       }
     },
     async completePayment(invoiceId) {
-      // Trova la fattura nell'array e imposta lo stato di caricamento
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
       const payment = this.billingHistory.data.find((p) => p.id === invoiceId);
       if (payment) {
         payment.completing = true;
       }
 
       try {
-        const response = await fetch(`http://localhost:3001/api/payments/complete-invoice/${invoiceId}`, {
+        const response = await fetch(`${BACKEND_URL}/api/payments/complete-invoice/${invoiceId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
