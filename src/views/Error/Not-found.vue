@@ -12,21 +12,11 @@
             />
           </svg>
         </div>
-
-        <!-- Numero 404 -->
         <h1 class="text-9xl font-bold text-gray-300 mb-4">404</h1>
-
-        <!-- Titolo -->
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">
-          {{ $t('notFound.title') }}
-        </h2>
-
-        <!-- Descrizione -->
-        <p class="text-lg text-gray-600 mb-8">
-          {{ $t('notFound.description') }}
-        </p>
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ $t('notFound.title') }}</h2>
+        <p class="text-lg text-gray-600 mb-8">{{ $t('notFound.description') }}</p>
       </div>
-      <RouterLink to="/" class="space-y-4 w-full flex items-center justify-center">
+      <RouterLink to="/home" class="space-y-4 w-full flex items-center justify-center">
         <buttonLg variant="primary" :label="$t('notFound.backToHome')" />
       </RouterLink>
     </div>

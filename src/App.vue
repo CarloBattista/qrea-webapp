@@ -1,6 +1,9 @@
 <template>
   <div>
-    <RouterView @load-profile="getProfile" @load-qr-codes="getQrCodes" />
+    <RouterView v-if="!loading" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
+    <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
+      <loader />
+    </div>
   </div>
 </template>
 
@@ -10,12 +13,19 @@ import { auth } from './data/auth';
 import { store } from './data/store';
 import { syncLocaleWithProfile } from './lib/i18n';
 
+import loader from './components/loader/loader.vue';
+
 export default {
   name: 'App',
+  components: {
+    loader,
+  },
   data() {
     return {
       auth,
       store,
+
+      loading: true,
     };
   },
   computed: {
@@ -166,6 +176,14 @@ export default {
     },
   },
   async mounted() {
+    if (document.readyState === 'complete') {
+      this.loading = false;
+    } else {
+      window.addEventListener('load', () => {
+        this.loading = false;
+      });
+    }
+
     window.scrollTo(0, 0);
 
     await this.getUser();
