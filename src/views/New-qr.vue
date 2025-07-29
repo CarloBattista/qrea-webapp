@@ -527,6 +527,15 @@ export default {
       },
       deep: true,
     },
+    isFreePlan: {
+      handler(value) {
+        if (value) {
+          this.$router.push({ name: 'pricing' });
+        }
+      },
+      immediate: true,
+      deep: true,
+    },
   },
   mounted() {
     window.scrollTo(0, 0);
