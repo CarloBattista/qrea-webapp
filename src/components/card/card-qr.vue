@@ -2,14 +2,14 @@
   <div class="card-qr w-full rounded-2xl flex md:flex-col flex-row items-start pr-shadow bg-white">
     <div
       ref="qrCodeContainer"
-      class="qr-container w-full max-h-[250px] px-4 md:py-0 py-4 aspect-square flex items-center justify-center overflow-hidden"
+      class="qr-container w-full min-w-[130px] min-h-[150px] max-h-[250px] px-4 md:py-0 py-4 aspect-square flex items-center justify-center overflow-hidden"
     ></div>
     <div class="w-full md:h-fit h-full md:py-0 py-4 flex flex-col justify-between">
       <div class="w-full px-4 pb-4 flex flex-col gap-1">
         <h2 class="text-black text-base font-semibold">{{ data?.name }}</h2>
         <p class="text-gray-500 text-sm font-normal">{{ data?.content }}</p>
       </div>
-      <div class="w-full px-4 py-2 flex gap-2 items-center justify-start">
+      <div class="w-full px-4 py-2 flex flex-wrap gap-2 items-center justify-start">
         <buttonLg @click="handleQrCode" variant="secondary" :label="$t('qr.edit')" :disabled="loading" />
         <buttonLg @click="deleteQrCode" variant="destructive" :label="$t('qr.delete')" :disabled="loading" />
       </div>
@@ -53,7 +53,7 @@ export default {
       return {
         width: 250,
         height: 250,
-        type: 'canvas',
+        type: 'svg',
         data: this.data.content,
         image: config.showImage ? config.imageSettings?.src : undefined,
         margin: config.margin || 10,

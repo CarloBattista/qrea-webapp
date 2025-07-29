@@ -200,7 +200,7 @@
                   @click="saveQrCode"
                   v-if="!editingQrId"
                   variant="primary"
-                  :label="isSaving ? $t('qr.isSaving') : $t('qr.saveQr')"
+                  :label="isSaving ? $t('qr.saving') : $t('qr.saveQr')"
                   :disabled="!qrCode.data.content || !qrCode.data.name || !auth.isAuthenticated || isSaving"
                   class="sm:w-fit w-full"
                 />
