@@ -127,6 +127,7 @@ export default {
     async handleSubscription(plan) {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+      const userEmail = this.auth.user.email;
       const priceId = plan.stripe_products_id[this.currentPlan];
       const profilePlan = this.auth.profile.plan;
 
@@ -137,6 +138,10 @@ export default {
       if (!this.auth.isAuthenticated) {
         this.$router.push({ name: 'signin' });
         return;
+      }
+
+      if (!userEmail) {
+        console.error('Email non trovata');
       }
 
       if (!priceId) {
@@ -151,6 +156,7 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            email: userEmail,
             priceId: priceId,
             successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancelUrl: `${window.location.origin}/cancel`,
@@ -176,10 +182,15 @@ export default {
     async handleSubscriptionTest() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;
+      const userEmail = this.auth.user.email;
 
       if (!priceId) {
         console.error('Price ID non trovato');
         return;
+      }
+
+      if (!userEmail) {
+        console.error('Email non trovata');
       }
 
       if (!this.auth.isAuthenticated) {
@@ -194,7 +205,7 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: this.auth.user?.email,
+            email: userEmail,
             priceId: priceId,
             successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancelUrl: `${window.location.origin}/cancel`,

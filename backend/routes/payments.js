@@ -19,6 +19,8 @@ router.post('/create-checkout-session', async (req, res) => {
     const stripe = getStripe();
     const { email, priceId, successUrl, cancelUrl } = req.body;
 
+    console.log('email', email);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
