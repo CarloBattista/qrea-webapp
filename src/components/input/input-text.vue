@@ -39,7 +39,7 @@
 
 <script>
 // ICONS
-import { Eye, EyeClosed, KeyRound } from 'lucide-vue-next';
+import { Eye, EyeClosed, Mail, KeyRound } from 'lucide-vue-next';
 
 export default {
   name: 'input-text',
@@ -47,6 +47,7 @@ export default {
     // ICONS
     Eye,
     EyeClosed,
+    Mail,
     KeyRound,
   },
   props: {

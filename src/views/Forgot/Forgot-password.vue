@@ -21,22 +21,8 @@
           </RouterLink>
         </div>
         <form v-if="!user.sent" @submit.prevent="sendPasswordReset" class="space-y-6">
-          <div class="space-y-2">
-            <label for="email" class="block text-sm font-medium text-gray-700">{{ $t('auth.email') }}</label>
-            <input
-              id="email"
-              v-model="user.data.email"
-              type="email"
-              :placeholder="$t('auth.emailPlaceholder')"
-              required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 outline-none"
-              :class="{ 'border-red-500': user.error.email }"
-            />
-            <p v-if="user.error.email" class="text-red-500 text-sm">{{ user.error.email }}</p>
-          </div>
-          <div class="pt-4">
-            <buttonLg type="submit" variant="primary" label="Modifica password" :loading="user.loading" :disabled="user.loading" class="w-full" />
-          </div>
+          <inputText v-model="user.data.email" type="email" forLabel="email" icon="Mail" :label="$t('auth.email')" :error="user.error.email" />
+          <buttonLg type="submit" variant="primary" label="Modifica password" :loading="user.loading" :disabled="user.loading" class="w-full" />
         </form>
         <div v-if="!user.sent" class="text-center mt-6">
           <p class="text-sm text-gray-600">
@@ -56,12 +42,14 @@ import supportedDomains from '../../json/supported_domains.json';
 
 import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
+import inputText from '../../components/input/input-text.vue';
 
 export default {
   name: 'Forgot-password',
   components: {
     appLogo,
     ButtonLg,
+    inputText,
   },
   data() {
     return {

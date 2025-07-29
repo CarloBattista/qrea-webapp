@@ -11,22 +11,15 @@
           </h1>
         </div>
         <form @submit.prevent="actionResetPassword" class="space-y-6">
-          <div class="space-y-2">
-            <label for="password" class="block text-sm font-medium text-gray-700">{{ $t('auth.password') }}</label>
-            <input
-              id="password"
-              v-model="user.data.password"
-              type="password"
-              :placeholder="$t('auth.passwordPlaceholder')"
-              required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 outline-none"
-              :class="{ 'border-red-500': user.error.password }"
-            />
-            <p v-if="user.error.password" class="text-red-500 text-sm">{{ user.error.password }}</p>
-          </div>
-          <div class="pt-4">
-            <buttonLg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
-          </div>
+          <inputText
+            v-model="user.data.password"
+            type="password"
+            forLabel="password"
+            icon="KeyRound"
+            :label="$t('auth.password')"
+            :error="user.error.password"
+          />
+          <buttonLg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
         </form>
         <div v-if="!user.sent" class="text-center mt-6">
           <p class="text-sm text-gray-600">
