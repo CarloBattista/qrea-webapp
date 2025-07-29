@@ -43,6 +43,20 @@ export default {
     },
   },
   methods: {
+    redirectToSignin() {
+      // Pulisci i dati di autenticazione
+      this.auth.user = null;
+      this.auth.session = null;
+      this.auth.profile = null;
+      this.auth.isAuthenticated = false;
+      localStorage.removeItem('isAuthenticated');
+
+      // Reindirizza solo se non siamo già nella pagina di signin
+      if (this.$route.name !== 'signin') {
+        this.$router.push({ name: 'signin' });
+      }
+    },
+
     async getUser() {
       try {
         const { data, error } = await supabase.auth.getUser();
@@ -56,6 +70,8 @@ export default {
           localStorage.setItem('isAuthenticated', true);
 
           this.getSession();
+        } else {
+          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
@@ -68,13 +84,18 @@ export default {
         if (!error) {
           // console.log(data);
           this.auth.session = data.session;
+        } else {
+          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
       }
     },
     async getProfile() {
-      if (!this.auth.user?.id) return;
+      if (!this.auth.user?.id) {
+        this.redirectToSignin();
+        return;
+      }
 
       try {
         const { data, error } = await supabase.from('profiles').select('*').eq('uid', this.auth.user.id).maybeSingle();
@@ -83,6 +104,8 @@ export default {
           // console.log(data);
           this.auth.profile = data;
           syncLocaleWithProfile();
+        } else {
+          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
@@ -161,6 +184,14 @@ export default {
     },
   },
   watch: {
+    'auth.isAuthenticated': {
+      handler(value) {
+        if (!value && this.$route.meta?.requiresAuth) {
+          this.redirectToSignin();
+        }
+      },
+      immediate: true,
+    },
     'auth.user': {
       handler(value) {
         if (value) {
