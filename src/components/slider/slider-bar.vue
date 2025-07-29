@@ -1,22 +1,25 @@
 <template>
   <div
-    class="slider-container relative w-full h-6 flex items-center cursor-pointer"
+    class="slider-container relative w-full flex flex-col gap-2 cursor-pointer"
     @mousedown="startDrag"
     @touchstart="startDrag"
     @mouseenter="isHovering = true"
     @mouseleave="isHovering = false"
     ref="sliderContainer"
   >
-    <div class="slider-bar relative w-full h-2 rounded-full bg-white border border-gray-200">
-      <div class="slider-progress absolute top-0 left-0 h-full rounded-full bg-black" :style="{ width: progressPercentage + '%' }"></div>
-      <div
-        class="slider-handle absolute top-1/2 h-4 aspect-square rounded-full bg-black cursor-grab active:cursor-grabbing"
-        :style="{ left: progressPercentage + '%', transform: 'translateX(-50%) translateY(-50%)' }"
-      ></div>
+    <label v-if="label" class="slider-label text-sm font-medium">{{ label }}</label>
+    <div class="relative w-full h-6 flex items-center cursor-pointer">
+      <div class="slider-bar relative w-full h-2 rounded-full bg-white border border-gray-200">
+        <div class="slider-progress absolute top-0 left-0 h-full rounded-full bg-black" :style="{ width: progressPercentage + '%' }"></div>
+        <div
+          class="slider-handle absolute top-1/2 h-4 aspect-square rounded-full bg-black cursor-grab active:cursor-grabbing"
+          :style="{ left: progressPercentage + '%', transform: 'translateX(-50%) translateY(-50%)' }"
+        ></div>
+      </div>
     </div>
     <div
       v-show="showPreview"
-      class="absolute -top-8 left-0 px-2 py-1 rounded-lg text-sm font-medium shadow shadow-black/15 bg-black text-white"
+      class="absolute -top-1 left-0 px-2 py-1 rounded-lg text-sm font-medium shadow shadow-black/15 bg-black text-white"
       :style="{ left: progressPercentage + '%', transform: 'translateX(-50%)' }"
     >
       {{ modelValue }}{{ previewExtraValue }}
@@ -32,6 +35,7 @@ export default {
       type: Number,
       default: 0,
     },
+    label: String,
     min: {
       type: Number,
       default: 0,

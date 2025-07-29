@@ -9,56 +9,40 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 md:order-1 order-2">
           <h2 class="text-xl font-semibold mb-6">{{ $t('editor.configuration') }}</h2>
-
-          <!-- Nome QR Code (nuovo campo) -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.qrName') }}</label>
-            <input
-              v-model="qrName"
-              type="text"
-              :placeholder="$t('editor.qrNamePlaceholder')"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-            />
-          </div>
-
-          <!-- Contenuto QR -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.qrContent') }}</label>
-            <textarea
-              v-model="store.qrConfig.value"
-              :placeholder="$t('editor.qrContentPlaceholder')"
-              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent resize-none"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <!-- Dimensioni -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('qr.size') }} ({{ store.qrConfig.qrSize }}px)</label>
-            <slider-bar v-model="store.qrConfig.qrSize" :min="200" :max="600" :step="10" preview-extra-value="px" />
-          </div>
-
-          <!-- Margine -->
-          <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.margin') }} ({{ store.qrConfig.margin }}px)</label>
-            <slider-bar v-model="store.qrConfig.margin" :min="0" :max="50" :step="1" preview-extra-value="px" />
-          </div>
-
+          <inputText v-model="qrName" type="text" forLabel="qrName" :label="$t('editor.qrName')" class="mb-6" />
+          <textArea v-model="store.qrConfig.value" :viewHelpLength="false" forLabel="qrContent" :label="$t('editor.qrContent')" class="mb-6" />
+          <sliderBar
+            v-model="store.qrConfig.qrSize"
+            :label="$t('qr.size') + ' (' + store.qrConfig.qrSize + 'px)'"
+            :min="200"
+            :max="600"
+            :step="10"
+            preview-extra-value="px"
+            class="mb-6"
+          />
+          <sliderBar
+            v-model="store.qrConfig.margin"
+            :label="$t('editor.margin') + ' (' + store.qrConfig.margin + 'px)'"
+            :min="0"
+            :max="50"
+            :step="1"
+            preview-extra-value="px"
+            class="mb-6"
+          />
           <!-- Colori -->
           <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('editor.colors') }}</h3>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.backgroundColor') }}</label>
-                <color-picker v-model="store.qrConfig.background" size="48px" />
+                <colorPicker v-model="store.qrConfig.background" size="48px" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.foregroundColor') }}</label>
-                <color-picker v-model="store.qrConfig.foreground" size="48px" />
+                <colorPicker v-model="store.qrConfig.foreground" size="48px" />
               </div>
             </div>
           </div>
-
           <!-- Gradiente -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
@@ -74,22 +58,21 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
-                  <color-picker v-model="store.qrConfig.gradientStartColor" size="48px" />
+                  <colorPicker v-model="store.qrConfig.gradientStartColor" size="48px" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientEndColor') }}</label>
-                  <color-picker v-model="store.qrConfig.gradientEndColor" size="48px" />
+                  <colorPicker v-model="store.qrConfig.gradientEndColor" size="48px" />
                 </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2"
                   >{{ $t('editor.gradientRotation') }} ({{ store.qrConfig.gradientRotation }}°)</label
                 >
-                <slider-bar v-model="store.qrConfig.gradientRotation" :min="0" :max="360" :step="1" preview-extra-value="°" />
+                <sliderBar v-model="store.qrConfig.gradientRotation" :min="0" :max="360" :step="1" preview-extra-value="°" />
               </div>
             </div>
           </div>
-
           <!-- Stili -->
           <div class="mb-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('editor.styles') }}</h3>
@@ -136,7 +119,6 @@
               </dropdown>
             </div>
           </div>
-
           <!-- Immagine -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
@@ -144,24 +126,24 @@
               <badge v-if="isFreePlan" label="Pro" />
             </div>
             <div v-if="!isFreePlan && store.qrConfig.showImage" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
-                <input
-                  v-model="store.qrConfig.imageSettings.src"
-                  type="url"
-                  :placeholder="$t('editor.imageUrlPlaceholder')"
-                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                  >{{ $t('editor.imageSize') }} ({{ store.qrConfig.imageSettings.size }}%)</label
-                >
-                <slider-bar v-model="store.qrConfig.imageSettings.size" :min="10" :max="60" :step="1" preview-extra-value="%" />
-              </div>
+              <inputText
+                v-model="store.qrConfig.imageSettings.src"
+                type="url"
+                forLabel="qrName"
+                :label="$t('editor.imageUrl')"
+                :placeholder="$t('editor.imageUrlPlaceholder')"
+                class="mb-6"
+              />
+              <sliderBar
+                v-model="store.qrConfig.imageSettings.size"
+                :label="$t('editor.imageSize') + ' (' + store.qrConfig.imageSettings.size + '%)'"
+                :min="10"
+                :max="60"
+                :step="1"
+                preview-extra-value="%"
+              />
             </div>
           </div>
-
           <!-- Formato Download -->
           <div class="mb-6">
             <dropdown class="w-full" :label="$t('editor.downloadFormat')" :selected="selectedFormatLabel" :disabled="false">
@@ -185,7 +167,6 @@
               </template>
             </dropdown>
           </div>
-
           <!-- Azioni -->
           <div class="space-y-3">
             <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
@@ -248,6 +229,8 @@ import buttonLg from '../components/button/button-lg.vue';
 import badge from '../components/badge/badge.vue';
 import dropdown from '../components/dropdown/dropdown.vue';
 import dropdownOption from '../components/dropdown/dropdown-option.vue';
+import inputText from '../components/input/input-text.vue';
+import textArea from '../components/input/text-area.vue';
 
 export default {
   name: 'New-qr',
@@ -260,6 +243,8 @@ export default {
     badge,
     dropdown,
     dropdownOption,
+    inputText,
+    textArea,
   },
   data() {
     return {
