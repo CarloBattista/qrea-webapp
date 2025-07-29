@@ -17,7 +17,14 @@
         </div>
       </div>
       <div class="relative w-full">
-        <div class="relative z-20 w-full aspect-video rounded-3xl bg-[#D9D9D9]"></div>
+        <div class="relative z-20 w-full aspect-video rounded-3xl overflow-hidden">
+          <img
+            src="https://ozqjliffrzdnjgumkxeb.supabase.co/storage/v1/object/public/qrea-company/sketch-product/sketch-create-qr.png"
+            alt="Sketch create qr"
+            draggable="false"
+            class="w-full h-full object-contain"
+          />
+        </div>
       </div>
     </div>
     <div class="absolute z-10 bottom-0 left-0 w-full h-[30%] gradient"></div>

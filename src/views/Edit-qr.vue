@@ -70,7 +70,7 @@
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
-            <div v-if="isFreePlan && qrCode.data.config.gradient" class="space-y-4">
+            <div v-if="!isFreePlan && qrCode.data.config.gradient" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
@@ -148,7 +148,7 @@
               />
               <badge v-if="auth.profile.plan === 'free'" label="Pro" />
             </div>
-            <div v-if="isFreePlan && qrCode.data.config.showImage" class="space-y-4">
+            <div v-if="!isFreePlan && qrCode.data.config.showImage" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
                 <input
@@ -372,18 +372,18 @@ export default {
     handleGradientToggle() {
       if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
+        window.location.reload();
         return;
       }
       this.qrCode.data.config.gradient = !this.qrCode.data.config.gradient;
-      window.location.reload();
     },
     handleImageToggle() {
       if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
+        window.location.reload();
         return;
       }
       this.qrCode.data.config.showImage = !this.qrCode.data.config.showImage;
-      window.location.reload();
     },
 
     async getQrCode() {

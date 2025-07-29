@@ -70,7 +70,7 @@
               />
               <badge v-if="isFreePlan" label="Pro" />
             </div>
-            <div v-if="isFreePlan && store.qrConfig.gradient" class="space-y-4">
+            <div v-if="!isFreePlan && store.qrConfig.gradient" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.gradientStartColor') }}</label>
@@ -143,7 +143,7 @@
               <checkbox :selected="store.qrConfig.showImage" @click="handleImageToggle" :label="$t('editor.addCenterImage')" :disabled="isFreePlan" />
               <badge v-if="isFreePlan" label="Pro" />
             </div>
-            <div v-if="isFreePlan && store.qrConfig.showImage" class="space-y-4">
+            <div v-if="!isFreePlan && store.qrConfig.showImage" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('editor.imageUrl') }}</label>
                 <input
@@ -424,18 +424,18 @@ export default {
     handleGradientToggle() {
       if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
+        window.location.reload();
         return;
       }
       this.store.qrConfig.gradient = !this.store.qrConfig.gradient;
-      window.location.reload();
     },
     handleImageToggle() {
       if (this.isFreePlan) {
         this.$router.push({ name: 'pricing' });
+        window.location.reload();
         return;
       }
       this.store.qrConfig.showImage = !this.store.qrConfig.showImage;
-      window.location.reload();
     },
 
     async loadQRCodeFromRoute() {
