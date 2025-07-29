@@ -2,7 +2,7 @@
   <div
     class="nav fixed z-[9999] top-7 md:left-7 left-3 w-fit h-fit p-2.5 rounded-full flex md:flex-col flex-row gap-2 items-center pr-shadow bg-white"
   >
-    <RouterLink to="/" class="md:order-1">
+    <RouterLink to="/home" class="md:order-1">
       <iconButton icon="Grid2x2" :disabled="false" :loading="false" />
     </RouterLink>
     <RouterLink :to="store.planConfig.can_create_qr ? '/new-qr' : '/pricing'" class="md:order-2">

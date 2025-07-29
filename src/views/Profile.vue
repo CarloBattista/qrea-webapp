@@ -189,6 +189,31 @@ export default {
       return statusMap[status] || status;
     },
 
+    async updateLanguage(lang) {
+      if (!this.auth.user?.id) {
+        return;
+      }
+
+      this.selectedLanguage = lang;
+
+      try {
+        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
+
+        if (error) {
+          alert("Errore durante l'aggiornamento della lingua");
+          return;
+        }
+
+        if (this.auth.profile) {
+          this.auth.profile.lang = this.selectedLanguage;
+        }
+
+        this.$i18n.locale = this.selectedLanguage;
+        alert(this.$t('profile.languageUpdated'));
+      } catch (e) {
+        console.error(e);
+      }
+    },
     async handleCancelSubscription() {
       const UID = this.auth.user.id;
       const stripe_id = this.auth.profile.stripe_id;
@@ -212,6 +237,9 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            userStripeId: this.auth.profile.stripe_id,
+          }),
         });
 
         if (!response.ok) {
@@ -281,31 +309,6 @@ export default {
         this.nextPayment.loading = false;
       }
     },
-    async updateLanguage(lang) {
-      if (!this.auth.user?.id) {
-        return;
-      }
-
-      this.selectedLanguage = lang;
-
-      try {
-        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('id', this.auth.user.id);
-
-        if (error) {
-          alert("Errore durante l'aggiornamento della lingua");
-          return;
-        }
-
-        if (this.auth.profile) {
-          this.auth.profile.lang = this.selectedLanguage;
-        }
-
-        this.$i18n.locale = this.selectedLanguage;
-        alert(this.$t('profile.languageUpdated'));
-      } catch (e) {
-        console.error(e);
-      }
-    },
     async completePayment(invoiceId) {
       // Trova la fattura nell'array e imposta lo stato di caricamento
       const payment = this.billingHistory.data.find((p) => p.id === invoiceId);
@@ -319,6 +322,9 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            userStripeId: this.auth.profile.stripe_id,
+          }),
         });
 
         const result = await response.json();

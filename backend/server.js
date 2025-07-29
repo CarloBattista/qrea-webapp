@@ -17,6 +17,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+let currentStripeId = null;
+
 // Middleware
 app.use(
   cors({
@@ -156,7 +158,6 @@ async function handleRecurringPayment(invoice) {
       },
     });
 
-    // Aggiorna il profilo dell'utente nel database Supabase
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -165,7 +166,7 @@ async function handleRecurringPayment(invoice) {
         current_period_end: new Date(invoice.period_end * 1000).toISOString(),
         subscription_status: 'active',
       })
-      .eq('stripe_id', invoice.customer);
+      .eq('stripe_id', currentStripeId);
 
     if (error) {
       console.error('❌ Errore aggiornamento profilo dopo pagamento ricorrente:', error);
@@ -213,7 +214,7 @@ async function handleSubscriptionUpdated(subscription) {
         cancel_at_period_end: subscription.cancel_at_period_end,
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       })
-      .eq('stripe_id', subscription.customer);
+      .eq('stripe_id', currentStripeId);
 
     if (error) {
       console.error('Errore aggiornamento profilo:', error);
@@ -240,7 +241,7 @@ async function handleSubscriptionCanceled(subscription) {
         stripe_id: null,
         canceled_at: new Date(subscription.canceled_at * 1000).toISOString(),
       })
-      .eq('stripe_id', subscription.customer);
+      .eq('stripe_id', currentStripeId);
 
     if (error) {
       console.error('Errore aggiornamento profilo:', error);
@@ -296,6 +297,25 @@ app.get('/api/info', (req, res) => {
       webhookConfigured: !!process.env.STRIPE_WEBHOOK_SECRET,
     },
   });
+});
+
+app.post('/api/stripe-customer', async (req, res) => {
+  try {
+    const { email, stripeId } = req.body;
+    console.log('email:', email);
+    console.log('stripe_id:', stripeId);
+
+    currentStripeId = stripeId;
+
+    res.json({
+      success: true,
+      message: 'Dati ricevuti e loggati con successo',
+      received: req.body,
+    });
+  } catch (error) {
+    console.error('❌ Errore nel ricevere i dati:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Gestione errori globale

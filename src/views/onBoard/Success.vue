@@ -68,6 +68,9 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            stripeId: this.auth.profile.stripe_id,
+          }),
         });
 
         if (!response.ok) {
@@ -114,7 +117,7 @@ export default {
       try {
         const { error } = await supabase
           .from('profiles')
-          .update({ plan: 'pro', stripe_id: session.subscriptionId, last_payment_date: paymentDate })
+          .update({ plan: 'pro', stripe_id: session.subscriptionId, subscription_status: 'active', last_payment_date: paymentDate })
           .eq('uid', UID);
 
         if (!error) {

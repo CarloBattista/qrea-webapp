@@ -1,6 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import process from 'process';
+import { supabase } from '../supabase.js';
 
 const router = express.Router();
 
@@ -167,6 +168,7 @@ router.post('/complete-invoice/:invoiceId', async (req, res) => {
   try {
     const stripe = getStripe();
     const { invoiceId } = req.params;
+    const { userStripeId } = req.body;
 
     // Prima recupera la fattura per verificare lo stato
     const invoice = await stripe.invoices.retrieve(invoiceId);
@@ -198,6 +200,22 @@ router.post('/complete-invoice/:invoiceId', async (req, res) => {
 
     // Paga la fattura
     const paidInvoice = await stripe.invoices.pay(invoiceId);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          last_payment_date: new Date().toISOString(),
+          subscription_status: 'active',
+        })
+        .eq('stripe_id', userStripeId);
+
+      if (!error) {
+        console.log('✅ last_payment_date aggiornato con successo');
+      }
+    } catch (e) {
+      console.error(e);
+    }
 
     res.json({
       success: true,

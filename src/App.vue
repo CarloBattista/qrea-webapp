@@ -78,6 +78,37 @@ export default {
         console.error(e);
       }
     },
+    async sencStripeCustomer() {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+
+      if (!this.auth.profile && !this.auth.profile.stripe_id) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/stripe-customer`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: this.auth.user.email,
+            stripeId: this.auth.profile.stripe_id,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          return { success: true, data };
+        } else {
+          return { success: false, error: data.error };
+        }
+      } catch (e) {
+        console.error(e);
+        return { success: false, error: e.message };
+      }
+    },
 
     async getQrCodes() {
       this.store.qrCodes.loading = true;
@@ -116,6 +147,7 @@ export default {
       handler(value) {
         if (value) {
           this.getQrCodes();
+          this.sencStripeCustomer();
         }
       },
       deep: true,
@@ -137,7 +169,10 @@ export default {
     window.scrollTo(0, 0);
 
     await this.getUser();
-    if (this.auth.profile) await this.getQrCodes();
+    if (this.auth.profile) {
+      await this.getQrCodes();
+      await this.sencStripeCustomer();
+    }
   },
 };
 </script>
