@@ -85,9 +85,9 @@
       <div class="text-center mt-8">
         <p class="text-xs text-gray-500">
           {{ $t('auth.termsText') }}
-          <a href="#" class="underline hover:text-black">{{ $t('auth.termsOfService') }}</a>
+          <RouterLink to="/terms-and-conditions" class="underline hover:text-black">{{ $t('auth.termsOfService') }}</RouterLink>
           {{ $t('auth.and') }}
-          <a href="#" class="underline hover:text-black">{{ $t('auth.privacyPolicy') }}</a>
+          <RouterLink to="/privacy-policy" class="underline hover:text-black">{{ $t('auth.privacyPolicy') }}</RouterLink>
         </p>
       </div>
     </div>
