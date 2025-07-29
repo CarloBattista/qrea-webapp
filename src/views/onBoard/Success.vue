@@ -69,9 +69,6 @@ export default {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            stripeId: this.auth.profile.stripe_id,
-          }),
         });
 
         if (!response.ok) {
@@ -101,7 +98,7 @@ export default {
       await this.verifyPayment();
     },
     async updateSubscription(session) {
-      const UID = this.auth.user.id;
+      const UID = this.auth.user?.id;
 
       if (!UID) {
         return;
