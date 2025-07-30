@@ -1,6 +1,6 @@
 <template>
   <div @click="focusInput" class="field-container relative w-full flex flex-col gap-2" :class="{ focus: focus, error: error, disabled: disabled }">
-    <label v-if="label" :for="forLabel" class="input-label text-sm font-medium">{{ label }}</label>
+    <label v-if="label" :for="forLabel" class="input-label text-sm font-medium">{{ label }} <span v-if="required">*</span></label>
     <div
       @focus="handleFocus"
       @blur="handleBlur"
@@ -19,6 +19,7 @@
         :type="inputType"
         :placeholder="placeholder"
         :readonly="readOnly"
+        :required="required"
         :disabled="disabled"
         class="w-full h-full outline-0"
       />

@@ -17,7 +17,15 @@
           <h1 class="text-xl font-medium text-black">{{ user.email_not_confirmed ? 'Richiedi conferma della mail' : $t('auth.signin') }}</h1>
         </div>
         <form @submit.prevent class="space-y-6">
-          <inputText v-model="user.data.email" type="email" forLabel="email" icon="Mail" :label="$t('auth.email')" :error="user.error.email" />
+          <inputText
+            v-model="user.data.email"
+            type="email"
+            forLabel="email"
+            icon="Mail"
+            :label="$t('auth.email')"
+            :error="user.error.email"
+            :required="true"
+          />
           <inputText
             v-if="!user.email_not_confirmed"
             v-model="user.data.password"
@@ -26,6 +34,7 @@
             icon="KeyRound"
             :label="$t('auth.password')"
             :error="user.error.password"
+            :required="true"
           />
           <div v-if="!user.email_not_confirmed" class="text-right">
             <RouterLink to="/forgot-password" class="text-sm text-black font-medium">{{ $t('auth.forgotPassword') }}</RouterLink>

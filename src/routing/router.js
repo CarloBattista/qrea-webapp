@@ -20,6 +20,9 @@ import Home from '../views/Home.vue';
 import NewQr from '../views/New-qr.vue';
 import EditQr from '../views/Edit-qr.vue';
 
+// Help
+import Contact from '../views/Help/Contact.vue';
+
 // Common
 import Privacy from '../views/Common/Privacy.vue';
 import Terms from '../views/Common/Terms.vue';
@@ -118,6 +121,15 @@ const routes = [
     component: EditQr,
     props: true,
     meta: { title: 'Qrea • Modifica QR', requiresAuth: true },
+  },
+
+  // Help
+  {
+    path: '/contact',
+    name: 'contact',
+    component: Contact,
+    props: true,
+    meta: { title: 'Qrea • Contact' },
   },
 
   // Common

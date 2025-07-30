@@ -19,10 +19,32 @@
         </div>
         <form v-else-if="!user.create" @submit.prevent="actionSignup" class="space-y-6">
           <div class="w-full grid grid-cols-2 gap-2">
-            <inputText v-model="user.data.first_name" type="text" forLabel="firstName" :label="$t('auth.firstName')" :error="user.error.first_name" />
-            <inputText v-model="user.data.last_name" type="text" forLabel="lastName" :label="$t('auth.lastName')" :error="user.error.last_name" />
+            <inputText
+              v-model="user.data.first_name"
+              type="text"
+              forLabel="firstName"
+              :label="$t('auth.firstName')"
+              :error="user.error.first_name"
+              :required="true"
+            />
+            <inputText
+              v-model="user.data.last_name"
+              type="text"
+              forLabel="lastName"
+              :label="$t('auth.lastName')"
+              :error="user.error.last_name"
+              :required="true"
+            />
           </div>
-          <inputText v-model="user.data.email" type="email" forLabel="email" icon="Mail" :label="$t('auth.email')" :error="user.error.email" />
+          <inputText
+            v-model="user.data.email"
+            type="email"
+            forLabel="email"
+            icon="Mail"
+            :label="$t('auth.email')"
+            :error="user.error.email"
+            :required="true"
+          />
           <inputText
             v-model="user.data.password"
             type="password"
@@ -30,6 +52,7 @@
             icon="KeyRound"
             :label="$t('auth.password')"
             :error="user.error.password"
+            :required="true"
           />
           <buttonLg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
         </form>

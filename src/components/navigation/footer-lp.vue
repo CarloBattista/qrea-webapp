@@ -12,8 +12,8 @@
         </div>
         <div class="w-full flex flex-col gap-4">
           <h3 class="fooHead">{{ $t('footer.support') }}</h3>
-          <RouterLink to="/" class="fooItem">{{ $t('footer.helpCenter') }}</RouterLink>
-          <RouterLink to="/" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
+          <RouterLink v-if="false" to="/" class="fooItem">{{ $t('footer.helpCenter') }}</RouterLink>
+          <RouterLink to="/contact" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
           <RouterLink to="/privacy-policy" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
           <RouterLink to="/terms-and-conditions" class="fooItem">{{ $t('footer.terms') }}</RouterLink>
         </div>
