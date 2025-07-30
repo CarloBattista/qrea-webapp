@@ -6,23 +6,22 @@
           <appLogo variant="white" class="relative h-10" />
         </div>
         <div class="w-full flex flex-col gap-4">
-          <h3 class="fooHead">{{ $t('footer.product') }}</h3>
+          <div class="fooHead">{{ $t('footer.product') }}</div>
           <a @click="scrollToFeatures" class="fooItem">{{ $t('landing.features') }}</a>
-          <RouterLink to="/pricing" class="fooItem">{{ $t('pricing.title') }}</RouterLink>
+          <RouterLink aria-label="Pricing" to="/pricing" class="fooItem">{{ $t('pricing.title') }}</RouterLink>
         </div>
         <div class="w-full flex flex-col gap-4">
-          <h3 class="fooHead">{{ $t('footer.support') }}</h3>
-          <RouterLink v-if="false" to="/" class="fooItem">{{ $t('footer.helpCenter') }}</RouterLink>
-          <RouterLink to="/contact" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
-          <RouterLink to="/privacy-policy" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
-          <RouterLink to="/terms-and-conditions" class="fooItem">{{ $t('footer.terms') }}</RouterLink>
+          <div class="fooHead">{{ $t('footer.support') }}</div>
+          <RouterLink aria-label="Contact" to="/contact" class="fooItem">{{ $t('footer.contact') }}</RouterLink>
+          <RouterLink aria-label="Privacy policy" to="/privacy-policy" class="fooItem">{{ $t('footer.privacy') }}</RouterLink>
+          <RouterLink aria-label="Terms and conditions" to="/terms-and-conditions" class="fooItem">{{ $t('footer.terms') }}</RouterLink>
         </div>
       </div>
       <div class="w-full pb-5 flex gap-4 items-center sm:justify-end justify-start border-b border-solid border-[#373737]">
-        <a href="#" target="_blank" class="social-logo">
+        <a aria-label="Instagram" href="https://www.instagram.com/" target="_blank" class="social-logo">
           <img src="/_resources/imgs/instagram_logo.svg" alt="Instagram" draggable="false" class="relative h-7 aspect-square" />
         </a>
-        <a href="#" target="_blank" class="social-logo">
+        <a aria-label="Linkedin" href="https://www.linkedin.com/in/carlo-battista-05b926282/" target="_blank" class="social-logo">
           <img src="/_resources/imgs/linkedin_logo.svg" alt="Linkedin" draggable="false" class="relative h-7 aspect-square" />
         </a>
       </div>
