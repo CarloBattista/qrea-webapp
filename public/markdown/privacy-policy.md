@@ -62,7 +62,7 @@ Il trattamento dei tuoi dati personali si basa su:
 I tuoi dati possono essere condivisi con:
 
 - **Stripe**: per l'elaborazione dei pagamenti
-- **Supabase**: per l'hosting e gestione del database
+- **Supabase**: per la gestione del database
 - **Vercel**: per l'hosting dell'applicazione
 - **Fornitori di servizi tecnici**: solo per finalità strettamente necessarie
 
@@ -131,11 +131,7 @@ La data dell'ultimo aggiornamento è indicata in fondo a questo documento.
 
 Per qualsiasi domanda riguardante questa informativa privacy o per esercitare i tuoi diritti, puoi contattarci:
 
-**Email**: privacy@qrea.it  
-**Indirizzo**: [Inserire indirizzo completo]  
-**Telefono**: [Inserire numero di telefono]
-
-**Titolare del trattamento**: [Inserire nome e dati dell'azienda]
+**Email**: team.qrea@gmail.com
 
 ## 14. Autorità di controllo
 
@@ -145,3 +141,8 @@ Per l'Italia, l'autorità competente è:
 **Garante per la protezione dei dati personali**  
 Sito web: www.gpdp.it  
 Email: garante@gpdp.it
+
+---
+
+**Versione**: 1.0
+**Ultimo aggiornamento**: 2023-07-30

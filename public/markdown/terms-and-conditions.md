@@ -2,9 +2,6 @@
 
 <p>&zwj;</p>
 
-**Data di entrata in vigore**: [Inserire data]  
-**Ultima modifica**: [Inserire data]
-
 Benvenuto nel nostro servizio di generazione QR code. Utilizzando il nostro servizio, accetti di essere vincolato dai seguenti termini e condizioni.
 
 ## 1. Definizioni
@@ -183,7 +180,7 @@ Questi Termini sono disciplinati dalla legge italiana.
 
 #### 11.2 Giurisdizione
 
-Per qualsiasi controversia è competente il Foro di [Inserire città], Italia.
+Per qualsiasi controversia è competente il Foro di Roma, Italia.
 
 #### 11.3 Risoluzione Amichevole
 
@@ -245,15 +242,10 @@ La mancata applicazione di una disposizione non costituisce rinuncia ai nostri d
 
 Per domande riguardo a questi Termini e Condizioni, puoi contattarci:
 
-**Email**: legal@qrea.it  
-**Indirizzo**: [Inserire indirizzo completo]  
-**Telefono**: [Inserire numero di telefono]
-
-**Società**: [Inserire nome e dati completi dell'azienda]  
-**Partita IVA**: [Inserire P.IVA]  
-**Codice Fiscale**: [Inserire CF]
+**Email**: team.qrea@gmail.com
 
 ---
 
-**Versione**: 1.0  
-**Ultimo aggiornamento**: [Inserire data]
+**Versione**: 1.0
+**Data di entrata in vigore**: 2023-07-30
+**Ultimo aggiornamento**: 2023-07-30
