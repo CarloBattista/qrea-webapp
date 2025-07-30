@@ -162,7 +162,7 @@ export default {
       }
 
       try {
-        console.log(supabase);
+        alert('Al momento non è possibile inviare la tua richiesta.');
       } catch (e) {
         console.error(e);
       } finally {
