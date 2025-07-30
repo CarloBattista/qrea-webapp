@@ -1,4 +1,7 @@
 <template>
+  <Notivue v-slot="item">
+    <Notification :item="item" :theme="pastelTheme" :icons="outlinedIcons" />
+  </Notivue>
   <div>
     <RouterView v-if="!loading" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
@@ -12,6 +15,7 @@ import { supabase } from './lib/supabase';
 import { auth } from './data/auth';
 import { store } from './data/store';
 import { syncLocaleWithProfile } from './lib/i18n';
+import { Notivue, Notification, pastelTheme, outlinedIcons, push } from 'notivue';
 
 import loader from './components/loader/loader.vue';
 
@@ -19,6 +23,9 @@ export default {
   name: 'App',
   components: {
     loader,
+
+    Notivue,
+    Notification,
   },
   data() {
     return {

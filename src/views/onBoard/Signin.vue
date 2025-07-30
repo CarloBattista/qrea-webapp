@@ -55,6 +55,7 @@
 <script>
 import { supabase } from '../../lib/supabase';
 import { auth } from '../../data/auth';
+import { push } from 'notivue';
 
 import supportedDomains from '../../json/supported_domains.json';
 
@@ -92,10 +93,10 @@ export default {
       const emailRegex = new RegExp(`^[^\\s@]+@(${supportedDomainsPattern})\\.(com|it|org|net|edu|gov|io)$`, 'i');
 
       if (!this.user.data.email) {
-        this.user.error.email = 'Inserisci un indirizzo email';
+        this.user.error.email = 'Inserisci la tua email';
         return false;
       } else if (!emailRegex.test(this.user.data.email)) {
-        this.user.error.email = 'Inserisci un indirizzo email valido';
+        this.user.error.email = 'Inserisci una email valida';
         return false;
       } else {
         this.user.error.email = null;
@@ -104,7 +105,7 @@ export default {
     },
     validatePassword() {
       if (!this.user.data.password) {
-        this.user.error.password = 'Inserisci una password';
+        this.user.error.password = 'Inserisci la tua password';
         return false;
       } else {
         this.user.error.password = null;
@@ -113,9 +114,19 @@ export default {
     },
     retrieveError(error) {
       if (error.code === 'invalid_credentials') {
-        this.user.error.general = 'Correggi indirizzo email e/o la password.';
+        this.user.error.general = "L'email o la password inserite non sono corrette";
+
+        push.error({
+          title: null,
+          message: "L'email o la password inserite non sono corrette",
+        });
       } else {
-        this.user.error.general = 'Si è verificato un errore, riprova più tardi';
+        this.user.error.general = 'Si è verificato un errore generale, riprova più tardi';
+
+        push.error({
+          title: null,
+          message: 'Si è verificato un errore generale, riprova più tardi',
+        });
       }
     },
 

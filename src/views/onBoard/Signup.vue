@@ -64,6 +64,7 @@
 import { supabase } from '../../lib/supabase';
 import { auth } from '../../data/auth';
 
+import { PASSWORD_PATTERNS, validatePasswordRequirements } from '../../lib/password_validation';
 import supportedDomains from '../../json/supported_domains.json';
 
 import appLogo from '../../components/global/app-logo.vue';
@@ -101,15 +102,33 @@ export default {
     };
   },
   methods: {
+    validateForm() {
+      this.user.error.first_name = null;
+      this.user.error.last_name = null;
+
+      let isValid = true;
+
+      if (!this.user.data.first_name) {
+        this.user.error.first_name = 'Inserisci il tuo nome';
+        isValid = false;
+      }
+
+      if (!this.user.data.last_name) {
+        this.user.error.last_name = 'Inserisci il tuo cognome';
+        isValid = false;
+      }
+
+      return isValid;
+    },
     validateEmail() {
       const supportedDomainsPattern = supportedDomains.join('|');
       const emailRegex = new RegExp(`^[^\\s@]+@(${supportedDomainsPattern})\\.(com|it|org|net|edu|gov|io)$`, 'i');
 
       if (!this.user.data.email) {
-        this.user.error.email = 'Inserisci un indirizzo email';
+        this.user.error.email = 'Inserisci la tua email';
         return false;
       } else if (!emailRegex.test(this.user.data.email)) {
-        this.user.error.email = 'Inserisci un indirizzo email valido';
+        this.user.error.email = 'Inserisci una email valida';
         return false;
       } else {
         this.user.error.email = null;
@@ -117,23 +136,55 @@ export default {
       }
     },
     validatePassword() {
+      this.user.error.password = null;
+
       if (!this.user.data.password) {
         this.user.error.password = 'Inserisci una password';
         return false;
-      } else {
-        this.user.error.password = null;
-        return true;
       }
+
+      // Check minimum length
+      if (!PASSWORD_PATTERNS.minLength().test(this.user.data.password)) {
+        this.user.error.password = 'La password deve contenere almeno 8 caratteri';
+        return false;
+      }
+
+      // Check for lowercase letters
+      if (!PASSWORD_PATTERNS.hasLowercase.test(this.user.data.password)) {
+        this.user.error.password = 'La password deve contenere almeno una lettera minuscola';
+        return false;
+      }
+
+      // Check for uppercase letters
+      if (!PASSWORD_PATTERNS.hasUppercase.test(this.user.data.password)) {
+        this.user.error.password = 'La password deve contenere almeno una lettera maiuscola';
+        return false;
+      }
+
+      // Check for digits
+      if (!PASSWORD_PATTERNS.hasNumber.test(this.user.data.password)) {
+        this.user.error.password = 'La password deve contenere almeno un numero';
+        return false;
+      }
+
+      // Check for symbols
+      if (!PASSWORD_PATTERNS.hasSymbol.test(this.user.data.password)) {
+        this.user.error.password = 'La password deve contenere almeno un simbolo (!@#$%^&*()_+-=[]{};\':"|,.<>/?)';
+        return false;
+      }
+
+      return true;
     },
 
     async actionSignup() {
       this.user.loading = true;
       this.user.error.general = null;
 
+      const isFormValid = this.validateForm();
       const isEmailValid = this.validateEmail();
       const isPasswordValid = this.validatePassword();
 
-      if (!isEmailValid || !isPasswordValid) {
+      if (!isFormValid || !isEmailValid || !isPasswordValid) {
         this.user.loading = false;
         return;
       }
