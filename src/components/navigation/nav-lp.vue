@@ -1,18 +1,18 @@
 <template>
   <div class="sticky z-[9999] top-0 left-0 w-full md:h-24 h-16 max-h-24 lg:px-8 px-4 border-b border-solid border-black/10 bg-white">
     <div class="max-w-[1280px] mx-auto h-full flex items-center justify-between">
-      <RouterLink to="/">
+      <RouterLink aria-label="Home" to="/">
         <appLogo class="relative md:h-9 h-7" />
       </RouterLink>
       <div class="absolute top-1/2 left-1/2 h-full -translate-y-1/2 -translate-x-1/2 md:flex hidden gap-8 items-center justify-center">
         <a @click="scrollToFeatures" class="navItem">{{ $t('landing.features') }}</a>
-        <RouterLink to="/pricing" class="navItem">{{ $t('pricing.title') }}</RouterLink>
+        <RouterLink aria-label="Pricing" to="/pricing" class="navItem">{{ $t('pricing.title') }}</RouterLink>
       </div>
       <div class="md:flex hidden gap-4 items-center justify-end">
-        <RouterLink to="/signin">
+        <RouterLink aria-label="Sign in" to="/signin">
           <buttonLg variant="secondary" :label="$t('auth.signin')" />
         </RouterLink>
-        <RouterLink to="/signup">
+        <RouterLink aria-label="Sign up" to="/signup">
           <buttonLg variant="primary" :label="$t('pricing.startNow')" />
         </RouterLink>
       </div>
@@ -27,12 +27,12 @@
       <div v-if="isMenuOpen" class="absolute top-16 left-0 w-full h-[calc(100svh-4rem)] px-4 bg-white">
         <div class="w-full flex flex-col">
           <a @click="scrollToFeatures" class="navItem-mob">{{ $t('landing.features') }}</a>
-          <RouterLink to="/pricing" class="navItem-mob">{{ $t('pricing.title') }}</RouterLink>
+          <RouterLink aria-label="Pricing" to="/pricing" class="navItem-mob">{{ $t('pricing.title') }}</RouterLink>
           <div class="w-full mt-8 flex flex-col gap-4 items-center justify-end">
-            <RouterLink to="/signin" class="w-full">
+            <RouterLink aria-label="Sign in" to="/signin" class="w-full">
               <buttonLg variant="secondary" :label="$t('auth.signin')" class="w-full" />
             </RouterLink>
-            <RouterLink to="/signup" class="w-full">
+            <RouterLink aria-label="Sign up" to="/signup" class="w-full">
               <buttonLg variant="primary" :label="$t('pricing.startNow')" class="w-full" />
             </RouterLink>
           </div>

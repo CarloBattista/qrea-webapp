@@ -17,13 +17,26 @@
         </div>
       </div>
       <div class="relative w-full">
-        <div class="relative z-20 w-full aspect-video rounded-3xl overflow-hidden">
-          <img
-            src="https://ozqjliffrzdnjgumkxeb.supabase.co/storage/v1/object/public/qrea-company/sketch-product/sketch-create-qr.png"
-            alt="Sketch create qr"
-            draggable="false"
-            class="w-full h-full object-contain"
-          />
+        <div class="relative z-20 w-full aspect-video overflow-hidden">
+          <picture class="w-full h-full object-contain">
+            <source
+              media="(max-width:640px)"
+              srcset="
+                https://ozqjliffrzdnjgumkxeb.supabase.co/storage/v1/object/public/qrea-company/product-images/001/_webp/qrea-productimage-001-horizontal-1x.webp
+              "
+            />
+            <source
+              media="(max-width:768px)"
+              srcset="
+                https://ozqjliffrzdnjgumkxeb.supabase.co/storage/v1/object/public/qrea-company/product-images/001/_webp/qrea-productimage-001-horizontal-2x.webp
+              "
+            />
+            <img
+              src="https://ozqjliffrzdnjgumkxeb.supabase.co/storage/v1/object/public/qrea-company/product-images/001/_webp/qrea-productimage-001-horizontal-3x.webp"
+              alt="Prodcut image"
+              fetchpriority="high"
+            />
+          </picture>
         </div>
       </div>
     </div>
