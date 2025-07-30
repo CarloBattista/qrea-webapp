@@ -11,6 +11,8 @@ const messages = {
   'en-US': enUS,
 };
 
+const fallbackLocale = 'it-IT';
+
 // Funzione per aggiornare i meta tag
 function updateMetaTags(locale) {
   const meta = messages[locale]?.meta;
@@ -45,13 +47,13 @@ function getDefaultLocale() {
     return auth.profile.lang;
   }
 
-  return 'en-US';
+  return fallbackLocale;
 }
 
 const i18n = createI18n({
   legacy: false,
   locale: getDefaultLocale(),
-  fallbackLocale: 'en-US',
+  fallbackLocale: fallbackLocale,
   messages,
   globalInjection: true,
 });
@@ -85,9 +87,9 @@ export function syncLocaleWithProfile() {
     updateMetaTags(auth.profile.lang);
   } else {
     // Se non c'è una lingua valida nel profilo, usa il fallback
-    i18n.global.locale.value = 'en-US';
-    document.documentElement.lang = 'en-US';
-    updateMetaTags('en-US');
+    i18n.global.locale.value = fallbackLocale;
+    document.documentElement.lang = fallbackLocale;
+    updateMetaTags(fallbackLocale);
   }
 }
 

@@ -59,6 +59,9 @@
         </div>
       </div>
     </div>
+  </div>
+  <div v-if="$attrs.APP_TESTING === 'debug'" class="absolute top-2 left-2 p-4 flex flex-col gap-2 border border-dashed border-red-500 text-red-500">
+    <p>FOR DEBUG</p>
     <buttonLg @click="handleSubscriptionTest" variant="primary" leftIcon="ArrowRight" label="Test sub" :disabled="false" />
   </div>
 </template>
@@ -85,6 +88,7 @@ export default {
     return {
       auth,
       store,
+
       currentPlan: 'yearly',
     };
   },
@@ -180,6 +184,10 @@ export default {
       }
     },
     async handleSubscriptionTest() {
+      if (import.meta.env.VITE_APP !== 'debug') {
+        return;
+      }
+
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
       const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;

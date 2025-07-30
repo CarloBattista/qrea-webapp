@@ -6,11 +6,20 @@
       </div>
       <div class="card-form-comtainer sm:bg-white bg-transparent rounded-2xl sm:p-8">
         <div class="text-start mb-8">
-          <h1 class="text-xl font-medium text-black">{{ $t('auth.signin') }}</h1>
+          <div
+            v-if="user.email_not_confirmed"
+            @click="user.email_not_confirmed = false"
+            class="w-fit py-2 mb-2 flex gap-2 items-center hover:opacity-75 transition-opacity duration-150 cursor-pointer"
+          >
+            <ArrowLeft size="18" />
+            <span class="text-black text-sm font-medium">Torna indietro</span>
+          </div>
+          <h1 class="text-xl font-medium text-black">{{ user.email_not_confirmed ? 'Richiedi conferma della mail' : $t('auth.signin') }}</h1>
         </div>
-        <form @submit.prevent="actionSignin" class="space-y-6">
+        <form @submit.prevent class="space-y-6">
           <inputText v-model="user.data.email" type="email" forLabel="email" icon="Mail" :label="$t('auth.email')" :error="user.error.email" />
           <inputText
+            v-if="!user.email_not_confirmed"
             v-model="user.data.password"
             type="password"
             forLabel="password"
@@ -18,12 +27,31 @@
             :label="$t('auth.password')"
             :error="user.error.password"
           />
-          <div class="text-right">
+          <div v-if="!user.email_not_confirmed" class="text-right">
             <RouterLink to="/forgot-password" class="text-sm text-black font-medium">{{ $t('auth.forgotPassword') }}</RouterLink>
           </div>
-          <buttonLg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
+          <buttonLg
+            @click="actionSignin"
+            v-if="!user.email_not_confirmed"
+            type="submit"
+            variant="primary"
+            :label="$t('auth.signin')"
+            :loading="user.loading"
+            :disabled="user.loading"
+            class="w-full"
+          />
+          <buttonLg
+            @click="resendConfirmEmail"
+            v-else-if="user.email_not_confirmed"
+            type="submit"
+            variant="primary"
+            label="Richiedi conferma"
+            :loading="user.loading"
+            :disabled="user.loading"
+            class="w-full"
+          />
         </form>
-        <div class="relative my-6">
+        <div v-if="!user.email_not_confirmed" class="relative my-6">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300"></div>
           </div>
@@ -31,7 +59,7 @@
             <span class="px-2 sm:bg-white bg-gray-50 text-gray-500">{{ $t('auth.or') }}</span>
           </div>
         </div>
-        <div class="text-center">
+        <div v-if="!user.email_not_confirmed" class="text-center">
           <p class="text-sm text-gray-600">
             {{ $t('auth.dontHaveAccount') }}
             <RouterLink to="/signup" class="font-medium text-black hover:underline"> {{ $t('auth.signup') }} </RouterLink>
@@ -61,12 +89,18 @@ import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
 import inputText from '../../components/input/input-text.vue';
 
+// ICONS
+import { ArrowLeft } from 'lucide-vue-next';
+
 export default {
   name: 'Signin',
   components: {
     appLogo,
     ButtonLg,
     inputText,
+
+    // ICONS
+    ArrowLeft,
   },
   data() {
     return {
@@ -81,6 +115,7 @@ export default {
           password: null,
           general: null,
         },
+        email_not_confirmed: false,
         loading: false,
       },
     };
@@ -111,12 +146,22 @@ export default {
       }
     },
     retrieveError(error) {
+      this.user.email_not_confirmed = false;
+
       if (error.code === 'invalid_credentials') {
         this.user.error.general = "L'email o la password inserite non sono corrette";
 
         push.error({
           title: null,
           message: "L'email o la password inserite non sono corrette",
+        });
+      } else if (error.code === 'email_not_confirmed') {
+        this.user.email_not_confirmed = true;
+        this.user.error.general = "L'email non è stata confermata";
+
+        push.error({
+          title: null,
+          message: "L'email non è stata confermata",
         });
       } else {
         this.user.error.general = 'Si è verificato un errore generale, riprova più tardi';
@@ -177,6 +222,33 @@ export default {
         }
       } catch (e) {
         console.error(e);
+      }
+    },
+    async resendConfirmEmail() {
+      this.user.loading = true;
+
+      const isEmailValid = this.validateEmail();
+
+      if (!isEmailValid) {
+        this.user.loading = false;
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: this.user.data.email,
+        });
+
+        if (!error) {
+          this.user.email_not_confirmed = false;
+        } else {
+          this.user.email_not_confirmed = true;
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.user.loading = false;
       }
     },
   },

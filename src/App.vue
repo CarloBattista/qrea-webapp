@@ -3,7 +3,7 @@
     <Notification :item="item" :theme="pastelTheme" :icons="outlinedIcons" />
   </Notivue>
   <div>
-    <RouterView v-if="!loading" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
+    <RouterView :APP_TESTING="APP_TESTING" v-if="!loading" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
       <loader />
     </div>
@@ -15,7 +15,7 @@ import { supabase } from './lib/supabase';
 import { auth } from './data/auth';
 import { store } from './data/store';
 import { syncLocaleWithProfile } from './lib/i18n';
-import { Notivue, Notification, pastelTheme, outlinedIcons, push } from 'notivue';
+import { Notivue, Notification } from 'notivue';
 
 import loader from './components/loader/loader.vue';
 
@@ -33,6 +33,8 @@ export default {
       store,
 
       loading: true,
+
+      APP_TESTING: import.meta.env.VITE_APP,
     };
   },
   computed: {
@@ -50,20 +52,6 @@ export default {
     },
   },
   methods: {
-    redirectToSignin() {
-      // Pulisci i dati di autenticazione
-      this.auth.user = null;
-      this.auth.session = null;
-      this.auth.profile = null;
-      this.auth.isAuthenticated = false;
-      localStorage.removeItem('isAuthenticated');
-
-      // Reindirizza solo se non siamo già nella pagina di signin
-      if (this.$route.name !== 'signin') {
-        this.$router.push({ name: 'signin' });
-      }
-    },
-
     async getUser() {
       try {
         const { data, error } = await supabase.auth.getUser();
@@ -77,8 +65,6 @@ export default {
           localStorage.setItem('isAuthenticated', true);
 
           this.getSession();
-        } else {
-          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
@@ -91,8 +77,6 @@ export default {
         if (!error) {
           // console.log(data);
           this.auth.session = data.session;
-        } else {
-          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
@@ -100,7 +84,6 @@ export default {
     },
     async getProfile() {
       if (!this.auth.user?.id) {
-        this.redirectToSignin();
         return;
       }
 
@@ -111,8 +94,6 @@ export default {
           // console.log(data);
           this.auth.profile = data;
           syncLocaleWithProfile();
-        } else {
-          this.redirectToSignin();
         }
       } catch (e) {
         console.error(e);
@@ -191,14 +172,6 @@ export default {
     },
   },
   watch: {
-    'auth.isAuthenticated': {
-      handler(value) {
-        if (!value && this.$route.meta?.requiresAuth) {
-          this.redirectToSignin();
-        }
-      },
-      immediate: true,
-    },
     'auth.user': {
       handler(value) {
         if (value) {
