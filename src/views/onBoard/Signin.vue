@@ -19,9 +19,7 @@
             :error="user.error.password"
           />
           <div class="text-right">
-            <RouterLink to="/forgot-password" class="text-sm text-gray-600 hover:text-black transition-colors duration-200">{{
-              $t('auth.forgotPassword')
-            }}</RouterLink>
+            <RouterLink to="/forgot-password" class="text-sm text-black font-medium">{{ $t('auth.forgotPassword') }}</RouterLink>
           </div>
           <buttonLg type="submit" variant="primary" :label="$t('auth.signin')" :loading="user.loading" :disabled="user.loading" class="w-full" />
         </form>
