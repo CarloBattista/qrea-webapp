@@ -170,6 +170,30 @@ export default {
       }
     },
   },
+  watch: {
+    'auth.user': {
+      handler(value) {
+        if (value.email) {
+          this.fields.data.email = value.email;
+        } else {
+          this.fields.data.email = '';
+        }
+      },
+      deep: true,
+    },
+    'auth.profile': {
+      handler(value) {
+        if (value.first_name && value.last_name) {
+          this.fields.data.first_name = value.first_name;
+          this.fields.data.last_name = value.last_name;
+        } else {
+          this.fields.data.first_name = '';
+          this.fields.data.last_name = '';
+        }
+      },
+      deep: true,
+    },
+  },
   mounted() {
     window.scrollTo(0, 0);
   },
