@@ -6,9 +6,18 @@
       </div>
       <div class="card-form-comtainer sm:bg-white bg-transparent rounded-2xl sm:p-8">
         <div class="text-start mb-8">
-          <h1 class="text-xl font-medium text-black">{{ $t('auth.signup') }}</h1>
+          <h1 class="text-xl font-medium text-black">{{ user.create ? 'Conferma email' : $t('auth.signup') }}</h1>
         </div>
-        <form @submit.prevent="actionSignup" class="space-y-6">
+        <div v-if="user.create" class="w-full">
+          <p>
+            Prima di continuare, verifica la tua email <b>{{ user.data?.email }}</b>
+          </p>
+          <p class="mt-5">Se non ricevi nessuna email o hai dubbi, scrivi ad <b>assistenza@qrea.com</b> .</p>
+          <RouterLink to="/signin">
+            <buttonLg type="button" variant="secondary" :label="$t('auth.signin')" :loading="false" :disabled="false" class="w-full mt-6" />
+          </RouterLink>
+        </div>
+        <form v-else-if="!user.create" @submit.prevent="actionSignup" class="space-y-6">
           <div class="w-full grid grid-cols-2 gap-2">
             <inputText v-model="user.data.first_name" type="text" forLabel="firstName" :label="$t('auth.firstName')" :error="user.error.first_name" />
             <inputText v-model="user.data.last_name" type="text" forLabel="lastName" :label="$t('auth.lastName')" :error="user.error.last_name" />
@@ -24,7 +33,7 @@
           />
           <buttonLg type="submit" variant="primary" :label="$t('auth.continue')" :loading="user.loading" :disabled="user.loading" class="w-full" />
         </form>
-        <div class="relative my-6">
+        <div v-if="!user.create" class="relative my-6">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300"></div>
           </div>
@@ -32,7 +41,7 @@
             <span class="px-2 sm:bg-white bg-gray-50 text-gray-500">{{ $t('auth.or') }}</span>
           </div>
         </div>
-        <div class="text-center">
+        <div v-if="!user.create" class="text-center">
           <p class="text-sm text-gray-600">
             {{ $t('auth.alreadyHaveAccount') }}
             <RouterLink to="/signin" class="font-medium text-black hover:underline">{{ $t('auth.signin') }}</RouterLink>
@@ -86,6 +95,7 @@ export default {
           password: null,
           general: null,
         },
+        create: false,
         loading: false,
       },
     };
@@ -137,6 +147,7 @@ export default {
         if (!error) {
           // console.log(data);
           const userId = data.user.id;
+          this.user.create = true;
 
           await this.createProfile(userId);
         }
@@ -157,7 +168,8 @@ export default {
         });
 
         if (!error) {
-          this.$router.push({ name: 'signin' });
+          this.user.create = true;
+          // this.$router.push({ name: 'signin' });
         }
       } catch (e) {
         console.error(e);
