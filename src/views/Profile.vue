@@ -2,6 +2,13 @@
   <navigation />
   <div class="w-full md:px-6 px-3 pt-30 pb-10">
     <div class="max-w-[550px] mx-auto">
+      <div v-if="hasDraftPayments" class="max-w-[768px] mb-8 mx-auto">
+        <alert
+          type="warning"
+          title="Pagamento in attesa"
+          message="Hai un pagamento in attesa che richiede la tua attenzione. Completa il pagamento per continuare a utilizzare tutte le funzionalità."
+        />
+      </div>
       <div class="w-full flex flex-col gap-2">
         <h2 class="text-black text-2xl font-semibold">{{ $t('profile.title') }}</h2>
         <p class="text-black text-base font-normal">{{ $t('profile.subtitle') }}</p>
@@ -111,6 +118,7 @@ import buttonLg from '../components/button/button-lg.vue';
 import badge from '../components/badge/badge.vue';
 import dropdown from '../components/dropdown/dropdown.vue';
 import dropdownOption from '../components/dropdown/dropdown-option.vue';
+import alert from '../components/alert/alert.vue';
 
 export default {
   name: 'Profile',
@@ -120,6 +128,7 @@ export default {
     badge,
     dropdown,
     dropdownOption,
+    alert,
   },
   data() {
     return {
@@ -154,6 +163,10 @@ export default {
       const freePlan = 'free';
       const proPlan = 'pro';
 
+      if (this.hasDraftPayments && plan === proPlan) {
+        return 'Sospeso';
+      }
+
       if (plan === freePlan) {
         return 'Free';
       } else if (plan === proPlan) {
@@ -168,6 +181,13 @@ export default {
     selectedLanguageLabel() {
       const selectedLanguage = this.store.languages.find((language) => language.value === this.selectedLanguage);
       return selectedLanguage ? selectedLanguage.name : '';
+    },
+    hasDraftPayments() {
+      if (!this.billingHistory.data || this.billingHistory.data.length === 0) {
+        return false;
+      }
+
+      return this.billingHistory.data.some((payment) => payment.status === 'draft');
     },
   },
   methods: {

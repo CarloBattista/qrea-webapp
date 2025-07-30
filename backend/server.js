@@ -28,29 +28,36 @@ app.use(
 );
 
 // Per i webhook di Stripe, dobbiamo usare raw body
-app.use('/webhook', bodyParser.raw({ type: 'application/json' }));
+// app.use('/webhook', bodyParser.raw({ type: 'application/json' }));
 
 // Per tutti gli altri endpoint
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/api', bodyParser.json());
+app.use('/api', bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/payments', paymentsRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 
 // Webhook endpoint
-app.post('/webhook', async (req, res) => {
+app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
+  // ONLY FOR DEBUG
+  // if (sig && sig.includes('fake_signature')) {
+  //   console.log('⚠️ Test webhook con firma fittizia - modalità debug');
+  //   return res.json({ received: true, message: 'Test webhook OK - debug mode' });
+  // }
+
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    console.log('✅ WEBHOOK RECIVED:', event.type);
   } catch (err) {
-    console.log(`❌ Webhook signature verification failed.`, err.message);
+    console.error('❌ ERROR WEBHOOK:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  console.log(`✅ Webhook ricevuto: ${event.type}`);
+  // console.log(`✅ Webhook ricevuto: ${event.type}`);
 
   // Gestisci gli eventi
   try {
@@ -97,12 +104,27 @@ app.post('/webhook', async (req, res) => {
         break;
       }
 
+      case 'invoice.created': {
+        const invoice = event.data.object;
+        if (invoice.status === 'draft') {
+          console.log('📄 Fattura draft creata:', invoice.id);
+          await handleDraftInvoice(invoice);
+        }
+        break;
+      }
+
+      case 'invoice.updated': {
+        const invoice = event.data.object;
+        console.log('🔄 Fattura aggiornata:', invoice.id, 'Status:', invoice.status);
+        await handleInvoiceStatusChange(invoice);
+        break;
+      }
+
       default:
         console.log(`ℹ️ Evento non gestito: ${event.type}`);
     }
   } catch (error) {
     console.error('❌ Errore nel processare il webhook:', error);
-    return res.status(500).send('Errore interno del server');
   }
 
   res.json({ received: true });
@@ -165,6 +187,8 @@ async function handleRecurringPayment(invoice) {
         last_payment_date: new Date().toISOString(),
         current_period_end: new Date(invoice.period_end * 1000).toISOString(),
         subscription_status: 'active',
+        suspended_at: null,
+        suspension_reason: null,
       })
       .eq('stripe_id', currentStripeId);
 
@@ -260,6 +284,8 @@ async function handleFailedPayment(invoice) {
       attemptCount: invoice.attempt_count,
     });
 
+    await suspendUserProfile(invoice.customer, 'payment_failed');
+
     // Invia email di avviso
     // await sendPaymentFailedEmail(invoice.customer);
 
@@ -269,6 +295,89 @@ async function handleFailedPayment(invoice) {
     }
   } catch (error) {
     console.error('❌ Errore nel gestire il pagamento fallito:', error);
+  }
+}
+
+async function handleDraftInvoice(invoice) {
+  try {
+    console.log('⚠️ Fattura draft rilevata:', {
+      customerId: invoice.customer,
+      subscriptionId: invoice.subscription,
+      amount: invoice.amount_due,
+      currency: invoice.currency,
+    });
+
+    // Sospendi il profilo dell'utente
+    await suspendUserProfile(invoice.customer, 'draft_payment');
+  } catch (error) {
+    console.error('❌ Errore nel gestire fattura draft:', error);
+  }
+}
+
+async function handleInvoiceStatusChange(invoice) {
+  try {
+    console.log('🔄 Cambio status fattura:', {
+      invoiceId: invoice.id,
+      customerId: invoice.customer,
+      oldStatus: 'unknown', // Stripe non fornisce il vecchio status
+      newStatus: invoice.status,
+    });
+
+    if (invoice.status === 'draft') {
+      // Sospendi il profilo se la fattura è draft
+      await suspendUserProfile(invoice.customer, 'draft_payment');
+    } else if (invoice.status === 'paid') {
+      // Riattiva il profilo se la fattura è stata pagata
+      await reactivateUserProfile(invoice.customer);
+    }
+  } catch (error) {
+    console.error('❌ Errore nel gestire cambio status fattura:', error);
+  }
+}
+
+async function suspendUserProfile(customerId, reason = 'payment_issue') {
+  try {
+    console.log(`🚫 Sospensione profilo per customer: ${currentStripeId}, motivo: ${reason}`);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        subscription_status: 'suspended',
+        suspended_at: new Date().toISOString(),
+        suspension_reason: reason,
+      })
+      .eq('stripe_id', currentStripeId);
+
+    if (error) {
+      console.error('❌ Errore sospensione profilo:', error);
+    } else {
+      console.log('✅ Profilo sospeso con successo');
+    }
+  } catch (error) {
+    console.error('❌ Errore nel sospendere il profilo:', error);
+  }
+}
+
+async function reactivateUserProfile(customerId) {
+  try {
+    console.log(`🔓 Riattivazione profilo per customer: ${customerId}`);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        subscription_status: 'active',
+        suspended_at: null,
+        suspension_reason: null,
+      })
+      .eq('stripe_id', currentStripeId);
+
+    if (error) {
+      console.error('❌ Errore riattivazione profilo:', error);
+    } else {
+      console.log('✅ Profilo riattivato con successo');
+    }
+  } catch (error) {
+    console.error('❌ Errore nel riattivare il profilo:', error);
   }
 }
 
@@ -299,6 +408,31 @@ app.get('/api/info', (req, res) => {
   });
 });
 
+app.get('/api/webhook-info', async (req, res) => {
+  try {
+    console.log('🔍 Verifica configurazione webhook');
+
+    // Lista tutti i webhook endpoint
+    const webhookEndpoints = await stripe.webhookEndpoints.list();
+
+    res.json({
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ? 'Configurato' : 'Mancante',
+      endpoints: webhookEndpoints.data.map((endpoint) => ({
+        id: endpoint.id,
+        url: endpoint.url,
+        status: endpoint.status,
+        enabledEvents: endpoint.enabled_events,
+      })),
+    });
+  } catch (error) {
+    console.error('❌ Errore nella verifica webhook:', error);
+    res.status(500).json({
+      error: 'Errore interno del server',
+      details: error.message,
+    });
+  }
+});
+
 app.post('/api/stripe-customer', async (req, res) => {
   try {
     const { email, stripeId } = req.body;
@@ -315,6 +449,34 @@ app.post('/api/stripe-customer', async (req, res) => {
   } catch (error) {
     console.error('❌ Errore nel ricevere i dati:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/suspend-profile', async (req, res) => {
+  try {
+    const { customerId, reason = 'manual_suspension' } = req.body;
+
+    if (!customerId) {
+      return res.status(400).json({ error: 'customerId è richiesto' });
+    }
+
+    console.log(`🔧 Sospensione manuale richiesta per customer: ${customerId}`);
+
+    // Chiama la funzione esistente per sospendere il profilo
+    await suspendUserProfile(customerId, reason);
+
+    res.json({
+      success: true,
+      message: `Profilo sospeso per customer ${customerId}`,
+      customerId,
+      reason,
+    });
+  } catch (error) {
+    console.error('❌ Errore nella sospensione manuale:', error);
+    res.status(500).json({
+      error: 'Errore interno del server',
+      details: error.message,
+    });
   }
 });
 
