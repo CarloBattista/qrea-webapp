@@ -27,8 +27,10 @@
         @click="toggleShowPassword"
         class="absolute top-0 right-4 h-full flex items-center justify-center cursor-pointer"
       >
-        <Eye v-if="!showPassword" size="20" />
-        <EyeClosed v-else size="20" />
+        <transition name="eye-fade" mode="out-in">
+          <Eye v-if="!showPassword" key="eye-closed" size="20" />
+          <EyeClosed v-else key="eye-open" size="20" />
+        </transition>
       </div>
     </div>
     <div v-if="error" class="input-error relative w-full flex gap-2 items-center">
@@ -142,5 +144,28 @@ export default {
   opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
+}
+
+.eye-fade-enter-active,
+.eye-fade-leave-active {
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
+}
+
+.eye-fade-enter-from {
+  opacity: 0;
+  transform: scale(1.1);
+}
+
+.eye-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.eye-fade-enter-to,
+.eye-fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
 }
 </style>
