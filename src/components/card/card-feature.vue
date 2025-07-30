@@ -3,8 +3,10 @@
     <div class="card-icon relative h-20 aspect-square rounded-2xl flex items-center justify-center">
       <component :is="data?.icon" />
     </div>
-    <div class="flex flex-col">
-      <h2 class="text-black text-sm font-semibold">{{ data?.title }}</h2>
+    <div class="w-full flex flex-col">
+      <h2 class="text-black text-sm font-semibold">
+        {{ data?.title }} <span v-if="data?.coming" class="ml-2 px-2 py-1 rounded-2xl text-xs font-medium bg-black text-white">In arrivo</span>
+      </h2>
       <p class="text-black text-sm font-normal text-max-two-lines">{{ data?.description }}</p>
     </div>
   </div>

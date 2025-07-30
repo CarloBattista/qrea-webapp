@@ -150,6 +150,7 @@ export default {
           icon: 'ChartSpline',
           title: this.$t('landing.detailedAnalytics'),
           description: this.$t('landing.detailedAnalyticsDesc'),
+          coming: true,
         },
         {
           icon: 'TabletSmartphone',
