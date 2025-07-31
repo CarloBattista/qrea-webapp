@@ -341,12 +341,12 @@ async function handleInvoiceStatusChange(invoice) {
 
 async function suspendUserProfile(customerId, reason = 'payment_issue') {
   try {
-    console.log(`🚫 Sospensione profilo per customer: ${currentStripeId}, motivo: ${reason}`);
+    console.log(`🚫 Sospensione profilo per customer: ${customerId}, motivo: ${reason}`);
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('uid, first_name, last_name, last_suspension_email_sent')
-      .eq('stripe_id', currentStripeId)
+      .eq('stripe_id', customerId)
       .single();
 
     if (profileError) {
@@ -355,7 +355,7 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
     }
 
     if (!profileData) {
-      console.error('❌ Nessun profilo trovato per customerId:', currentStripeId);
+      console.error('❌ Nessun profilo trovato per customerId:', customerId);
       return;
     }
 
