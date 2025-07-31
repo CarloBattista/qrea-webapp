@@ -18,6 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 let currentStripeId = null;
+let currentProfileEmail = null;
 
 // Middleware
 app.use(
@@ -337,8 +338,27 @@ async function handleInvoiceStatusChange(invoice) {
 
 async function suspendUserProfile(customerId, reason = 'payment_issue') {
   try {
-    console.log(`🚫 Sospensione profilo per customer: ${currentStripeId}, motivo: ${reason}`);
+    console.log(`🚫 Sospensione profilo per customer: ${customerId}, motivo: ${reason}`);
+    console.log(`🔍 currentStripeId attuale: ${currentStripeId}`);
 
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('uid, first_name, last_name')
+      .eq('stripe_id', currentStripeId)
+      .single();
+
+    if (profileError) {
+      console.error('❌ Errore nel recuperare i dati del profilo:', profileError);
+      return;
+    }
+
+    console.log(`📋 Dati profilo recuperati:`, {
+      email: currentProfileEmail,
+      first_name: profileData?.first_name,
+      hasEmail: !!currentProfileEmail,
+    });
+
+    // Aggiorna il profilo nel database - USA currentStripeId
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -352,6 +372,15 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
       console.error('❌ Errore sospensione profilo:', error);
     } else {
       console.log('✅ Profilo sospeso con successo');
+
+      // Invia email di notifica
+      if (profileData && currentProfileEmail) {
+        const userName = profileData.first_name || currentProfileEmail;
+        console.log(`📧 Tentativo di invio email a: ${currentProfileEmail}`);
+        await sendSuspensionEmail(currentProfileEmail, userName, reason);
+      } else {
+        console.log("⚠️ Nessun dato email trovato per l'utente");
+      }
     }
   } catch (error) {
     console.error('❌ Errore nel sospendere il profilo:', error);
@@ -379,6 +408,105 @@ async function reactivateUserProfile(customerId) {
   } catch (error) {
     console.error('❌ Errore nel riattivare il profilo:', error);
   }
+}
+
+// Aggiungi questa funzione dopo le altre funzioni helper
+async function sendSuspensionEmail(userEmail, userName, suspensionReason) {
+  console.log(`📧 === INIZIO INVIO EMAIL SOSPENSIONE ===`);
+  console.log(`📧 Email destinatario: ${userEmail}`);
+  console.log(`📧 Nome utente: ${userName}`);
+  console.log(`📧 Motivo sospensione: ${suspensionReason}`);
+
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+  if (!RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY non configurata - impossibile inviare email');
+    return;
+  }
+
+  console.log(`🔑 RESEND_API_KEY trovata: ${RESEND_API_KEY.substring(0, 10)}...`);
+
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(process.cwd(), '..', 'emails', 'profile-suspended.html');
+
+    console.log(`📄 Percorso template: ${templatePath}`);
+
+    // Verifica che il template esista
+    if (!fs.existsSync(templatePath)) {
+      console.error(`❌ Template email non trovato: ${templatePath}`);
+      return;
+    }
+
+    console.log(`✅ Template trovato, lettura in corso...`);
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Sostituisci i placeholder con i dati reali
+    htmlTemplate = htmlTemplate
+      .replace(/{{userName}}/g, userName || 'Utente')
+      .replace(/{{suspensionReason}}/g, getSuspensionReasonText(suspensionReason));
+
+    console.log(`🔄 Template processato, preparazione dati email...`);
+
+    const emailData = {
+      from: process.env.RESEND_EMAIL_FROM || 'onboarding@resend.dev',
+      to: [userEmail],
+      subject: 'Qrea - Account Sospeso',
+      html: htmlTemplate,
+    };
+
+    console.log(`📤 Invio email tramite Resend API...`);
+    console.log(`📤 Dati email:`, {
+      from: emailData.from,
+      to: emailData.to,
+      subject: emailData.subject,
+    });
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData),
+    });
+
+    console.log(`📨 Risposta Resend - Status: ${response.status}`);
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('❌ Errore invio email sospensione:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+      });
+    } else {
+      const result = await response.json();
+      console.log('✅ Email di sospensione inviata con successo:', {
+        to: userEmail,
+        id: result.id,
+      });
+    }
+  } catch (error) {
+    console.error("❌ Errore nell'invio dell'email di sospensione:", error);
+  }
+
+  console.log(`📧 === FINE INVIO EMAIL SOSPENSIONE ===`);
+}
+
+// Funzione helper per tradurre i motivi di sospensione
+function getSuspensionReasonText(reason) {
+  const reasons = {
+    payment_issue: 'Problema con il pagamento',
+    draft_payment: 'Pagamento in sospeso o non completato',
+    manual_suspension: 'Sospensione manuale',
+    policy_violation: 'Violazione delle politiche',
+    fraud_detection: 'Rilevamento di attività fraudolenta',
+    account_security: "Problemi di sicurezza dell'account",
+  };
+
+  return reasons[reason] || 'Motivo non specificato';
 }
 
 // Funzioni helper (da implementare con il tuo database)
@@ -440,6 +568,7 @@ app.post('/api/stripe-customer', async (req, res) => {
     console.log('stripe_id:', stripeId);
 
     currentStripeId = stripeId;
+    currentProfileEmail = email;
 
     res.json({
       success: true,
