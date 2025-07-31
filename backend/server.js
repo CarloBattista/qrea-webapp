@@ -345,7 +345,7 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('uid, first_name, last_name')
+      .select('uid, first_name, last_name, last_suspension_email_sent')
       .eq('stripe_id', currentStripeId)
       .single();
 
