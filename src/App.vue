@@ -3,7 +3,17 @@
     <Notification :item="item" :theme="pastelTheme" :icons="outlinedIcons" />
   </Notivue>
   <div>
-    <RouterView :APP_TESTING="APP_TESTING" v-if="!loading" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
+    <RouterView :APP_TESTING="APP_TESTING" v-if="!loading && false" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
+    <div v-if="!loading" class="min-h-screen w-full flex items-center justify-center bg-gray-50">
+      <div class="w-full max-w-xl px-6">
+        <div class="w-full mb-8 flex items-center justify-center">
+          <appLogo class="relative max-w-30" />
+        </div>
+        <div class="w-full flex items-center justify-center text-center">
+          <h1 class="text-black text-3xl font-semibold">Al momento Qrea è in fase di sviluppo</h1>
+        </div>
+      </div>
+    </div>
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
       <loader />
     </div>
@@ -17,11 +27,13 @@ import { store } from './data/store';
 import { syncLocaleWithProfile } from './lib/i18n';
 import { Notivue, Notification } from 'notivue';
 
+import appLogo from './components/global/app-logo.vue';
 import loader from './components/loader/loader.vue';
 
 export default {
   name: 'App',
   components: {
+    appLogo,
     loader,
 
     Notivue,
