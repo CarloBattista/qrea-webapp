@@ -27,9 +27,6 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Copy emails template folder
-COPY ../emails ./emails
-
 # Final stage for app image
 FROM base
 
