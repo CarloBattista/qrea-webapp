@@ -231,15 +231,18 @@ async function handleSubscriptionUpdated(subscription) {
     });
 
     // Aggiorna il profilo nel database Supabase
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        plan: subscription.status === 'active' && !subscription.cancel_at_period_end ? 'pro' : 'free',
-        subscription_status: subscription.status,
-        cancel_at_period_end: subscription.cancel_at_period_end,
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      })
-      .eq('stripe_id', currentStripeId);
+    const updateData = {
+      plan: subscription.status === 'active' && !subscription.cancel_at_period_end ? 'pro' : 'free',
+      subscription_status: subscription.status,
+      cancel_at_period_end: subscription.cancel_at_period_end,
+    };
+
+    // Aggiungi current_period_end solo se esiste e è valido
+    if (subscription.current_period_end && subscription.current_period_end > 0) {
+      updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+    }
+
+    const { error } = await supabase.from('profiles').update(updateData).eq('stripe_id', currentStripeId);
 
     if (error) {
       console.error('Errore aggiornamento profilo:', error);
@@ -338,12 +341,12 @@ async function handleInvoiceStatusChange(invoice) {
 
 async function suspendUserProfile(customerId, reason = 'payment_issue') {
   try {
-    console.log(`🚫 Sospensione profilo per customer: ${customerId}, motivo: ${reason}`);
+    console.log(`🚫 Sospensione profilo per customer: ${currentStripeId}, motivo: ${reason}`);
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('uid, first_name, last_name')
-      .eq('stripe_id', customerId)
+      .eq('stripe_id', currentStripeId)
       .single();
 
     if (profileError) {
@@ -352,7 +355,7 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
     }
 
     if (!profileData) {
-      console.error('❌ Nessun profilo trovato per customerId:', customerId);
+      console.error('❌ Nessun profilo trovato per customerId:', currentStripeId);
       return;
     }
 
