@@ -359,6 +359,19 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
       return;
     }
 
+    const now = new Date();
+    const lastEmailSent = profileData.last_suspension_email_sent;
+
+    if (lastEmailSent) {
+      const timeDiff = now - new Date(lastEmailSent);
+      const minutesDiff = timeDiff / (1000 * 60);
+
+      if (minutesDiff < 5) {
+        console.log(`Email di sospensione già inviata ${minutesDiff.toFixed(1)} minuti fa. Salto l'invio.`);
+        return;
+      }
+    }
+
     // Poi recupera l'email dalla tabella auth.users usando l'uid
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profileData.uid);
 
@@ -396,6 +409,8 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
         const userName = profileData.first_name || userEmail;
         console.log(`📧 Tentativo di invio email a: ${userEmail}`);
         await sendSuspensionEmail(userEmail, userName, reason);
+
+        await supabase.from('profiles').update({ last_suspension_email_sent: now.toISOString() }).eq('stripe_id', currentStripeId);
       } else {
         console.log("⚠️ Nessun dato email trovato per l'utente");
       }
