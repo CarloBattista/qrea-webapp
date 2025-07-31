@@ -444,7 +444,7 @@ async function sendSuspensionEmail(userEmail, userName, suspensionReason) {
   try {
     const fs = await import('fs');
     const path = await import('path');
-    const templatePath = path.join(process.cwd(), '..', 'emails', 'profile-suspended.html');
+    const templatePath = path.join(process.cwd(), 'emails', 'profile-suspended.html');
 
     console.log(`📄 Percorso template: ${templatePath}`);
 
