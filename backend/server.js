@@ -339,12 +339,11 @@ async function handleInvoiceStatusChange(invoice) {
 async function suspendUserProfile(customerId, reason = 'payment_issue') {
   try {
     console.log(`🚫 Sospensione profilo per customer: ${customerId}, motivo: ${reason}`);
-    console.log(`🔍 currentStripeId attuale: ${currentStripeId}`);
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('uid, first_name, last_name')
-      .eq('stripe_id', currentStripeId)
+      .eq('stripe_id', customerId)
       .single();
 
     if (profileError) {
@@ -352,13 +351,29 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
       return;
     }
 
+    if (!profileData) {
+      console.error('❌ Nessun profilo trovato per customerId:', customerId);
+      return;
+    }
+
+    // Poi recupera l'email dalla tabella auth.users usando l'uid
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profileData.uid);
+
+    if (userError) {
+      console.error('❌ Errore nel recuperare i dati utente:', userError);
+      return;
+    }
+
+    const userEmail = userData?.user?.email;
+
     console.log(`📋 Dati profilo recuperati:`, {
-      email: currentProfileEmail,
-      first_name: profileData?.first_name,
-      hasEmail: !!currentProfileEmail,
+      email: userEmail,
+      first_name: profileData.first_name,
+      customerId: customerId,
+      uid: profileData.uid,
     });
 
-    // Aggiorna il profilo nel database - USA currentStripeId
+    // Aggiorna il profilo nel database usando customerId
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -366,18 +381,18 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
         suspended_at: new Date().toISOString(),
         suspension_reason: reason,
       })
-      .eq('stripe_id', currentStripeId);
+      .eq('stripe_id', customerId); // USA customerId invece di currentStripeId
 
     if (error) {
       console.error('❌ Errore sospensione profilo:', error);
     } else {
       console.log('✅ Profilo sospeso con successo');
 
-      // Invia email di notifica
-      if (profileData && currentProfileEmail) {
-        const userName = profileData.first_name || currentProfileEmail;
-        console.log(`📧 Tentativo di invio email a: ${currentProfileEmail}`);
-        await sendSuspensionEmail(currentProfileEmail, userName, reason);
+      // Invia email di notifica usando l'email recuperata
+      if (userEmail) {
+        const userName = profileData.first_name || userEmail;
+        console.log(`📧 Tentativo di invio email a: ${userEmail}`);
+        await sendSuspensionEmail(userEmail, userName, reason);
       } else {
         console.log("⚠️ Nessun dato email trovato per l'utente");
       }
