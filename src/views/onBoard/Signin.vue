@@ -116,8 +116,8 @@ export default {
       auth,
       user: {
         data: {
-          email: '',
-          password: '',
+          email: 'carlitobatti@gmail.com',
+          password: 'carlo',
         },
         error: {
           email: null,
@@ -205,8 +205,7 @@ export default {
           this.auth.isAuthenticated = true;
 
           localStorage.setItem('isAuthenticated', true);
-
-          await this.getProfile(data.user.id);
+          this.$emit('load-profile');
 
           if (this.auth.profile?.plan === 'pro') {
             this.$router.push({ name: 'home' });
@@ -220,17 +219,6 @@ export default {
         console.error(e);
       } finally {
         this.user.loading = false;
-      }
-    },
-    async getProfile(userId) {
-      try {
-        const { data, error } = await supabase.from('profiles').select('*').eq('uid', userId).maybeSingle();
-
-        if (!error && data) {
-          this.auth.profile = data;
-        }
-      } catch (e) {
-        console.error(e);
       }
     },
     async resendConfirmEmail() {

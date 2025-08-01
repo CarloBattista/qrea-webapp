@@ -80,6 +80,7 @@ export default {
             this.auth.user = null;
             this.auth.session = null;
             this.auth.profile = null;
+            this.auth.subscription = null;
             this.auth.isAuthenticated = false;
             localStorage.removeItem('isAuthenticated');
 

@@ -232,4 +232,37 @@ router.post('/complete-invoice/:invoiceId', async (req, res) => {
   }
 });
 
+// Aggiungi questo endpoint dopo create-checkout-session
+router.post('/link-customer', async (req, res) => {
+  try {
+    const { pid, customerId, email } = req.body;
+    
+    if (!pid || !customerId) {
+      return res.status(400).json({ error: 'PID e customerId sono richiesti' });
+    }
+
+    // Crea o aggiorna il record nella tabella subscriptions
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .upsert({
+        pid: pid,
+        customer_id: customerId,
+        plan: 'free',
+        subscription_status: 'inactive'
+      }, {
+        onConflict: 'pid'
+      });
+
+    if (error) {
+      console.error('❌ Errore nel collegare customer:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log('✅ Customer collegato al PID:', { pid, customerId });
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('❌ Errore nel collegamento customer:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 export default router;

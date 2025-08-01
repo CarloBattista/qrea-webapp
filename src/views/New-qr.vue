@@ -299,7 +299,7 @@ export default {
       };
     },
     isFreePlan() {
-      return !this.auth.profile || this.auth.profile.plan === 'free';
+      return !this.auth.profile || this.auth.subscription.plan === 'free';
     },
     selectedDotsStyleLabel() {
       const selectedStyle = this.store.qrConfig.dotStyles.find((style) => style.value === this.store.qrConfig.dotsStyle);
@@ -425,10 +425,12 @@ export default {
 
     async loadQRCodeFromRoute() {
       const qrId = this.$route.query.edit;
-      if (!qrId || !this.auth.isAuthenticated) return;
+      const PID = this.auth.profile.id;
+
+      if (!qrId || !PID || !this.auth.isAuthenticated) return;
 
       try {
-        const { data, error } = await supabase.from('qr_codes').select('*').eq('id', qrId).eq('user_id', this.auth.user.id).single();
+        const { data, error } = await supabase.from('qr_codes').select('*').eq('id', qrId).eq('pid', PID).single();
 
         if (error) throw error;
 
@@ -477,7 +479,7 @@ export default {
         if (this.editingQrId) {
           qrData.updated_at = new Date().toISOString();
 
-          const { error } = await supabase.from('qr_codes').update(qrData).eq('id', this.editingQrId).eq('user_id', this.auth.user.id);
+          const { error } = await supabase.from('qr_codes').update(qrData).eq('id', this.editingQrId).eq('pid', PID);
 
           if (error) {
             throw error;

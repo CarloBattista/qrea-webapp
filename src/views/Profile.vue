@@ -158,7 +158,7 @@ export default {
         return 'Free';
       }
 
-      const plan = this.auth?.profile.plan;
+      const plan = this.auth?.subscription.plan;
 
       const freePlan = 'free';
       const proPlan = 'pro';
@@ -233,9 +233,10 @@ export default {
     async handleCancelSubscription() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const UID = this.auth.user.id;
-      const stripe_id = this.auth.profile.stripe_id;
+      const stripeId = this.auth.subscription?.stripe_id;
+      const customerId = this.auth.subscription?.customer_id;
 
-      if (!stripe_id && !UID) {
+      if (!stripeId && !UID) {
         return;
       }
 
@@ -249,13 +250,14 @@ export default {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`, {
+        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${stripeId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userStripeId: this.auth.profile.stripe_id,
+            stripeId: stripeId,
+            customerId: customerId,
           }),
         });
 
@@ -273,11 +275,12 @@ export default {
     },
     async fetchSubscriptionDetails() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const stripeId = this.auth.subscription?.stripe_id;
 
       this.billingHistory.loading = true;
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${this.auth.profile.stripe_id}`);
+        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${stripeId}`);
         if (response.ok) {
           this.subscriptionDetails.data = await response.json();
         }
@@ -289,10 +292,9 @@ export default {
     },
     async fetchBillingHistory() {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      const customerId = this.auth.subscription?.customer_id;
 
       this.billingHistory.loading = true;
-
-      const customerId = this.subscriptionDetails.data?.customer?.id;
 
       if (!customerId) {
         this.billingHistory.loading = false;

@@ -310,7 +310,7 @@ export default {
       };
     },
     isFreePlan() {
-      return !this.auth.profile || this.auth.profile.plan === 'free';
+      return !this.auth.profile || this.auth.subscription.plan === 'free';
     },
     selectedDotsStyleLabel() {
       const selectedStyle = this.store.qrConfig.dotStyles.find((style) => style.value === this.qrCode.data?.config?.dotsStyle);

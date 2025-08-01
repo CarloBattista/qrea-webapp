@@ -97,7 +97,7 @@ export default {
       this.currentPlan = plan;
     },
     getButtonLabel(plan) {
-      const profilePlan = this.auth.profile?.plan;
+      const profilePlan = this.auth.subscription?.plan;
 
       if (plan.value === 'free') {
         // Se l'utente è già abbonato al piano Pro, mostra messaggio specifico
@@ -114,7 +114,7 @@ export default {
       return this.$t('pricing.startToday');
     },
     isButtonDisabled(plan) {
-      const profilePlan = this.auth.profile?.plan;
+      const profilePlan = this.auth.subscription?.plan;
 
       if (plan.value === 'free') {
         return true;
@@ -132,7 +132,7 @@ export default {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
       const priceId = plan.stripe_products_id[this.currentPlan];
-      const profilePlan = this.auth.profile?.plan;
+      const profilePlan = this.auth.subscription?.plan;
       const userEmail = this.auth.user?.email;
 
       if (profilePlan === 'pro') {

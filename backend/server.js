@@ -17,9 +17,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-let currentStripeId = null;
-let currentProfileEmail = null;
-
 // Middleware
 app.use(
   cors({
@@ -39,40 +36,120 @@ app.use('/api', bodyParser.urlencoded({ extended: true }));
 app.use('/api/payments', paymentsRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 
-// Webhook endpoint
+const webhookQueue = [];
+const failedWebhooks = new Map();
+const pidUpdateQueue = new Map();
+let isProcessingQueue = false;
+
+async function processWebhookQueue() {
+  if (isProcessingQueue || webhookQueue.length === 0) return;
+
+  isProcessingQueue = true;
+
+  while (webhookQueue.length > 0) {
+    const { event, handler } = webhookQueue.shift();
+    try {
+      await handler(event);
+    } catch (error) {
+      console.error('Errore nel processare webhook:', error);
+    }
+  }
+
+  isProcessingQueue = false;
+}
+
+async function processFailedWebhooks() {
+  const now = Date.now();
+  const retryInterval = 30000; // 30 secondi
+  const maxAttempts = 10;
+
+  for (const [key, webhookData] of failedWebhooks.entries()) {
+    if (now - webhookData.lastAttempt < retryInterval) continue;
+    if (webhookData.attempts >= maxAttempts) {
+      console.error('❌ Webhook abbandonato dopo troppi tentativi:', key);
+      failedWebhooks.delete(key);
+      continue;
+    }
+
+    console.log(`🔄 Retry webhook ${key}, tentativo ${webhookData.attempts + 1}`);
+
+    try {
+      if (webhookData.type === 'recurring_payment') {
+        await handleRecurringPayment(webhookData.invoice);
+        failedWebhooks.delete(key); // Rimuovi se ha successo
+      }
+    } catch (error) {
+      console.error('Errore nel retry webhook:', error);
+      webhookData.attempts++;
+      webhookData.lastAttempt = now;
+    }
+  }
+}
+
+function queueWebhook(event, handler) {
+  webhookQueue.push({ event, handler });
+  processWebhookQueue();
+}
+
+setInterval(processFailedWebhooks, 30000);
+
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
-  // ONLY FOR DEBUG
-  // if (sig && sig.includes('fake_signature')) {
-  //   console.log('⚠️ Test webhook con firma fittizia - modalità debug');
-  //   return res.json({ received: true, message: 'Test webhook OK - debug mode' });
-  // }
-
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log('✅ WEBHOOK RECIVED:', event.type);
+    console.log('✅ WEBHOOK RECEIVED:', event.type);
   } catch (err) {
     console.error('❌ ERROR WEBHOOK:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // console.log(`✅ Webhook ricevuto: ${event.type}`);
+  // Verifica se l'evento è già stato processato
+  const { data: existingEvent, error: checkError } = await supabase.from('stripe_events').select('id').eq('event_id', event.id).maybeSingle();
 
-  // Gestisci gli eventi
+  if (checkError && checkError.code !== 'PGRST116') {
+    console.error('❌ Errore nel verificare evento esistente:', checkError);
+    return res.status(500).json({ error: 'Database error' });
+  }
+
+  if (existingEvent) {
+    console.log(`ℹ️ Evento ${event.id} già processato, skip`);
+    return res.json({ received: true, message: 'Event already processed' });
+  }
+
+  try {
+    const { pid } = await saveStripeEvent(event);
+    console.log(`📝 Evento salvato con pid: ${pid || 'N/A'}`);
+  } catch (error) {
+    // Se è un errore di duplicazione, significa che l'evento è stato inserito nel frattempo
+    if (error.code === '23505') {
+      console.log(`ℹ️ Evento ${event.id} già esistente (race condition), skip`);
+      return res.json({ received: true, message: 'Event already exists' });
+    }
+    console.error('❌ Errore nel salvare evento:', error);
+    return res.status(500).json({ error: 'Failed to save event' });
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('🎉 Pagamento completato:', session.id);
-        await handleSuccessfulPayment(session);
+        await handleSuccessfulPayment(session, event.id);
         break;
       }
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
         console.log('💰 Pagamento ricorrente riuscito:', invoice.id);
+        await handleRecurringPayment(invoice, event.id);
+        break;
+      }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object;
+        console.log('💰 Pagamento riuscito:', invoice.id);
         await handleRecurringPayment(invoice);
         break;
       }
@@ -80,28 +157,28 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
       case 'customer.subscription.created': {
         const newSubscription = event.data.object;
         console.log('📝 Nuovo abbonamento creato:', newSubscription.id);
-        await handleSubscriptionCreated(newSubscription);
+        await handleSubscriptionCreated(newSubscription, event.id);
         break;
       }
 
       case 'customer.subscription.updated': {
         const updatedSubscription = event.data.object;
         console.log('🔄 Abbonamento aggiornato:', updatedSubscription.id);
-        await handleSubscriptionUpdated(updatedSubscription);
+        await handleSubscriptionUpdated(updatedSubscription, event.id);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const deletedSubscription = event.data.object;
         console.log('❌ Abbonamento cancellato:', deletedSubscription.id);
-        await handleSubscriptionCanceled(deletedSubscription);
+        await handleSubscriptionCanceled(deletedSubscription, event.id);
         break;
       }
 
       case 'invoice.payment_failed': {
         const failedInvoice = event.data.object;
         console.log('⚠️ Pagamento fallito:', failedInvoice.id);
-        await handleFailedPayment(failedInvoice);
+        await handleFailedPayment(failedInvoice, event.id);
         break;
       }
 
@@ -109,7 +186,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         const invoice = event.data.object;
         if (invoice.status === 'draft') {
           console.log('📄 Fattura draft creata:', invoice.id);
-          await handleDraftInvoice(invoice);
+          await handleDraftInvoice(invoice, event.id);
         }
         break;
       }
@@ -117,15 +194,33 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
       case 'invoice.updated': {
         const invoice = event.data.object;
         console.log('🔄 Fattura aggiornata:', invoice.id, 'Status:', invoice.status);
-        await handleInvoiceStatusChange(invoice);
+        await handleInvoiceStatusChange(invoice, event.id);
         break;
       }
 
       default:
         console.log(`ℹ️ Evento non gestito: ${event.type}`);
     }
+
+    // Marca l'evento come processato
+    await supabase
+      .from('stripe_events')
+      .update({
+        processed: true,
+        processed_at: new Date().toISOString(),
+      })
+      .eq('event_id', event.id);
   } catch (error) {
     console.error('❌ Errore nel processare il webhook:', error);
+
+    // Salva l'errore nell'evento
+    await supabase
+      .from('stripe_events')
+      .update({
+        error: error.message,
+        processed_at: new Date().toISOString(),
+      })
+      .eq('event_id', event.id);
   }
 
   res.json({ received: true });
@@ -141,7 +236,7 @@ async function handleSuccessfulPayment(session) {
 
     const paymentDetails = {
       sessionId: fullSession.id,
-      customerId: fullSession.customer,
+      customerId: fullSession.customer.id,
       customerEmail: fullSession.customer_details?.email,
       amount: fullSession.amount_total,
       currency: fullSession.currency,
@@ -151,17 +246,16 @@ async function handleSuccessfulPayment(session) {
       lineItems: fullSession.line_items?.data || [],
     };
 
-    console.log('📊 Dettagli pagamento:', paymentDetails);
-
-    // Qui puoi salvare nel database
-    // await savePaymentToDatabase(paymentDetails);
-
-    // Invia email di conferma
-    // await sendConfirmationEmail(paymentDetails);
+    // console.log('📊 Dettagli pagamento:', paymentDetails);
 
     // Attiva l'accesso dell'utente se è un abbonamento
     if (fullSession.mode === 'subscription' && fullSession.subscription) {
-      await activateUserSubscription(fullSession.customer, fullSession.subscription);
+      // Passa solo l'ID del customer come stringa, non l'oggetto
+      const customerId = typeof fullSession.customer === 'string' ? fullSession.customer : fullSession.customer.id;
+
+      const subscriptionId = typeof fullSession.subscription === 'string' ? fullSession.subscription : fullSession.subscription.id;
+
+      await activateUserSubscription(customerId, subscriptionId);
     }
   } catch (error) {
     console.error('❌ Errore nel processare il pagamento:', error);
@@ -170,9 +264,12 @@ async function handleSuccessfulPayment(session) {
 
 async function handleRecurringPayment(invoice) {
   try {
+    const subscriptionId =
+      invoice.parent?.subscription_details?.subscription || invoice.lines?.data?.[0]?.parent?.subscription_item_details?.subscription;
+    console.log('💰 Pagamento ricorrente riuscito:', invoice.id);
     console.log('💰 Pagamento ricorrente per:', {
       customerId: invoice.customer,
-      subscriptionId: invoice.subscription,
+      subscriptionId: subscriptionId,
       amount: invoice.amount_paid,
       currency: invoice.currency,
       period: {
@@ -181,8 +278,51 @@ async function handleRecurringPayment(invoice) {
       },
     });
 
+    // Retry logic per trovare la subscription
+    let subscription = null;
+    let retryCount = 0;
+    const maxRetries = 7;
+    const retryDelay = 2000; // 2 secondi
+
+    while (!subscription && retryCount < maxRetries) {
+      const { data: sub, error: subError } = await supabase.from('subscriptions').select('pid').eq('customer_id', invoice.customer).maybeSingle();
+
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('❌ Errore nel trovare la subscription:', subError);
+        return;
+      }
+
+      if (sub) {
+        subscription = sub;
+        break;
+      }
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log(`⏳ Subscription non trovata, retry ${retryCount}/${maxRetries} in ${retryDelay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
+
+    if (!subscription) {
+      console.error('❌ Nessuna subscription trovata dopo tutti i retry per customer:', invoice.customer);
+
+      // Salva il webhook per un retry successivo
+      const retryKey = `${invoice.id}_${Date.now()}`;
+      failedWebhooks.set(retryKey, {
+        invoice,
+        attempts: 0,
+        lastAttempt: Date.now(),
+        type: 'recurring_payment',
+      });
+
+      console.log('📝 Webhook salvato per retry successivo:', retryKey);
+      return;
+    }
+
+    // Aggiorna la subscription
     const { error } = await supabase
-      .from('profiles')
+      .from('subscriptions')
       .update({
         plan: 'pro',
         last_payment_date: new Date().toISOString(),
@@ -191,16 +331,13 @@ async function handleRecurringPayment(invoice) {
         suspended_at: null,
         suspension_reason: null,
       })
-      .eq('stripe_id', currentStripeId);
+      .eq('customer_id', invoice.customer);
 
     if (error) {
-      console.error('❌ Errore aggiornamento profilo dopo pagamento ricorrente:', error);
+      console.error('❌ Errore aggiornamento subscription dopo pagamento ricorrente:', error);
     } else {
-      console.log('✅ Profilo aggiornato con successo dopo pagamento ricorrente');
+      console.log('✅ Subscription aggiornata con successo dopo pagamento ricorrente');
     }
-
-    // Opzionale: invia email di conferma del rinnovo
-    // await sendRenewalConfirmationEmail(invoice.customer, invoice.amount_paid);
   } catch (error) {
     console.error('❌ Errore nel processare il pagamento ricorrente:', error);
   }
@@ -208,21 +345,61 @@ async function handleRecurringPayment(invoice) {
 
 async function handleSubscriptionCreated(subscription) {
   try {
+    const currentPeriodEnd =
+      typeof subscription.current_period_end === 'number' && subscription.current_period_end > 0
+        ? new Date(subscription.current_period_end * 1000).toISOString()
+        : null;
+
     console.log('📝 Nuovo abbonamento:', {
       id: subscription.id,
       customerId: subscription.customer,
       status: subscription.status,
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodEnd,
     });
 
-    // Salva l'abbonamento nel database
-    // await saveSubscriptionToDatabase(subscription);
+    // Trova il profilo tramite customer_id
+    const { data: existingSub, error: findError } = await supabase
+      .from('subscriptions')
+      .select('pid')
+      .eq('customer_id', subscription.customer)
+      .maybeSingle();
+
+    if (findError && findError.code !== 'PGRST116') {
+      console.error('❌ Errore nel cercare subscription esistente:', findError);
+      return;
+    }
+
+    if (existingSub) {
+      const updateData = {
+        stripe_id: subscription.id,
+        subscription_status: subscription.status,
+        plan: subscription.status === 'active' ? 'pro' : 'free',
+      };
+
+      // Aggiungi current_period_end solo se è valido
+      if (typeof subscription.current_period_end === 'number' && subscription.current_period_end > 0) {
+        updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+      }
+
+      const { error } = await supabase.from('subscriptions').update(updateData).eq('customer_id', subscription.customer);
+
+      if (error) {
+        console.error('❌ Errore aggiornamento subscription:', error);
+      }
+    } else {
+      console.log('⚠️ Nessuna subscription trovata per customer:', subscription.customer);
+    }
   } catch (e) {
     console.error(e);
   }
 }
 
 async function handleSubscriptionUpdated(subscription) {
+  if (!subscription || !subscription.id) {
+    console.error('❌ Subscription non valida:', subscription);
+    return;
+  }
+
   try {
     console.log('🔄 Abbonamento aggiornato:', {
       id: subscription.id,
@@ -230,22 +407,19 @@ async function handleSubscriptionUpdated(subscription) {
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
 
-    // Aggiorna il profilo nel database Supabase
     const updateData = {
       plan: subscription.status === 'active' && !subscription.cancel_at_period_end ? 'pro' : 'free',
       subscription_status: subscription.status,
       cancel_at_period_end: subscription.cancel_at_period_end,
+      ...(subscription.current_period_end > 0 && {
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      }),
     };
 
-    // Aggiungi current_period_end solo se esiste e è valido
-    if (subscription.current_period_end && subscription.current_period_end > 0) {
-      updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
-    }
-
-    const { error } = await supabase.from('profiles').update(updateData).eq('stripe_id', currentStripeId);
+    const { error } = await supabase.from('subscriptions').update(updateData).eq('stripe_id', subscription.id);
 
     if (error) {
-      console.error('Errore aggiornamento profilo:', error);
+      console.error('❌ Errore durante aggiornamento della subscription:', error);
     }
   } catch (e) {
     console.error(e);
@@ -257,22 +431,21 @@ async function handleSubscriptionCanceled(subscription) {
     console.log('❌ Abbonamento cancellato:', {
       id: subscription.id,
       customerId: subscription.customer,
-      canceledAt: new Date(subscription.canceled_at * 1000),
+      canceledAt: new Date(subscription.canceled_at * 1000).toISOString(),
     });
 
-    // Aggiorna il profilo a piano gratuito
     const { error } = await supabase
-      .from('profiles')
+      .from('subscriptions')
       .update({
         plan: 'free',
         subscription_status: 'canceled',
         stripe_id: null,
         canceled_at: new Date(subscription.canceled_at * 1000).toISOString(),
       })
-      .eq('stripe_id', currentStripeId);
+      .eq('customer_id', subscription.customer);
 
     if (error) {
-      console.error('Errore aggiornamento profilo:', error);
+      console.error('Errore aggiornamento subscription:', error);
     }
   } catch (e) {
     console.error(e);
@@ -290,12 +463,8 @@ async function handleFailedPayment(invoice) {
 
     await suspendUserProfile(invoice.customer, 'payment_failed');
 
-    // Invia email di avviso
-    // await sendPaymentFailedEmail(invoice.customer);
-
-    // Se è il terzo tentativo fallito, sospendi l'accesso
     if (invoice.attempt_count >= 3) {
-      // await suspendUserAccess(invoice.customer);
+      // Logica aggiuntiva per sospensioni definitive
     }
   } catch (error) {
     console.error('❌ Errore nel gestire il pagamento fallito:', error);
@@ -311,7 +480,6 @@ async function handleDraftInvoice(invoice) {
       currency: invoice.currency,
     });
 
-    // Sospendi il profilo dell'utente
     await suspendUserProfile(invoice.customer, 'draft_payment');
   } catch (error) {
     console.error('❌ Errore nel gestire fattura draft:', error);
@@ -323,15 +491,12 @@ async function handleInvoiceStatusChange(invoice) {
     console.log('🔄 Cambio status fattura:', {
       invoiceId: invoice.id,
       customerId: invoice.customer,
-      oldStatus: 'unknown', // Stripe non fornisce il vecchio status
       newStatus: invoice.status,
     });
 
     if (invoice.status === 'draft') {
-      // Sospendi il profilo se la fattura è draft
       await suspendUserProfile(invoice.customer, 'draft_payment');
     } else if (invoice.status === 'paid') {
-      // Riattiva il profilo se la fattura è stata pagata
       await reactivateUserProfile(invoice.customer);
     }
   } catch (error) {
@@ -341,38 +506,29 @@ async function handleInvoiceStatusChange(invoice) {
 
 async function suspendUserProfile(customerId, reason = 'payment_issue') {
   try {
-    console.log(`🚫 Sospensione profilo per customer: ${currentStripeId}, motivo: ${reason}`);
+    console.log(`🚫 Sospensione profilo per customer: ${customerId}, motivo: ${reason}`);
 
+    // Trova la subscription tramite customer_id
+    const { data: subscription, error: subError } = await supabase.from('subscriptions').select('pid').eq('customer_id', customerId).single();
+
+    if (subError || !subscription) {
+      console.error('❌ Nessuna subscription trovata per customerId:', customerId);
+      return;
+    }
+
+    // Recupera i dati del profilo
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('uid, first_name, last_name, last_suspension_email_sent')
-      .eq('stripe_id', currentStripeId)
-      .single();
+      .select('uid, first_name, last_name')
+      .eq('id', subscription.pid)
+      .maybeSingle();
 
-    if (profileError) {
+    if (profileError || !profileData) {
       console.error('❌ Errore nel recuperare i dati del profilo:', profileError);
       return;
     }
 
-    if (!profileData) {
-      console.error('❌ Nessun profilo trovato per customerId:', currentStripeId);
-      return;
-    }
-
-    const now = new Date();
-    const lastEmailSent = profileData.last_suspension_email_sent;
-
-    if (lastEmailSent) {
-      const timeDiff = now - new Date(lastEmailSent);
-      const minutesDiff = timeDiff / (1000 * 60);
-
-      if (minutesDiff < 5) {
-        console.log(`Email di sospensione già inviata ${minutesDiff.toFixed(1)} minuti fa. Salto l'invio.`);
-        return;
-      }
-    }
-
-    // Poi recupera l'email dalla tabella auth.users usando l'uid
+    // Recupera l'email dalla tabella auth.users
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profileData.uid);
 
     if (userError) {
@@ -382,39 +538,25 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
 
     const userEmail = userData?.user?.email;
 
-    console.log(`📋 Dati profilo recuperati:`, {
-      email: userEmail,
-      first_name: profileData.first_name,
-      customerId: customerId,
-      uid: profileData.uid,
-    });
-
-    // Aggiorna il profilo nel database usando customerId
+    // Aggiorna la subscription
     const { error } = await supabase
-      .from('profiles')
+      .from('subscriptions')
       .update({
         subscription_status: 'suspended',
         suspended_at: new Date().toISOString(),
         suspension_reason: reason,
       })
-      .eq('stripe_id', currentStripeId); // USA customerId invece di currentStripeId
+      .eq('customer_id', customerId);
 
     if (error) {
-      console.error('❌ Errore sospensione profilo:', error);
+      console.error('❌ Errore sospensione subscription:', error);
     } else {
-      console.log('✅ Profilo sospeso con successo');
+      console.log('✅ Subscription sospesa con successo');
 
-      return;
-
-      // Invia email di notifica usando l'email recuperata
       if (userEmail) {
-        const userName = profileData.first_name || userEmail;
-        console.log(`📧 Tentativo di invio email a: ${userEmail}`);
-        await sendSuspensionEmail(userEmail, userName, reason);
-
-        await supabase.from('profiles').update({ last_suspension_email_sent: now.toISOString() }).eq('stripe_id', currentStripeId);
-      } else {
-        console.log("⚠️ Nessun dato email trovato per l'utente");
+        console.log('invio notifica');
+        // const userName = profileData.first_name || userEmail;
+        // await sendSuspensionEmail(userEmail, userName, reason);
       }
     }
   } catch (error) {
@@ -427,110 +569,75 @@ async function reactivateUserProfile(customerId) {
     console.log(`🔓 Riattivazione profilo per customer: ${customerId}`);
 
     const { error } = await supabase
-      .from('profiles')
+      .from('subscriptions')
       .update({
         subscription_status: 'active',
         suspended_at: null,
         suspension_reason: null,
       })
-      .eq('stripe_id', currentStripeId);
+      .eq('customer_id', customerId);
 
     if (error) {
-      console.error('❌ Errore riattivazione profilo:', error);
+      console.error('❌ Errore riattivazione subscription:', error);
     } else {
-      console.log('✅ Profilo riattivato con successo');
+      console.log('✅ Subscription riattivata con successo');
     }
   } catch (error) {
     console.error('❌ Errore nel riattivare il profilo:', error);
   }
 }
 
-// Aggiungi questa funzione dopo le altre funzioni helper
-async function sendSuspensionEmail(userEmail, userName, suspensionReason) {
-  console.log(`📧 === INIZIO INVIO EMAIL SOSPENSIONE ===`);
-  console.log(`📧 Email destinatario: ${userEmail}`);
-  console.log(`📧 Nome utente: ${userName}`);
-  console.log(`📧 Motivo sospensione: ${suspensionReason}`);
+async function saveStripeEvent(event) {
+  let pid = null;
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const customerId = extractCustomerIdFromEvent(event);
+  console.log(`🔍 Debug - Event: ${event.type}, Customer ID estratto: ${customerId || 'N/A'}`);
 
-  if (!RESEND_API_KEY) {
-    console.error('❌ RESEND_API_KEY non configurata - impossibile inviare email');
-    return;
+  if (customerId) {
+    try {
+      const { data: subscription, error } = await supabase.from('subscriptions').select('pid').eq('customer_id', customerId).maybeSingle();
+
+      console.log(`🔍 Debug - Query subscription per customer ${customerId}:`, { subscription, error });
+
+      if (!error && subscription) {
+        pid = subscription.pid;
+        console.log(`✅ PID trovato: ${pid}`);
+      } else {
+        console.log(`⚠️ Nessuna subscription trovata per customer: ${customerId}`);
+        // Aggiungi l'evento a una coda per aggiornare il pid in seguito
+        queuePidUpdate(event.id, customerId);
+      }
+    } catch (error) {
+      console.error('❌ Errore nel recuperare pid per evento:', error);
+    }
+  } else {
+    console.log(`⚠️ Nessun customer_id estratto dall'evento ${event.type}`);
   }
 
-  console.log(`🔑 RESEND_API_KEY trovata: ${RESEND_API_KEY.substring(0, 10)}...`);
-
-  try {
-    const fs = await import('fs');
-    const path = await import('path');
-    const templatePath = path.join(process.cwd(), 'emails', 'profile-suspended.html');
-
-    console.log(`📄 Percorso template: ${templatePath}`);
-
-    // Verifica che il template esista
-    if (!fs.existsSync(templatePath)) {
-      console.error(`❌ Template email non trovato: ${templatePath}`);
-      return;
+  const { error: eventError } = await supabase.from('stripe_events').upsert(
+    {
+      event_id: event.id,
+      type: event.type,
+      data: event.data,
+      pid: pid,
+      processed: false,
+      received_at: new Date().toISOString(),
+    },
+    {
+      onConflict: 'event_id',
+      ignoreDuplicates: false,
     }
+  );
 
-    console.log(`✅ Template trovato, lettura in corso...`);
-    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
-
-    // Sostituisci i placeholder con i dati reali
-    htmlTemplate = htmlTemplate
-      .replace(/{{userName}}/g, userName || 'Utente')
-      .replace(/{{suspensionReason}}/g, getSuspensionReasonText(suspensionReason));
-
-    console.log(`🔄 Template processato, preparazione dati email...`);
-
-    const emailData = {
-      from: process.env.RESEND_EMAIL_FROM || 'onboarding@resend.dev',
-      to: [userEmail],
-      subject: 'Qrea - Account Sospeso',
-      html: htmlTemplate,
-    };
-
-    console.log(`📤 Invio email tramite Resend API...`);
-    console.log(`📤 Dati email:`, {
-      from: emailData.from,
-      to: emailData.to,
-      subject: emailData.subject,
-    });
-
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailData),
-    });
-
-    console.log(`📨 Risposta Resend - Status: ${response.status}`);
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('❌ Errore invio email sospensione:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
-      });
-    } else {
-      const result = await response.json();
-      console.log('✅ Email di sospensione inviata con successo:', {
-        to: userEmail,
-        id: result.id,
-      });
-    }
-  } catch (error) {
-    console.error("❌ Errore nell'invio dell'email di sospensione:", error);
+  if (eventError) {
+    console.error('❌ Errore nel salvare evento:', eventError);
+    throw eventError;
   }
 
-  console.log(`📧 === FINE INVIO EMAIL SOSPENSIONE ===`);
+  return { pid };
 }
 
-// Funzione helper per tradurre i motivi di sospensione
+// Funzioni helper per tradurre i motivi di sospensione
 function getSuspensionReasonText(reason) {
   const reasons = {
     payment_issue: 'Problema con il pagamento',
@@ -546,8 +653,99 @@ function getSuspensionReasonText(reason) {
 
 // Funzioni helper (da implementare con il tuo database)
 async function activateUserSubscription(customerId, subscriptionId) {
-  // Implementa la logica per attivare l'abbonamento dell'utente
-  console.log(`🔓 Attivazione accesso per customer: ${customerId}`);
+  try {
+    console.log(`🔓 Attivazione accesso per customer: ${customerId}`);
+    // Trova la subscription e attivala
+    const { error } = await supabase
+      .from('subscriptions')
+      .update({
+        plan: 'pro',
+        subscription_status: 'active',
+        stripe_id: subscriptionId,
+      })
+      .eq('customer_id', customerId);
+
+    if (error) {
+      console.error('❌ Errore attivazione subscription:', error);
+    } else {
+      console.log('✅ Subscription attivata con successo');
+    }
+  } catch (error) {
+    console.error("❌ Errore nell'attivare la subscription:", error);
+  }
+}
+
+// Funzione per processare gli aggiornamenti del pid
+async function processPidUpdates() {
+  for (const [eventId, { customerId, attempts, maxAttempts }] of pidUpdateQueue.entries()) {
+    if (attempts >= maxAttempts) {
+      console.log(`⚠️ Raggiunto numero massimo di tentativi per evento ${eventId}`);
+      pidUpdateQueue.delete(eventId);
+      continue;
+    }
+
+    try {
+      const { data: subscription, error } = await supabase.from('subscriptions').select('pid').eq('customer_id', customerId).maybeSingle();
+
+      if (!error && subscription) {
+        // Aggiorna l'evento con il pid trovato
+        const { error: updateError } = await supabase.from('stripe_events').update({ pid: subscription.pid }).eq('event_id', eventId);
+
+        if (!updateError) {
+          console.log(`✅ PID aggiornato per evento ${eventId}: ${subscription.pid}`);
+          pidUpdateQueue.delete(eventId);
+        } else {
+          console.error(`❌ Errore nell'aggiornare pid per evento ${eventId}:`, updateError);
+        }
+      } else {
+        // Incrementa i tentativi
+        pidUpdateQueue.set(eventId, { customerId, attempts: attempts + 1, maxAttempts });
+        console.log(`⏳ Tentativo ${attempts + 1}/${maxAttempts} per evento ${eventId}`);
+      }
+    } catch (error) {
+      console.error(`❌ Errore nel processare aggiornamento pid per evento ${eventId}:`, error);
+    }
+  }
+}
+
+setInterval(processPidUpdates, 10000);
+
+function extractCustomerIdFromEvent(event) {
+  const eventData = event.data.object;
+
+  // Diversi tipi di eventi hanno il customer_id in posizioni diverse
+  if (eventData.customer) {
+    return eventData.customer;
+  }
+
+  if (eventData.customer_details?.customer) {
+    return eventData.customer_details.customer;
+  }
+
+  if (event.type.startsWith('customer.') && eventData.id) {
+    return eventData.id;
+  }
+
+  // Per eventi di subscription
+  if (event.type.startsWith('customer.subscription.') && eventData.customer) {
+    return eventData.customer;
+  }
+
+  // Per eventi di invoice
+  if (event.type.startsWith('invoice.') && eventData.customer) {
+    return eventData.customer;
+  }
+
+  // Per eventi di checkout session
+  if (event.type === 'checkout.session.completed' && eventData.customer) {
+    return eventData.customer;
+  }
+
+  return null;
+}
+
+function queuePidUpdate(eventId, customerId) {
+  pidUpdateQueue.set(eventId, { customerId, attempts: 0, maxAttempts: 5 });
 }
 
 // Endpoint di test per verificare che il server funzioni
@@ -596,25 +794,25 @@ app.get('/api/webhook-info', async (req, res) => {
   }
 });
 
-app.post('/api/stripe-customer', async (req, res) => {
-  try {
-    const { email, stripeId } = req.body;
-    console.log('email:', email);
-    console.log('stripe_id:', stripeId);
+// app.post('/api/stripe-customer', async (req, res) => {
+//   try {
+//     const { email, stripeId } = req.body;
+//     console.log('email:', email);
+//     console.log('stripe_id:', stripeId);
 
-    currentStripeId = stripeId;
-    currentProfileEmail = email;
+//     currentStripeId = stripeId;
+//     currentProfileEmail = email;
 
-    res.json({
-      success: true,
-      message: 'Dati ricevuti e loggati con successo',
-      received: req.body,
-    });
-  } catch (error) {
-    console.error('❌ Errore nel ricevere i dati:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+//     res.json({
+//       success: true,
+//       message: 'Dati ricevuti e loggati con successo',
+//       received: req.body,
+//     });
+//   } catch (error) {
+//     console.error('❌ Errore nel ricevere i dati:', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 app.post('/api/suspend-profile', async (req, res) => {
   try {

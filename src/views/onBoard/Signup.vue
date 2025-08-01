@@ -237,8 +237,7 @@ export default {
           uid: userId,
           first_name: this.user.data.first_name,
           last_name: this.user.data.last_name,
-          plan: 'free',
-          lang: 'en-US',
+          lang: 'it-IT',
         });
 
         if (!error) {

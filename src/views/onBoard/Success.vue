@@ -80,6 +80,7 @@ export default {
         if (data.status === 'complete' || data.status === 'paid') {
           this.paymentStatus = 'success';
           this.sessionDetails = data;
+          console.log(data);
 
           if (data.subscriptionId) {
             await this.updateSubscription(data);
@@ -98,9 +99,9 @@ export default {
       await this.verifyPayment();
     },
     async updateSubscription(session) {
-      const UID = this.auth.user?.id;
+      const PID = this.auth.profile?.id;
 
-      if (!UID) {
+      if (!PID) {
         return;
       }
 
@@ -112,15 +113,22 @@ export default {
         paymentDate = new Date().toISOString();
       }
 
+      const customerId = session.session?.customer?.id || session.customerId;
+
       try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ plan: 'pro', stripe_id: session.subscriptionId, subscription_status: 'active', last_payment_date: paymentDate })
-          .eq('uid', UID);
+        const { error } = await supabase.from('subscriptions').insert({
+          pid: PID,
+          plan: 'pro',
+          stripe_id: session.subscriptionId,
+          customer_id: customerId,
+          subscription_status: 'active',
+          last_payment_date: paymentDate,
+        });
 
         if (!error) {
           // console.log('Abonamento aggiornato con successo');
           this.$emit('load-profile');
+          this.$emit('load-subscription');
         }
       } catch (e) {
         console.error(e);

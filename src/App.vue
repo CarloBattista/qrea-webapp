@@ -3,17 +3,13 @@
     <Notification :item="item" :theme="pastelTheme" :icons="outlinedIcons" />
   </Notivue>
   <div>
-    <RouterView :APP_TESTING="APP_TESTING" v-if="!loading && false" @load-profile="getProfile" @load-qr-codes="getQrCodes" />
-    <div v-if="!loading" class="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div class="w-full max-w-xl px-6">
-        <div class="w-full mb-8 flex items-center justify-center">
-          <appLogo class="relative max-w-30" />
-        </div>
-        <div class="w-full flex items-center justify-center text-center">
-          <h1 class="text-black text-3xl font-semibold">Al momento Qrea è in fase di sviluppo</h1>
-        </div>
-      </div>
-    </div>
+    <RouterView
+      v-if="!loading"
+      :APP_TESTING="APP_TESTING"
+      @load-profile="getProfile"
+      @load-subscription="getSubscription"
+      @load-qr-codes="getQrCodes"
+    />
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
       <loader />
     </div>
@@ -27,13 +23,11 @@ import { store } from './data/store';
 import { syncLocaleWithProfile } from './lib/i18n';
 import { Notivue, Notification } from 'notivue';
 
-import appLogo from './components/global/app-logo.vue';
 import loader from './components/loader/loader.vue';
 
 export default {
   name: 'App',
   components: {
-    appLogo,
     loader,
 
     Notivue,
@@ -51,7 +45,9 @@ export default {
   },
   computed: {
     qrLimit() {
-      return this.auth.profile?.plan === 'pro' ? this.store.planConfig.pro_plan_limit_create_qr : this.store.planConfig.free_plan_limit_create_qr;
+      return this.auth.subscription?.plan === 'pro'
+        ? this.store.planConfig.pro_plan_limit_create_qr
+        : this.store.planConfig.free_plan_limit_create_qr;
     },
     currentQrCount() {
       if (!this.store.qrCodes.data) {
@@ -105,7 +101,24 @@ export default {
         if (!error) {
           // console.log(data);
           this.auth.profile = data;
+          await this.getSubscription();
           syncLocaleWithProfile();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    async getSubscription() {
+      if (!this.auth.profile?.id) {
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.from('subscriptions').select('*').eq('pid', this.auth.profile.id).maybeSingle();
+
+        if (!error) {
+          // console.log(data);
+          this.auth.subscription = data;
         }
       } catch (e) {
         console.error(e);
@@ -119,6 +132,7 @@ export default {
           this.auth.user = null;
           this.auth.session = null;
           this.auth.profile = null;
+          this.auth.subscription = null;
           this.auth.isAuthenticated = false;
           localStorage.removeItem('isAuthenticated');
 
@@ -128,37 +142,42 @@ export default {
         console.error(e);
       }
     },
-    async sencStripeCustomer() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    // async sencStripeCustomer() {
+    //   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-      if (!this.auth.profile || !this.auth.profile.stripe_id) {
-        return;
-      }
+    //   const email = this.auth.user.email;
+    //   const stripe_id = this.auth.subscription?.stripe_id;
+    //   const customer_id = this.auth.subscription?.customer_id;
 
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/stripe-customer`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: this.auth.user.email,
-            stripeId: this.auth.profile.stripe_id,
-          }),
-        });
+    //   if (!this.auth.profile || !email || !stripe_id || !customer_id) {
+    //     return;
+    //   }
 
-        const data = await res.json();
+    //   try {
+    //     const res = await fetch(`${BACKEND_URL}/api/stripe-customer`, {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({
+    //         email: email,
+    //         stripeId: stripe_id,
+    //         customerId: customer_id,
+    //       }),
+    //     });
 
-        if (data.ok) {
-          return { success: true, data };
-        } else {
-          return { success: false, error: data.error };
-        }
-      } catch (e) {
-        console.error(e);
-        return { success: false, error: e.message };
-      }
-    },
+    //     const data = await res.json();
+
+    //     if (data.ok) {
+    //       return { success: true, data };
+    //     } else {
+    //       return { success: false, error: data.error };
+    //     }
+    //   } catch (e) {
+    //     console.error(e);
+    //     return { success: false, error: e.message };
+    //   }
+    // },
 
     async getQrCodes() {
       this.store.qrCodes.loading = true;
