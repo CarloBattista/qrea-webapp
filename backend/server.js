@@ -571,6 +571,36 @@ async function reactivateUserProfile(customerId) {
   try {
     console.log(`🔓 Riattivazione profilo per customer: ${customerId}`);
 
+    // Trova la subscription tramite customer_id
+    const { data: subscription, error: subError } = await supabase.from('subscriptions').select('pid').eq('customer_id', customerId).single();
+
+    if (subError || !subscription) {
+      console.error('❌ Nessuna subscription trovata per customerId:', customerId);
+      return;
+    }
+
+    // Recupera i dati del profilo
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('uid, first_name, last_name')
+      .eq('id', subscription.pid)
+      .maybeSingle();
+
+    if (profileError || !profileData) {
+      console.error('❌ Errore nel recuperare i dati del profilo:', profileError);
+      return;
+    }
+
+    // Recupera l'email dalla tabella auth.users
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profileData.uid);
+
+    if (userError) {
+      console.error('❌ Errore nel recuperare i dati utente:', userError);
+      return;
+    }
+
+    const userEmail = userData?.user?.email;
+
     const { error } = await supabase
       .from('subscriptions')
       .update({
@@ -584,6 +614,12 @@ async function reactivateUserProfile(customerId) {
       console.error('❌ Errore riattivazione subscription:', error);
     } else {
       console.log('✅ Subscription riattivata con successo');
+
+      // Invia email di riattivazione
+      if (userEmail) {
+        const userName = profileData.first_name || userEmail;
+        await sendReactivationEmail(userEmail, userName);
+      }
     }
   } catch (error) {
     console.error('❌ Errore nel riattivare il profilo:', error);
@@ -764,6 +800,7 @@ function queuePidUpdate(eventId, customerId) {
   pidUpdateQueue.set(eventId, { customerId, attempts: 0, maxAttempts: 7 });
 }
 
+// Email functions
 async function sendSuspensionEmail(userEmail, userName, reason) {
   try {
     console.log(`📧 Invio email di sospensione a: ${userEmail}`);
@@ -794,6 +831,37 @@ async function sendSuspensionEmail(userEmail, userName, reason) {
   } catch (error) {
     console.error("❌ Errore nell'invio email di sospensione:", error);
     throw error;
+  }
+}
+
+async function sendReactivationEmail(userEmail, userName) {
+  try {
+    console.log(`📧 Invio email di riattivazione a: ${userEmail}`);
+
+    // Leggi il template HTML
+    const templatePath = path.join(process.cwd(), 'emails', 'profile-reactivated.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Sostituisci i placeholder
+    htmlTemplate = htmlTemplate.replace(/{{userName}}/g, userName);
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_EMAIL_FROM,
+      to: [userEmail],
+      subject: 'Account Qrea Riattivato',
+      html: htmlTemplate,
+    });
+
+    if (error) {
+      console.error('❌ Errore invio email riattivazione:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Email di riattivazione inviata con successo:', data.id);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Errore nell'invio email di riattivazione:", error);
+    return { success: false, error: error.message };
   }
 }
 

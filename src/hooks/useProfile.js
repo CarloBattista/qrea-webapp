@@ -364,6 +364,7 @@ export function useProfile() {
         });
 
         await fetchBillingHistory();
+        // window.location.reload();
       }
     } catch (e) {
       console.error(e);

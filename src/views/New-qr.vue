@@ -169,7 +169,7 @@
           </div>
           <!-- Azioni -->
           <div class="space-y-3">
-            <div class="w-full flex gap-3 sm:flex-row flex-col items-center justify-between">
+            <div class="w-full flex flex-wrap gap-3 sm:flex-row flex-col items-center justify-between">
               <div class="w-full flex gap-3 items-center">
                 <buttonLg @click="resetToDefaults" variant="secondary" :label="$t('common.reset')" />
                 <buttonLg
@@ -299,7 +299,7 @@ export default {
       };
     },
     isFreePlan() {
-      return !this.auth.profile || this.auth.subscription.plan === 'free';
+      return !this.auth.profile || this.auth.subscription?.plan === 'free' || this.auth.subscription?.subscription_status === 'suspended';
     },
     selectedDotsStyleLabel() {
       const selectedStyle = this.store.qrConfig.dotStyles.find((style) => style.value === this.store.qrConfig.dotsStyle);
@@ -514,15 +514,15 @@ export default {
       },
       deep: true,
     },
-    isFreePlan: {
-      handler(value) {
-        if (value) {
-          this.$router.push({ name: 'pricing' });
-        }
-      },
-      immediate: true,
-      deep: true,
-    },
+    // isFreePlan: {
+    //   handler(value) {
+    //     if (value) {
+    //       this.$router.push({ name: 'pricing' });
+    //     }
+    //   },
+    //   immediate: true,
+    //   deep: true,
+    // },
   },
   mounted() {
     window.scrollTo(0, 0);
