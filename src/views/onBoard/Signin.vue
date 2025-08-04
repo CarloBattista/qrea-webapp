@@ -89,6 +89,7 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 import { auth } from '../../data/auth';
 import { push } from 'notivue';
 
@@ -128,6 +129,10 @@ export default {
         loading: false,
       },
     };
+  },
+  setup() {
+    const { getProfile } = useAuth();
+    return { getProfile };
   },
   methods: {
     validateEmail() {
@@ -205,7 +210,7 @@ export default {
           this.auth.isAuthenticated = true;
 
           localStorage.setItem('isAuthenticated', true);
-          this.$emit('load-profile');
+          await this.getProfile();
 
           if (this.auth.profile?.plan === 'pro') {
             this.$router.push({ name: 'home' });

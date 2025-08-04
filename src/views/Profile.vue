@@ -13,7 +13,10 @@
         <h2 class="text-black text-2xl font-semibold">{{ $t('profile.title') }}</h2>
         <p class="text-black text-base font-normal">{{ $t('profile.subtitle') }}</p>
       </div>
-      <div class="w-full my-8 flex flex-col gap-8">
+      <div v-if="!dataLoaded" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
+        <loader />
+      </div>
+      <div v-else-if="dataLoaded" class="w-full my-8 flex flex-col gap-8">
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">{{ $t('profile.account') }}</h2>
           <div class="w-full flex flex-col">
@@ -108,18 +111,19 @@
 </template>
 
 <script>
-import { supabase } from '../lib/supabase';
-import { auth } from '../data/auth';
-import { store } from '../data/store';
-import { setLocale } from '../lib/i18n';
-import { push } from 'notivue';
+import { watch, onMounted, nextTick } from 'vue'
+import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
+import { auth } from '../data/auth'
+import { store } from '../data/store'
 
-import navigation from '../components/navigation/navigation.vue';
-import buttonLg from '../components/button/button-lg.vue';
-import badge from '../components/badge/badge.vue';
-import dropdown from '../components/dropdown/dropdown.vue';
-import dropdownOption from '../components/dropdown/dropdown-option.vue';
-import alert from '../components/alert/alert.vue';
+import navigation from '../components/navigation/navigation.vue'
+import buttonLg from '../components/button/button-lg.vue'
+import badge from '../components/badge/badge.vue'
+import dropdown from '../components/dropdown/dropdown.vue'
+import dropdownOption from '../components/dropdown/dropdown-option.vue'
+import alert from '../components/alert/alert.vue'
+import loader from '../components/loader/loader.vue'
 
 export default {
   name: 'Profile',
@@ -130,318 +134,86 @@ export default {
     dropdown,
     dropdownOption,
     alert,
+    loader,
   },
-  data() {
-    return {
-      auth,
-      store,
-      selectedLanguage: 'it-IT', // Default language
-      subscriptionDetails: {
-        data: null,
-        error: null,
-        loading: false,
-      },
-      nextPayment: {
-        data: null,
-        error: null,
-        loading: false,
-      },
-      billingHistory: {
-        data: null,
-        error: null,
-        loading: false,
-      },
-      dataLoaded: false,
-    };
-  },
-  computed: {
-    typeSubscription() {
-      if (!this.auth && !this.auth.subscription) {
-        return 'Free';
-      }
+  setup() {
+    const { getProfile, getSubscription } = useAuth()
+    const {
+      selectedLanguage,
+      subscriptionDetails,
+      nextPayment,
+      billingHistory,
+      dataLoaded,
+      typeSubscription,
+      isSubscriptionCancelled,
+      selectedLanguageLabel,
+      hasDraftPayments,
+      formatDate,
+      formatPaymentStatus,
+      updateLanguage,
+      handleCancelSubscription,
+      loadProfileData,
+      completePayment,
+    } = useProfile()
 
-      const plan = this.auth.subscription?.plan;
-
-      const freePlan = 'free';
-      const proPlan = 'pro';
-
-      if (this.hasDraftPayments && plan === proPlan) {
-        return 'Sospeso';
-      }
-
-      if (plan === freePlan) {
-        return 'Free';
-      } else if (plan === proPlan) {
-        return 'Pro';
-      }
-
-      return 'Free';
-    },
-    isSubscriptionCancelled() {
-      return this.subscriptionDetails?.cancel_at_period_end === true;
-    },
-    selectedLanguageLabel() {
-      const selectedLanguage = this.store.languages.find((language) => language.value === this.selectedLanguage);
-      return selectedLanguage ? selectedLanguage.name : '';
-    },
-    hasDraftPayments() {
-      if (!this.billingHistory.data || this.billingHistory.data.length === 0) {
-        return false;
-      }
-
-      return this.billingHistory.data.some((payment) => payment.status === 'draft');
-    },
-  },
-  methods: {
-    formatDate(timestamp) {
-      const date = new Date(timestamp * 1000); // Stripe restituisce timestamp in secondi
-      return date.toLocaleDateString('it-IT', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-    },
-    formatPaymentStatus(status) {
-      const statusMap = {
-        paid: 'Pagato',
-        open: 'In attesa',
-        draft: 'In attesa',
-        void: 'Annullato',
-        uncollectible: 'Non riscuotibile',
-      };
-      return statusMap[status] || status;
-    },
-
-    async updateLanguage(lang) {
-      if (!this.auth.user?.id) {
-        return;
-      }
-
-      this.selectedLanguage = lang;
-
-      try {
-        const { error } = await supabase.from('profiles').update({ lang: this.selectedLanguage }).eq('uid', this.auth.user.id);
-
-        if (!error) {
-          this.auth.profile.lang = this.selectedLanguage;
-          setLocale(this.selectedLanguage);
-          this.$emit('load-profile');
-
-          push.success({
-            title: null,
-            message: this.$t('profile.languageUpdated'),
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async handleCancelSubscription() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-      const UID = this.auth.user.id;
-      const stripeId = this.auth.subscription?.stripe_id;
-      const customerId = this.auth.subscription?.customer_id;
-
-      if (!stripeId && !UID) {
-        return;
-      }
-
-      // Conferma dall'utente
-      const confirmed = confirm(
-        'Sei sicuro di voler cancellare il tuo abbonamento? Rimarrà attivo fino alla fine del periodo di fatturazione corrente.'
-      );
-
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${stripeId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            stripeId: stripeId,
-            customerId: customerId,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Errore HTTP: ${response.status}`);
-        }
-
-        const res = await response.json();
-        alert('Abbonamento cancellato con successo. Rimarrà attivo fino alla fine del periodo di fatturazione corrente.');
-
-        await this.fetchSubscriptionDetails();
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async fetchSubscriptionDetails() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-      const stripeId = this.auth.subscription?.stripe_id;
-
-      if (!stripeId || stripeId === 'undefined' || stripeId === 'null') {
-        console.warn('stripe_id non disponibile per fetchSubscriptionDetails');
-        this.subscriptionDetails.loading = false;
-        return;
-      }
-
-      this.billingHistory.loading = true;
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/subscriptions/${stripeId}`);
-
-        if (response.ok) {
-          this.subscriptionDetails.data = await response.json();
-          this.$emit('load-subscription');
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        this.billingHistory.loading = false;
-      }
-    },
-    async fetchBillingHistory() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-      const customerId = this.auth.subscription?.customer_id;
-
-      this.billingHistory.loading = true;
-
-      if (!customerId) {
-        this.billingHistory.loading = false;
-        return;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/billing-history/${customerId}`);
-
-        if (response.ok) {
-          this.billingHistory.data = await response.json();
-          // console.log(this.billingHistory);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        this.billingHistory.loading = false;
-      }
-    },
-    async fetchNextPayment() {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-      this.nextPayment.loading = true;
-
-      if (!this.subscriptionDetails.data?.customer?.id) {
-        this.nextPayment.loading = false;
-        return;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
-
-        if (response.ok) {
-          this.nextPayment.data = await response.json();
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        this.nextPayment.loading = false;
-      }
-    },
-    async loadProfileData() {
-      if (this.dataLoaded) {
-        return;
-      }
-
-      this.dataLoaded = true;
-
-      try {
-        await this.fetchSubscriptionDetails();
-        await this.fetchBillingHistory();
-
-        if (this.subscriptionDetails.data) {
-          await this.fetchNextPayment();
-        }
-      } catch (e) {
-        console.error(e);
-        this.dataLoaded = false;
-      }
-    },
-    async completePayment(invoiceId) {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-      const payment = this.billingHistory.data.find((p) => p.id === invoiceId);
-
-      if (payment) {
-        payment.completing = true;
-      }
-
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/payments/complete-invoice/${invoiceId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userStripeId: this.auth.profile.stripe_id,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          await this.fetchBillingHistory();
-
-          push.success({
-            title: null,
-            message: 'Pagamento completato con successo!',
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        payment.completing = false;
-      }
-    },
-  },
-  watch: {
-    'auth.profile': {
-      handler(value) {
+    // Watchers
+    watch(
+      () => auth.profile,
+      (value) => {
         if (value) {
-          // Set the selected language from the profile
-          this.selectedLanguage = value.lang || 'it-IT';
+          selectedLanguage.value = value.lang || 'it-IT'
 
-          if (!this.dataLoaded) {
-            this.$nextTick(() => {
+          if (!dataLoaded.value) {
+            nextTick(() => {
               setTimeout(() => {
-                this.loadProfileData();
-              }, 100);
-            });
+                loadProfileData()
+              }, 100)
+            })
           }
         }
       },
-      deep: true,
-      immediate: true,
-    },
-    'auth.subscription': {
-      handler(value) {
-        if (value && this.auth.profile && !this.dataLoaded) {
-          this.loadProfileData();
+      { deep: true, immediate: true }
+    )
+
+    watch(
+      () => auth.subscription,
+      (value) => {
+        if (value && auth.profile && !dataLoaded.value) {
+          loadProfileData()
         }
       },
-      deep: true,
-    },
-  },
-  async mounted() {
-    window.scrollTo(0, 0);
+      { deep: true }
+    )
 
-    if (this.auth.profile) {
-      await this.loadProfileData();
+    onMounted(async () => {
+      window.scrollTo(0, 0)
+
+      if (auth.profile) {
+        await loadProfileData()
+      }
+    })
+
+    return {
+      auth,
+      store,
+      selectedLanguage,
+      subscriptionDetails,
+      nextPayment,
+      billingHistory,
+      dataLoaded,
+      typeSubscription,
+      isSubscriptionCancelled,
+      selectedLanguageLabel,
+      hasDraftPayments,
+      formatDate,
+      formatPaymentStatus,
+      updateLanguage,
+      handleCancelSubscription,
+      loadProfileData,
+      completePayment,
     }
   },
-};
+}
 </script>
 
 <style scoped></style>

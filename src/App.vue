@@ -3,7 +3,7 @@
     <Notification :item="item" />
   </Notivue>
   <div>
-    <RouterView v-if="!loading" @load-profile="getProfile" @load-subscription="getSubscription" @load-qr-codes="getQrCodes" />
+    <RouterView v-if="!loading" @load-qr-codes="getQrCodes" />
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
       <loader />
     </div>
@@ -61,42 +61,6 @@ export default {
     },
   },
   methods: {
-    // async sencStripeCustomer() {
-    //   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
-    //   const email = this.auth.user.email;
-    //   const stripe_id = this.auth.subscription?.stripe_id;
-    //   const customer_id = this.auth.subscription?.customer_id;
-
-    //   if (!this.auth.profile || !email || !stripe_id || !customer_id) {
-    //     return;
-    //   }
-
-    //   try {
-    //     const res = await fetch(`${BACKEND_URL}/api/stripe-customer`, {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({
-    //         email: email,
-    //         stripeId: stripe_id,
-    //         customerId: customer_id,
-    //       }),
-    //     });
-
-    //     const data = await res.json();
-
-    //     if (data.ok) {
-    //       return { success: true, data };
-    //     } else {
-    //       return { success: false, error: data.error };
-    //     }
-    //   } catch (e) {
-    //     console.error(e);
-    //     return { success: false, error: e.message };
-    //   }
-    // },
     async getQrCodes() {
       this.store.qrCodes.loading = true;
 

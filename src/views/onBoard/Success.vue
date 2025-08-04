@@ -21,6 +21,7 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 import { auth } from '../../data/auth';
 import { store } from '../../data/store';
 
@@ -46,6 +47,13 @@ export default {
       loading: true,
       paymentStatus: null, // 'success', 'error', null
       sessionDetails: null,
+    };
+  },
+  setup() {
+    const { getProfile, getSubscription } = useAuth();
+    return {
+      getProfile,
+      getSubscription,
     };
   },
   methods: {
@@ -127,8 +135,8 @@ export default {
 
         if (!error) {
           // console.log('Abonamento aggiornato con successo');
-          this.$emit('load-profile');
-          this.$emit('load-subscription');
+          await this.getProfile();
+          await this.getSubscription();
         }
       } catch (e) {
         console.error(e);
