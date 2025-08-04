@@ -438,6 +438,40 @@ async function handleSubscriptionCanceled(subscription) {
       canceledAt: new Date(subscription.canceled_at * 1000).toISOString(),
     });
 
+    // Trova la subscription tramite customer_id
+    const { data: subscriptionData, error: subError } = await supabase
+      .from('subscriptions')
+      .select('pid')
+      .eq('customer_id', subscription.customer)
+      .single();
+
+    if (subError || !subscriptionData) {
+      console.error('❌ Nessuna subscription trovata per customerId:', subscription.customer);
+      return;
+    }
+
+    // Recupera i dati del profilo
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('uid, first_name, last_name')
+      .eq('id', subscriptionData.pid)
+      .maybeSingle();
+
+    if (profileError || !profileData) {
+      console.error('❌ Errore nel recuperare i dati del profilo:', profileError);
+      return;
+    }
+
+    // Recupera l'email dalla tabella auth.users
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profileData.uid);
+
+    if (userError) {
+      console.error('❌ Errore nel recuperare i dati utente:', userError);
+      return;
+    }
+
+    const userEmail = userData?.user?.email;
+
     const { error } = await supabase
       .from('subscriptions')
       .update({
@@ -450,6 +484,14 @@ async function handleSubscriptionCanceled(subscription) {
 
     if (error) {
       console.error('Errore aggiornamento subscription:', error);
+    } else {
+      console.log('✅ Subscription cancellata con successo');
+
+      // Invia email di abbonamento terminato
+      if (userEmail) {
+        const userName = profileData.first_name || userEmail;
+        await sendSubscriptionEndedEmail(userEmail, userName);
+      }
     }
   } catch (e) {
     console.error(e);
@@ -861,6 +903,37 @@ async function sendReactivationEmail(userEmail, userName) {
     return { success: true, data };
   } catch (error) {
     console.error("❌ Errore nell'invio email di riattivazione:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendSubscriptionEndedEmail(userEmail, userName) {
+  try {
+    console.log(`📧 Invio email abbonamento terminato a: ${userEmail}`);
+
+    // Leggi il template HTML
+    const templatePath = path.join(process.cwd(), 'emails', 'subscription-ended.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Sostituisci i placeholder
+    htmlTemplate = htmlTemplate.replace(/{{userName}}/g, userName);
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_EMAIL_FROM,
+      to: [userEmail],
+      subject: 'Abbonamento Pro Terminato',
+      html: htmlTemplate,
+    });
+
+    if (error) {
+      console.error('❌ Errore invio email abbonamento terminato:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Email abbonamento terminato inviata con successo:', data.id);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Errore nell'invio email abbonamento terminato:", error);
     return { success: false, error: error.message };
   }
 }
