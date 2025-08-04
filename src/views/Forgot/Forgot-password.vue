@@ -36,8 +36,7 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
-
-import supportedDomains from '../../json/supported_domains.json';
+import { useValidation } from '../../hooks/useValidation';
 
 import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
@@ -76,31 +75,28 @@ export default {
       cooldownInterval: null,
     };
   },
+  setup() {
+    const validation = useValidation();
+    return { validation };
+  },
+  computed: {
+    validationErrors() {
+      return this.validation.errors;
+    },
+  },
   methods: {
     validateEmail() {
-      const supportedDomainsPattern = supportedDomains.join('|');
-      const emailRegex = new RegExp(`^[^\\s@]+@(${supportedDomainsPattern})\\.(com|it|org|net|edu|gov|io)$`, 'i');
-
-      if (!this.user.data.email) {
-        this.user.error.email = 'Inserisci un indirizzo email';
-        return false;
-      } else if (!emailRegex.test(this.user.data.email)) {
-        this.user.error.email = 'Inserisci un indirizzo email valido';
-        return false;
-      } else {
-        this.user.error.email = null;
-        return true;
-      }
+      return this.validation.emailAddress(this.user.data.email);
     },
 
     async sendPasswordReset() {
       this.user.loading = true;
-      this.user.error.general = null;
+      this.validation.clearErrors();
 
-      const isEmailValid = this.validateEmail();
+      const isValid = this.validation.forgotPasswordForm(this.user.data);
       const email = this.user.data.email;
 
-      if (!isEmailValid) {
+      if (!isValid) {
         this.user.loading = false;
         return;
       }

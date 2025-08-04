@@ -89,11 +89,11 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { auth } from '../../data/auth';
 import { push } from 'notivue';
-
-import supportedDomains from '../../json/supported_domains.json';
+import { useValidation } from '../../hooks/useValidation';
+import { handleAuthError } from '../../lib/validation';
 
 import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
@@ -132,68 +132,44 @@ export default {
   },
   setup() {
     const { getProfile } = useAuth();
-    return { getProfile };
+    const validation = useValidation();
+
+    return { getProfile, validation };
+  },
+  computed: {
+    validationErrors() {
+      return this.validation.errors;
+    },
   },
   methods: {
     validateEmail() {
-      const supportedDomainsPattern = supportedDomains.join('|');
-      const emailRegex = new RegExp(`^[^\\s@]+@(${supportedDomainsPattern})\\.(com|it|org|net|edu|gov|io)$`, 'i');
-
-      if (!this.user.data.email) {
-        this.user.error.email = 'Inserisci la tua email';
-        return false;
-      } else if (!emailRegex.test(this.user.data.email)) {
-        this.user.error.email = 'Inserisci una email valida';
-        return false;
-      } else {
-        this.user.error.email = null;
-        return true;
-      }
+      return this.validation.email(this.user.data.email);
     },
     validatePassword() {
-      if (!this.user.data.password) {
-        this.user.error.password = 'Inserisci la tua password';
-        return false;
-      } else {
-        this.user.error.password = null;
-        return true;
-      }
+      return this.validation.password(this.user.data.password, false); // Non richiede password forte per il login
     },
     retrieveError(error) {
       this.user.email_not_confirmed = false;
+      const authError = handleAuthError(error);
 
-      if (error.code === 'invalid_credentials') {
-        this.user.error.general = "L'email o la password inserite non sono corrette";
-
-        push.error({
-          title: null,
-          message: "L'email o la password inserite non sono corrette",
-        });
-      } else if (error.code === 'email_not_confirmed') {
+      if (authError.type === 'email_not_confirmed') {
         this.user.email_not_confirmed = true;
-        this.user.error.general = "L'email non è stata confermata";
-
-        push.error({
-          title: null,
-          message: "L'email non è stata confermata",
-        });
-      } else {
-        this.user.error.general = 'Si è verificato un errore generale, riprova più tardi';
-
-        push.error({
-          title: null,
-          message: 'Si è verificato un errore generale, riprova più tardi',
-        });
       }
+
+      this.validation.setError(authError.field, authError.message);
+
+      push.error({
+        title: null,
+        message: authError.message,
+      });
     },
 
     async actionSignin() {
-      this.user.error.general = null;
+      this.validation.clearErrors();
 
-      const isEmailValid = this.validateEmail();
-      const isPasswordValid = this.validatePassword();
+      const isValid = this.validation.signinForm(this.user.data);
 
-      if (!isEmailValid || !isPasswordValid) {
+      if (!isValid) {
         this.user.loading = false;
         return;
       }
@@ -229,7 +205,7 @@ export default {
     async resendConfirmEmail() {
       this.user.loading = true;
 
-      const isEmailValid = this.validateEmail();
+      const isEmailValid = this.validation.email(this.user.data.email);
 
       if (!isEmailValid) {
         this.user.loading = false;

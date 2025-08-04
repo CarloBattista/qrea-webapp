@@ -34,8 +34,9 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
+import { useValidation } from '../../hooks/useValidation';
 
-import { PASSWORD_PATTERNS, validatePasswordRequirements } from '../../lib/password_validation';
+import { VALIDATION_MESSAGES } from '../../lib/validation';
 
 import appLogo from '../../components/global/app-logo.vue';
 import ButtonLg from '../../components/button/button-lg.vue';
@@ -63,46 +64,18 @@ export default {
       },
     };
   },
+  setup() {
+    const validation = useValidation();
+    return { validation };
+  },
+  computed: {
+    validationErrors() {
+      return this.validation.errors;
+    },
+  },
   methods: {
     validatePassword() {
-      this.user.error.password = null;
-
-      if (!this.user.data.password) {
-        this.user.error.password = 'Inserisci una password';
-        return false;
-      }
-
-      // Check minimum length
-      if (!PASSWORD_PATTERNS.minLength().test(this.user.data.password)) {
-        this.user.error.password = 'La password deve contenere almeno 8 caratteri';
-        return false;
-      }
-
-      // Check for lowercase letters
-      if (!PASSWORD_PATTERNS.hasLowercase.test(this.user.data.password)) {
-        this.user.error.password = 'La password deve contenere almeno una lettera minuscola';
-        return false;
-      }
-
-      // Check for uppercase letters
-      if (!PASSWORD_PATTERNS.hasUppercase.test(this.user.data.password)) {
-        this.user.error.password = 'La password deve contenere almeno una lettera maiuscola';
-        return false;
-      }
-
-      // Check for digits
-      if (!PASSWORD_PATTERNS.hasNumber.test(this.user.data.password)) {
-        this.user.error.password = 'La password deve contenere almeno un numero';
-        return false;
-      }
-
-      // Check for symbols
-      if (!PASSWORD_PATTERNS.hasSymbol.test(this.user.data.password)) {
-        this.user.error.password = 'La password deve contenere almeno un simbolo (!@#$%^&*()_+-=[]{};\':"|,.<>/?)';
-        return false;
-      }
-
-      return true;
+      return this.validation.password(this.user.data.password);
     },
 
     async retrieveSession() {
@@ -111,7 +84,7 @@ export default {
 
         if (!error && !data.session) {
           this.user.session = data.session || 'session_has_expired';
-          this.user.error.general = 'La sessione è scaduta';
+          this.validation.setError('general', VALIDATION_MESSAGES.SESSION_EXPIRED);
         }
       } catch (e) {
         console.error(e);
@@ -119,11 +92,11 @@ export default {
     },
     async actionResetPassword() {
       this.user.loading = true;
-      this.user.error.general = null;
+      this.validation.clearErrors();
 
-      const isPasswordValid = this.validatePassword();
+      const isValid = this.validation.resetPasswordForm(this.user.data);
 
-      if (!isPasswordValid || this.user.session === 'session_has_expired') {
+      if (!isValid || this.user.session === 'session_has_expired') {
         this.user.loading = false;
         return;
       }
