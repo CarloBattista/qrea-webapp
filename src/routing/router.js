@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
+import { authMiddleware } from './middleware/authMiddleware';
+
 const routes = [
   // OnBoard
   {
@@ -137,6 +139,8 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach(authMiddleware);
+
 router.beforeEach((to, from, next) => {
   const pageTitle = to.meta.title;
   if (pageTitle) {
@@ -144,21 +148,6 @@ router.beforeEach((to, from, next) => {
   } else {
     document.title = 'Qrea';
   }
-
-  const isAuthenticated = localStorage.getItem('isAuthenticated');
-  const authIsParsed = JSON.parse(isAuthenticated);
-
-  if (to.meta.requiresGuest && authIsParsed) {
-    next({ name: 'home' });
-    return;
-  }
-
-  // Se la rotta richiede autenticazione e l'utente non è autenticato
-  if (to.meta.requiresAuth && !authIsParsed) {
-    next({ name: 'signin' });
-    return;
-  }
-
   next();
 });
 

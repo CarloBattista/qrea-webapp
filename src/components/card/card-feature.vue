@@ -4,7 +4,7 @@
       <component :is="data?.icon" />
     </div>
     <div class="w-full flex flex-col">
-      <h2 class="text-black text-sm font-semibold flex flex-wrap gap-2">
+      <h2 class="text-black text-sm font-semibold flex flex-wrap gap-2 items-center">
         {{ data?.title }}
         <div v-if="data?.coming" class="w-fit px-2 py-1 rounded-2xl text-xs font-medium bg-black text-white">In arrivo</div>
       </h2>

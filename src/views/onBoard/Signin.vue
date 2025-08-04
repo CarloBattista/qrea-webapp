@@ -188,7 +188,7 @@ export default {
           localStorage.setItem('isAuthenticated', true);
           await this.getProfile();
 
-          if (this.auth.profile?.plan === 'pro') {
+          if (this.auth.subscription || this.auth.subscription?.plan === 'pro') {
             this.$router.push({ name: 'home' });
           } else {
             this.$router.push({ name: 'pricing' });

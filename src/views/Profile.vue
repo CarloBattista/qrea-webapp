@@ -1,6 +1,9 @@
 <template>
   <navigation />
-  <div class="w-full md:px-6 px-3 pt-30 pb-10">
+  <div v-if="!dataLoaded" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
+    <loader />
+  </div>
+  <div v-else-if="dataLoaded" class="w-full md:px-6 px-3 pt-30 pb-10">
     <div class="max-w-[550px] mx-auto">
       <div v-if="hasDraftPayments" class="max-w-[768px] mb-8 mx-auto">
         <alert
@@ -13,10 +16,7 @@
         <h2 class="text-black text-2xl font-semibold">{{ $t('profile.title') }}</h2>
         <p class="text-black text-base font-normal">{{ $t('profile.subtitle') }}</p>
       </div>
-      <div v-if="!dataLoaded" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
-        <loader />
-      </div>
-      <div v-else-if="dataLoaded" class="w-full my-8 flex flex-col gap-8">
+      <div class="w-full my-8 flex flex-col gap-8">
         <div class="card w-full p-8 rounded-4xl pr-shadow bg-white">
           <h2 class="text-sm font-medium text-gray-400">{{ $t('profile.account') }}</h2>
           <div class="w-full flex flex-col">
@@ -111,19 +111,19 @@
 </template>
 
 <script>
-import { watch, onMounted, nextTick } from 'vue'
-import { useAuth } from '../hooks/useAuth'
-import { useProfile } from '../hooks/useProfile'
-import { auth } from '../data/auth'
-import { store } from '../data/store'
+import { watch, onMounted, nextTick } from 'vue';
+import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
+import { auth } from '../data/auth';
+import { store } from '../data/store';
 
-import navigation from '../components/navigation/navigation.vue'
-import buttonLg from '../components/button/button-lg.vue'
-import badge from '../components/badge/badge.vue'
-import dropdown from '../components/dropdown/dropdown.vue'
-import dropdownOption from '../components/dropdown/dropdown-option.vue'
-import alert from '../components/alert/alert.vue'
-import loader from '../components/loader/loader.vue'
+import navigation from '../components/navigation/navigation.vue';
+import buttonLg from '../components/button/button-lg.vue';
+import badge from '../components/badge/badge.vue';
+import dropdown from '../components/dropdown/dropdown.vue';
+import dropdownOption from '../components/dropdown/dropdown-option.vue';
+import alert from '../components/alert/alert.vue';
+import loader from '../components/loader/loader.vue';
 
 export default {
   name: 'Profile',
@@ -137,7 +137,7 @@ export default {
     loader,
   },
   setup() {
-    const { getProfile, getSubscription } = useAuth()
+    const { getProfile, getSubscription } = useAuth();
     const {
       selectedLanguage,
       subscriptionDetails,
@@ -154,44 +154,44 @@ export default {
       handleCancelSubscription,
       loadProfileData,
       completePayment,
-    } = useProfile()
+    } = useProfile();
 
     // Watchers
     watch(
       () => auth.profile,
       (value) => {
         if (value) {
-          selectedLanguage.value = value.lang || 'it-IT'
+          selectedLanguage.value = value.lang || 'it-IT';
 
           if (!dataLoaded.value) {
             nextTick(() => {
               setTimeout(() => {
-                loadProfileData()
-              }, 100)
-            })
+                loadProfileData();
+              }, 100);
+            });
           }
         }
       },
       { deep: true, immediate: true }
-    )
+    );
 
     watch(
       () => auth.subscription,
       (value) => {
         if (value && auth.profile && !dataLoaded.value) {
-          loadProfileData()
+          loadProfileData();
         }
       },
       { deep: true }
-    )
+    );
 
     onMounted(async () => {
-      window.scrollTo(0, 0)
+      window.scrollTo(0, 0);
 
       if (auth.profile) {
-        await loadProfileData()
+        await loadProfileData();
       }
-    })
+    });
 
     return {
       auth,
@@ -211,9 +211,9 @@ export default {
       handleCancelSubscription,
       loadProfileData,
       completePayment,
-    }
+    };
   },
-}
+};
 </script>
 
 <style scoped></style>
