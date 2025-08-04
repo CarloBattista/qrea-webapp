@@ -112,6 +112,7 @@ import { supabase } from '../lib/supabase';
 import { auth } from '../data/auth';
 import { store } from '../data/store';
 import { setLocale } from '../lib/i18n';
+import { push } from 'notivue';
 
 import navigation from '../components/navigation/navigation.vue';
 import buttonLg from '../components/button/button-lg.vue';
@@ -150,15 +151,16 @@ export default {
         error: null,
         loading: false,
       },
+      dataLoaded: false,
     };
   },
   computed: {
     typeSubscription() {
-      if (!this.auth.profile) {
+      if (!this.auth && !this.auth.subscription) {
         return 'Free';
       }
 
-      const plan = this.auth?.subscription.plan;
+      const plan = this.auth.subscription?.plan;
 
       const freePlan = 'free';
       const proPlan = 'pro';
@@ -224,7 +226,11 @@ export default {
           this.auth.profile.lang = this.selectedLanguage;
           setLocale(this.selectedLanguage);
           this.$emit('load-profile');
-          alert(this.$t('profile.languageUpdated'));
+
+          push.success({
+            title: null,
+            message: this.$t('profile.languageUpdated'),
+          });
         }
       } catch (e) {
         console.error(e);
@@ -277,12 +283,20 @@ export default {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       const stripeId = this.auth.subscription?.stripe_id;
 
+      if (!stripeId || stripeId === 'undefined' || stripeId === 'null') {
+        console.warn('stripe_id non disponibile per fetchSubscriptionDetails');
+        this.subscriptionDetails.loading = false;
+        return;
+      }
+
       this.billingHistory.loading = true;
 
       try {
         const response = await fetch(`${BACKEND_URL}/api/subscriptions/${stripeId}`);
+
         if (response.ok) {
           this.subscriptionDetails.data = await response.json();
+          this.$emit('load-subscription');
         }
       } catch (e) {
         console.error(e);
@@ -303,6 +317,7 @@ export default {
 
       try {
         const response = await fetch(`${BACKEND_URL}/api/payments/billing-history/${customerId}`);
+
         if (response.ok) {
           this.billingHistory.data = await response.json();
           // console.log(this.billingHistory);
@@ -325,6 +340,7 @@ export default {
 
       try {
         const response = await fetch(`${BACKEND_URL}/api/payments/upcoming-invoice/${this.subscriptionDetails.data.customer.id}`);
+
         if (response.ok) {
           this.nextPayment.data = await response.json();
         }
@@ -334,10 +350,30 @@ export default {
         this.nextPayment.loading = false;
       }
     },
+    async loadProfileData() {
+      if (this.dataLoaded) {
+        return;
+      }
+
+      this.dataLoaded = true;
+
+      try {
+        await this.fetchSubscriptionDetails();
+        await this.fetchBillingHistory();
+
+        if (this.subscriptionDetails.data) {
+          await this.fetchNextPayment();
+        }
+      } catch (e) {
+        console.error(e);
+        this.dataLoaded = false;
+      }
+    },
     async completePayment(invoiceId) {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
       const payment = this.billingHistory.data.find((p) => p.id === invoiceId);
+
       if (payment) {
         payment.completing = true;
       }
@@ -356,8 +392,12 @@ export default {
         const result = await response.json();
 
         if (result.success) {
-          alert('Pagamento completato con successo!');
           await this.fetchBillingHistory();
+
+          push.success({
+            title: null,
+            message: 'Pagamento completato con successo!',
+          });
         }
       } catch (e) {
         console.error(e);
@@ -372,17 +412,23 @@ export default {
         if (value) {
           // Set the selected language from the profile
           this.selectedLanguage = value.lang || 'it-IT';
-          this.fetchSubscriptionDetails();
+
+          if (!this.dataLoaded) {
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.loadProfileData();
+              }, 100);
+            });
+          }
         }
       },
       deep: true,
       immediate: true,
     },
-    subscriptionDetails: {
+    'auth.subscription': {
       handler(value) {
-        if (value) {
-          this.fetchBillingHistory();
-          this.fetchNextPayment();
+        if (value && this.auth.profile && !this.dataLoaded) {
+          this.loadProfileData();
         }
       },
       deep: true,
@@ -391,10 +437,8 @@ export default {
   async mounted() {
     window.scrollTo(0, 0);
 
-    if (this.auth.profile) await this.fetchSubscriptionDetails();
-    if (this.subscriptionDetails) {
-      await this.fetchBillingHistory();
-      await this.fetchNextPayment();
+    if (this.auth.profile) {
+      await this.loadProfileData();
     }
   },
 };

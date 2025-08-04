@@ -60,7 +60,7 @@
       </div>
     </div>
   </div>
-  <div v-if="$attrs.APP_TESTING === 'debug'" class="absolute top-2 left-2 p-4 flex flex-col gap-2 border border-dashed border-red-500 text-red-500">
+  <div v-if="ENV === 'debug'" class="absolute top-2 left-2 p-4 flex flex-col gap-2 border border-dashed border-red-500 text-red-500">
     <p>FOR DEBUG</p>
     <buttonLg @click="handleSubscriptionTest" variant="primary" leftIcon="ArrowRight" label="Test sub" :disabled="false" />
   </div>
@@ -89,6 +89,7 @@ export default {
       auth,
       store,
 
+      ENV: import.meta.env.VITE_ENV,
       currentPlan: 'yearly',
     };
   },
@@ -184,7 +185,7 @@ export default {
       }
     },
     async handleSubscriptionTest() {
-      if (import.meta.env.VITE_APP !== 'debug') {
+      if (this.ENV !== 'debug') {
         return;
       }
 

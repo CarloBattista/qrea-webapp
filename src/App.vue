@@ -1,15 +1,9 @@
 <template>
   <Notivue v-slot="item">
-    <Notification :item="item" :theme="pastelTheme" :icons="outlinedIcons" />
+    <Notification :item="item" />
   </Notivue>
   <div>
-    <RouterView
-      v-if="!loading"
-      :APP_TESTING="APP_TESTING"
-      @load-profile="getProfile"
-      @load-subscription="getSubscription"
-      @load-qr-codes="getQrCodes"
-    />
+    <RouterView v-if="!loading" @load-profile="getProfile" @load-subscription="getSubscription" @load-qr-codes="getQrCodes" />
     <div v-else-if="loading" class="fixed z-[99999999] top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-full flex items-center justify-center">
       <loader />
     </div>
@@ -17,10 +11,9 @@
 </template>
 
 <script>
+import { useAuth } from './hooks/useAuth';
 import { supabase } from './lib/supabase';
-import { auth } from './data/auth';
 import { store } from './data/store';
-import { syncLocaleWithProfile } from './lib/i18n';
 import { Notivue, Notification } from 'notivue';
 
 import loader from './components/loader/loader.vue';
@@ -35,17 +28,25 @@ export default {
   },
   data() {
     return {
-      auth,
       store,
 
       loading: true,
+    };
+  },
+  setup() {
+    const { auth, loading: authLoading, initAuth, getProfile, getSubscription } = useAuth();
 
-      APP_TESTING: import.meta.env.VITE_APP,
+    return {
+      auth,
+      authLoading,
+      initAuth,
+      getProfile,
+      getSubscription,
     };
   },
   computed: {
     qrLimit() {
-      return this.auth.subscription?.plan === 'pro'
+      return this.auth?.subscription?.plan === 'pro'
         ? this.store.planConfig.pro_plan_limit_create_qr
         : this.store.planConfig.free_plan_limit_create_qr;
     },
@@ -60,88 +61,6 @@ export default {
     },
   },
   methods: {
-    async getUser() {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-
-        if (!error) {
-          // console.log(data);
-
-          this.auth.user = data.user;
-          this.auth.isAuthenticated = true;
-
-          localStorage.setItem('isAuthenticated', true);
-
-          this.getSession();
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async getSession() {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (!error) {
-          // console.log(data);
-          this.auth.session = data.session;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async getProfile() {
-      if (!this.auth.user?.id) {
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.from('profiles').select('*').eq('uid', this.auth.user.id).maybeSingle();
-
-        if (!error) {
-          // console.log(data);
-          this.auth.profile = data;
-          await this.getSubscription();
-          syncLocaleWithProfile();
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async getSubscription() {
-      if (!this.auth.profile?.id) {
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.from('subscriptions').select('*').eq('pid', this.auth.profile.id).maybeSingle();
-
-        if (!error) {
-          // console.log(data);
-          this.auth.subscription = data;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    async noUser() {
-      try {
-        const { error } = await supabase.auth.signOut();
-
-        if (!error) {
-          this.auth.user = null;
-          this.auth.session = null;
-          this.auth.profile = null;
-          this.auth.subscription = null;
-          this.auth.isAuthenticated = false;
-          localStorage.removeItem('isAuthenticated');
-
-          this.$router.push({ name: 'signin' });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
     // async sencStripeCustomer() {
     //   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -178,7 +97,6 @@ export default {
     //     return { success: false, error: e.message };
     //   }
     // },
-
     async getQrCodes() {
       this.store.qrCodes.loading = true;
 
@@ -203,20 +121,10 @@ export default {
     },
   },
   watch: {
-    'auth.user': {
-      handler(value) {
-        if (value) {
-          this.getSession();
-          this.getProfile();
-        }
-      },
-      deep: true,
-    },
     'auth.profile': {
       handler(value) {
         if (value) {
           this.getQrCodes();
-          this.sencStripeCustomer();
         }
       },
       deep: true,
@@ -245,11 +153,10 @@ export default {
 
     window.scrollTo(0, 0);
 
-    await this.getUser();
+    await this.initAuth();
 
     if (this.auth.profile) {
       await this.getQrCodes();
-      await this.sencStripeCustomer();
     }
   },
 };

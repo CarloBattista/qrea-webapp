@@ -1,69 +1,39 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-// OnBoard
-import Signup from '../views/onBoard/Signup.vue';
-import Signin from '../views/onBoard/Signin.vue';
-import Pricing from '../views/onBoard/Pricing.vue';
-import Success from '../views/onBoard/Success.vue';
-import Cancel from '../views/onBoard/Cancel.vue';
-
-// Forgot
-import ForgotPassword from '../views/Forgot/Forgot-password.vue';
-import ResetPassword from '../views/Forgot/Reset-password.vue';
-
-// Profile
-import Profile from '../views/Profile.vue';
-
-// General
-import LandingPage from '../views/Landing-page.vue';
-import Home from '../views/Home.vue';
-import NewQr from '../views/New-qr.vue';
-import EditQr from '../views/Edit-qr.vue';
-
-// Help
-import Contact from '../views/Help/Contact.vue';
-
-// Common
-import Privacy from '../views/Common/Privacy.vue';
-import Terms from '../views/Common/Terms.vue';
-
-// Error
-import NotFound from '../views/Error/Not-found.vue';
-
 const routes = [
   // OnBoard
   {
     path: '/signup',
     name: 'signup',
-    component: Signup,
+    component: () => import('../views/onBoard/Signup.vue'),
     props: true,
     meta: { title: 'Qrea • Registrati', requiresGuest: true },
   },
   {
     path: '/signin',
     name: 'signin',
-    component: Signin,
+    component: () => import('../views/onBoard/Signin.vue'),
     props: true,
     meta: { title: 'Qrea • Accedi', requiresGuest: true },
   },
   {
     path: '/pricing',
     name: 'pricing',
-    component: Pricing,
+    component: () => import('../views/onBoard/Pricing.vue'),
     props: true,
     meta: { title: 'Qrea • Prezzi' },
   },
   {
     path: '/success',
     name: 'success',
-    component: Success,
+    component: () => import('../views/onBoard/Success.vue'),
     props: true,
     meta: { title: 'Qrea', requiresAuth: true },
   },
   {
     path: '/cancel',
     name: 'cancel',
-    component: Cancel,
+    component: () => import('../views/onBoard/Cancel.vue'),
     props: true,
     meta: { title: 'Qrea', requiresAuth: true },
   },
@@ -72,14 +42,14 @@ const routes = [
   {
     path: '/forgot-password',
     name: 'forgot-password',
-    component: ForgotPassword,
+    component: () => import('../views/Forgot/Forgot-password.vue'),
     props: true,
     meta: { title: 'Qrea', requiresGuest: true },
   },
   {
     path: '/reset-password',
     name: 'reset-password',
-    component: ResetPassword,
+    component: () => import('../views/Forgot/Reset-password.vue'),
     props: true,
     meta: { title: 'Qrea', requiresGuest: true },
   },
@@ -88,7 +58,7 @@ const routes = [
   {
     path: '/profile',
     name: 'profile',
-    component: Profile,
+    component: () => import('../views/Profile.vue'),
     props: true,
     meta: { title: 'Qrea • Profile', requiresAuth: true },
   },
@@ -97,28 +67,28 @@ const routes = [
   {
     path: '/',
     name: 'landing-page',
-    component: LandingPage,
+    component: () => import('../views/Landing-page.vue'),
     props: true,
     meta: { title: 'Qrea' },
   },
   {
     path: '/home',
     name: 'home',
-    component: Home,
+    component: () => import('../views/Home.vue'),
     props: true,
     meta: { title: 'Qrea', requiresAuth: true },
   },
   {
     path: '/new-qr',
     name: 'new-qr',
-    component: NewQr,
+    component: () => import('../views/New-qr.vue'),
     props: true,
     meta: { title: 'Qrea • Crea un nuovo QR', requiresAuth: true },
   },
   {
     path: '/edit-qr/:id',
     name: 'edit-qr',
-    component: EditQr,
+    component: () => import('../views/Edit-qr.vue'),
     props: true,
     meta: { title: 'Qrea • Modifica QR', requiresAuth: true },
   },
@@ -127,7 +97,7 @@ const routes = [
   {
     path: '/contact',
     name: 'contact',
-    component: Contact,
+    component: () => import('../views/Help/Contact.vue'),
     props: true,
     meta: { title: 'Qrea • Contact' },
   },
@@ -136,14 +106,14 @@ const routes = [
   {
     path: '/privacy-policy',
     name: 'privacy-policy',
-    component: Privacy,
+    component: () => import('../views/Common/Privacy.vue'),
     props: true,
     meta: { title: 'Qrea • Privacy Policy' },
   },
   {
     path: '/terms-and-conditions',
     name: 'terms-and-conditions',
-    component: Terms,
+    component: () => import('../views/Common/Terms.vue'),
     props: true,
     meta: { title: 'Qrea • Privacy Policy' },
   },
@@ -152,7 +122,7 @@ const routes = [
   {
     path: '/not-found',
     name: 'not-found',
-    component: NotFound,
+    component: () => import('../views/Error/Not-found.vue'),
     props: true,
     meta: { title: 'Qrea' },
   },

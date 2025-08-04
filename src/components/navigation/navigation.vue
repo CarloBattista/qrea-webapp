@@ -1,6 +1,6 @@
 <template>
   <div
-    class="nav fixed z-[9999] top-7 md:left-7 left-3 w-fit h-fit p-2.5 rounded-full flex md:flex-col flex-row gap-2 items-center pr-shadow bg-white"
+    class="nav fixed z-[500] top-7 md:left-7 left-3 w-fit h-fit p-2.5 rounded-full flex md:flex-col flex-row gap-2 items-center pr-shadow bg-white"
   >
     <RouterLink aria-label="Home" to="/home" class="md:order-1">
       <iconButton icon="Grid2x2" :disabled="false" :loading="false" />
@@ -12,7 +12,7 @@
     >
       <iconButton icon="Plus" :disabled="store.planConfig.can_create_qr ? false : true" :loading="false" />
     </RouterLink>
-    <iconButton v-if="auth.isAuthenticated" @click="actionSignout" icon="DoorOpen" :disabled="false" :loading="false" class="md:order-3" />
+    <iconButton v-if="auth.isAuthenticated" @click="signOut" icon="DoorOpen" :disabled="false" :loading="false" class="md:order-3" />
     <RouterLink aria-label="Profile" to="/profile" class="md:order-4 order-0 md:mt-1.5 md:mr-0 mr-1.5">
       <avatarRing :showRing="true" :initial="userInitials" :progress="qrProgress" />
     </RouterLink>
@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
 import { auth } from '../../data/auth';
 import { store } from '../../data/store';
 
@@ -37,6 +37,14 @@ export default {
     return {
       auth,
       store,
+    };
+  },
+  setup() {
+    const { signOut, loading } = useAuth();
+
+    return {
+      signOut,
+      loading,
     };
   },
   computed: {
@@ -64,32 +72,6 @@ export default {
       }
 
       return '';
-    },
-  },
-  methods: {
-    async actionSignout() {
-      if (!this.auth.isAuthenticated) {
-        return;
-      }
-
-      if (confirm(this.$t('navigation.signOutConfirm'))) {
-        try {
-          const { error } = await supabase.auth.signOut();
-
-          if (!error) {
-            this.auth.user = null;
-            this.auth.session = null;
-            this.auth.profile = null;
-            this.auth.subscription = null;
-            this.auth.isAuthenticated = false;
-            localStorage.removeItem('isAuthenticated');
-
-            this.$router.push({ name: 'signin' });
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
     },
   },
 };

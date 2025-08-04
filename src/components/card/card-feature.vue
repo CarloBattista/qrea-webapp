@@ -4,8 +4,9 @@
       <component :is="data?.icon" />
     </div>
     <div class="w-full flex flex-col">
-      <h2 class="text-black text-sm font-semibold">
-        {{ data?.title }} <span v-if="data?.coming" class="ml-2 px-2 py-1 rounded-2xl text-xs font-medium bg-black text-white">In arrivo</span>
+      <h2 class="text-black text-sm font-semibold flex flex-wrap gap-2">
+        {{ data?.title }}
+        <div v-if="data?.coming" class="w-fit px-2 py-1 rounded-2xl text-xs font-medium bg-black text-white">In arrivo</div>
       </h2>
       <p class="text-black text-sm font-normal text-max-two-lines">{{ data?.description }}</p>
     </div>

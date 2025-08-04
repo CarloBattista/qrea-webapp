@@ -655,20 +655,33 @@ function getSuspensionReasonText(reason) {
 async function activateUserSubscription(customerId, subscriptionId) {
   try {
     console.log(`🔓 Attivazione accesso per customer: ${customerId}`);
-    // Trova la subscription e attivala
-    const { error } = await supabase
-      .from('subscriptions')
-      .update({
-        plan: 'pro',
-        subscription_status: 'active',
-        stripe_id: subscriptionId,
-      })
-      .eq('customer_id', customerId);
 
-    if (error) {
-      console.error('❌ Errore attivazione subscription:', error);
+    const { data: existingSubscription, error: searchError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('customer_id', customerId)
+      .maybeSingle();
+
+    console.log('🔍 Risultato ricerca:', { existingSubscription, searchError });
+
+    if (existingSubscription) {
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          stripe_id: subscriptionId,
+          plan: 'pro',
+          subscription_status: 'active',
+          last_payment_date: new Date().toISOString(),
+        })
+        .eq('customer_id', customerId);
+
+      if (updateError) {
+        console.error('❌ Errore aggiornamento subscription:', updateError);
+      } else {
+        console.log('✅ Subscription aggiornata con successo');
+      }
     } else {
-      console.log('✅ Subscription attivata con successo');
+      console.error('❌ Nessuna subscription trovata per customerId:', customerId);
     }
   } catch (error) {
     console.error("❌ Errore nell'attivare la subscription:", error);
@@ -745,7 +758,7 @@ function extractCustomerIdFromEvent(event) {
 }
 
 function queuePidUpdate(eventId, customerId) {
-  pidUpdateQueue.set(eventId, { customerId, attempts: 0, maxAttempts: 5 });
+  pidUpdateQueue.set(eventId, { customerId, attempts: 0, maxAttempts: 7 });
 }
 
 // Endpoint di test per verificare che il server funzioni
