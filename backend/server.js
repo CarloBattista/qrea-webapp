@@ -3,9 +3,12 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
+import { Resend } from 'resend';
 import paymentsRouter from './routes/payments.js';
 import subscriptionsRouter from './routes/subscriptions.js';
 import process from 'process';
+import fs from 'fs';
+import path from 'path';
 
 // Configura dotenv
 dotenv.config();
@@ -13,6 +16,7 @@ dotenv.config();
 import { supabase } from './supabase.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -554,9 +558,8 @@ async function suspendUserProfile(customerId, reason = 'payment_issue') {
       console.log('✅ Subscription sospesa con successo');
 
       if (userEmail) {
-        console.log('invio notifica');
-        // const userName = profileData.first_name || userEmail;
-        // await sendSuspensionEmail(userEmail, userName, reason);
+        const userName = profileData.first_name || userEmail;
+        await sendSuspensionEmail(userEmail, userName, reason);
       }
     }
   } catch (error) {
@@ -759,6 +762,39 @@ function extractCustomerIdFromEvent(event) {
 
 function queuePidUpdate(eventId, customerId) {
   pidUpdateQueue.set(eventId, { customerId, attempts: 0, maxAttempts: 7 });
+}
+
+async function sendSuspensionEmail(userEmail, userName, reason) {
+  try {
+    console.log(`📧 Invio email di sospensione a: ${userEmail}`);
+
+    // Leggi il template HTML
+    const templatePath = path.join(process.cwd(), 'emails', 'profile-suspended.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Sostituisci i placeholder nel template
+    const suspensionReasonText = getSuspensionReasonText(reason);
+    htmlTemplate = htmlTemplate.replace(/{{userName}}/g, userName).replace(/{{suspensionReason}}/g, suspensionReasonText);
+
+    // Invia l'email tramite Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_EMAIL_FROM,
+      to: [userEmail],
+      subject: 'Account Qrea Sospeso - Azione Richiesta',
+      html: htmlTemplate,
+    });
+
+    if (error) {
+      console.error("❌ Errore nell'invio email di sospensione:", error);
+      throw error;
+    }
+
+    console.log('✅ Email di sospensione inviata con successo:', data.id);
+    return data;
+  } catch (error) {
+    console.error("❌ Errore nell'invio email di sospensione:", error);
+    throw error;
+  }
 }
 
 // Endpoint di test per verificare che il server funzioni

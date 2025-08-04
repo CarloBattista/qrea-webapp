@@ -85,6 +85,20 @@ export function useProfile() {
     }
     return false;
   };
+  const invalidateCacheIfNeeded = (newData) => {
+    const cachedData = getCachedData();
+    if (!cachedData) return;
+
+    // Controlla se ci sono nuovi pagamenti draft
+    const cachedDraftPayments = cachedData.billingHistory?.data?.filter((p) => p.status === 'draft') || [];
+    const newDraftPayments = newData.filter((p) => p.status === 'draft') || [];
+
+    // Se il numero di pagamenti draft è cambiato, invalida la cache
+    if (cachedDraftPayments.length !== newDraftPayments.length) {
+      // console.log('Nuovi pagamenti draft rilevati, invalidazione cache');
+      clearCache();
+    }
+  };
 
   // Computed per verificare se i dati sono in cache
   const isDataCached = computed(() => {
@@ -246,7 +260,9 @@ export function useProfile() {
       const response = await fetch(`${BACKEND_URL}/api/payments/billing-history/${customerId}`);
 
       if (response.ok) {
-        billingHistory.value.data = await response.json();
+        const newData = await response.json();
+        invalidateCacheIfNeeded(newData);
+        billingHistory.value.data = newData;
       }
     } catch (e) {
       console.error(e);
@@ -279,9 +295,14 @@ export function useProfile() {
   };
 
   const loadProfileData = async (forceRefresh = false) => {
+    const hasSuspendedStatus = auth.subscription?.subscription_status === 'suspended';
+    if (hasSuspendedStatus) {
+      forceRefresh = true;
+    }
+
     // Prova a caricare dalla cache se non è richiesto un refresh forzato
     if (!forceRefresh && loadFromCache()) {
-      console.log('Dati caricati dalla cache localStorage');
+      await fetchBillingHistory();
       return;
     }
 
@@ -337,12 +358,12 @@ export function useProfile() {
       const result = await response.json();
 
       if (result.success) {
-        await fetchBillingHistory();
-
         push.success({
           title: null,
           message: SUCCESS_MESSAGES.PAYMENT_COMPLETED,
         });
+
+        await fetchBillingHistory();
       }
     } catch (e) {
       console.error(e);
@@ -380,5 +401,6 @@ export function useProfile() {
     refreshProfileData,
     clearCache,
     completePayment,
+    invalidateCacheIfNeeded,
   };
 }
