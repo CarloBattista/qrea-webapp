@@ -21,7 +21,7 @@
 
 <script>
 import { supabase } from '../../lib/supabase';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import { auth } from '../../data/auth';
 import { store } from '../../data/store';
 
@@ -88,7 +88,7 @@ export default {
         if (data.status === 'complete' || data.status === 'paid') {
           this.paymentStatus = 'success';
           this.sessionDetails = data;
-          console.log(data);
+          // console.log(data);
 
           if (data.subscriptionId) {
             await this.updateSubscription(data);
@@ -121,20 +121,22 @@ export default {
         paymentDate = new Date().toISOString();
       }
 
+      const subscriptionId = session.subscriptionId;
       const customerId = session.session?.customer?.id || session.customerId;
 
       try {
-        const { error } = await supabase.from('subscriptions').insert({
-          pid: PID,
-          plan: 'pro',
-          stripe_id: session.subscriptionId,
-          customer_id: customerId,
-          subscription_status: 'active',
-          last_payment_date: paymentDate,
-        });
+        const { error } = await supabase
+          .from('subscriptions')
+          .update({
+            plan: 'pro',
+            stripe_id: subscriptionId,
+            customer_id: customerId,
+            subscription_status: 'active',
+            last_payment_date: paymentDate,
+          })
+          .eq('pid', PID);
 
         if (!error) {
-          // console.log('Abonamento aggiornato con successo');
           await this.getProfile();
           await this.getSubscription();
         }
@@ -143,6 +145,7 @@ export default {
       }
     },
   },
+
   async mounted() {
     window.scrollTo(0, 0);
 

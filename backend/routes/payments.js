@@ -17,7 +17,22 @@ function getStripe() {
 router.post('/create-checkout-session', async (req, res) => {
   try {
     const stripe = getStripe();
-    const { email, priceId, successUrl, cancelUrl } = req.body;
+    const { email, priceId, successUrl, cancelUrl, pid } = req.body;
+
+    const customer = await stripe.customers.create({
+      email: email,
+    });
+
+    const { error: subError } = await supabase.from('subscriptions').insert({
+      pid: pid,
+      customer_id: customer.id,
+      plan: 'free',
+      subscription_status: 'incomplete',
+    });
+
+    if (subError) {
+      console.error('❌ Errore creazione subscription:', subError);
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -236,22 +251,23 @@ router.post('/complete-invoice/:invoiceId', async (req, res) => {
 router.post('/link-customer', async (req, res) => {
   try {
     const { pid, customerId, email } = req.body;
-    
+
     if (!pid || !customerId) {
       return res.status(400).json({ error: 'PID e customerId sono richiesti' });
     }
 
     // Crea o aggiorna il record nella tabella subscriptions
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .upsert({
+    const { data, error } = await supabase.from('subscriptions').upsert(
+      {
         pid: pid,
         customer_id: customerId,
         plan: 'free',
-        subscription_status: 'inactive'
-      }, {
-        onConflict: 'pid'
-      });
+        subscription_status: 'inactive',
+      },
+      {
+        onConflict: 'pid',
+      }
+    );
 
     if (error) {
       console.error('❌ Errore nel collegare customer:', error);

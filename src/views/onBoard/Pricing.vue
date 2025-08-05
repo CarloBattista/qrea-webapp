@@ -132,6 +132,7 @@ export default {
     async handleSubscription(plan) {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+      const PID = this.auth.profile?.id;
       const priceId = plan.stripe_products_id[this.currentPlan];
       const profilePlan = this.auth.subscription?.plan;
       const userEmail = this.auth.user?.email;
@@ -161,6 +162,7 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            pid: PID,
             email: userEmail,
             priceId: priceId,
             successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -191,6 +193,7 @@ export default {
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+      const PID = this.auth.profile?.id;
       const priceId = import.meta.env.VITE_STRIPE_PLAN_TESTING_DAILY_PRICE_ID;
       const userEmail = this.auth.user?.email;
 
@@ -215,6 +218,7 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            pid: PID,
             email: userEmail,
             priceId: priceId,
             successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
