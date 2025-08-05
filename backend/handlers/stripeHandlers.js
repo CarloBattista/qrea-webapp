@@ -53,6 +53,24 @@ export async function handleSuccessfulPayment(session, eventId) {
 
       await activateUserSubscription(customerId, subscriptionId);
     }
+
+    // Invia email di conferma pagamento
+    if (paymentDetails.customerEmail) {
+      try {
+        // Recupera il nome utente dal database
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('stripe_id', paymentDetails.customerId)
+          .single();
+
+        const userName = profileData && !profileError ? `${profileData.first_name} ${profileData.last_name}`.trim() : 'Cliente';
+
+        await sendPaymentSuccessEmail(paymentDetails.customerEmail, userName, paymentDetails);
+      } catch (emailError) {
+        console.error('❌ Errore invio email conferma pagamento:', emailError);
+      }
+    }
   } catch (error) {
     console.error('❌ Errore nel processare il pagamento:', error);
     throw error;
@@ -291,8 +309,35 @@ export async function handleFailedPayment(invoice, eventId) {
 
     await suspendUserProfile(invoice.customer, 'payment_failed');
 
+    try {
+      // Recupera l'email del cliente da Stripe
+      const customer = await stripe.customers.retrieve(invoice.customer);
+
+      if (customer.email) {
+        // Recupera il nome utente dal database
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('stripe_id', invoice.customer)
+          .single();
+
+        const userName = profileData && !profileError ? `${profileData.first_name} ${profileData.last_name}`.trim() : 'Cliente';
+
+        const paymentDetails = {
+          amount: invoice.amount_due,
+          currency: invoice.currency,
+          attemptCount: invoice.attempt_count,
+        };
+
+        await sendPaymentFailedEmail(customer.email, userName, paymentDetails);
+      }
+    } catch (emailError) {
+      console.error('❌ Errore invio email pagamento fallito:', emailError);
+    }
+
     if (invoice.attempt_count >= 3) {
       // Logica aggiuntiva per sospensioni definitive
+      console.log('⚠️ Raggiunto numero massimo di tentativi per:', invoice.customer);
     }
   } catch (error) {
     console.error('❌ Errore nel gestire il pagamento fallito:', error);
@@ -616,9 +661,6 @@ export async function activateUserSubscription(customerId, subscriptionId) {
 export function extractCustomerIdFromEvent(event) {
   const eventData = event.data.object;
 
-  // console.log(`🔍 Debug extractCustomerIdFromEvent - Event type: ${event.type}`);
-  // console.log(`🔍 Debug extractCustomerIdFromEvent - Event data:`, JSON.stringify(eventData, null, 2));
-
   // Diversi tipi di eventi hanno il customer_id in posizioni diverse
   if (eventData.customer) {
     console.log(`✅ Customer ID trovato in eventData.customer: ${eventData.customer}`);
@@ -838,6 +880,100 @@ export async function sendSubscriptionEndedEmail(userEmail, userName) {
     return { success: true, data };
   } catch (error) {
     console.error("❌ Errore nell'invio email abbonamento terminato:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendPaymentSuccessEmail(userEmail, userName, paymentDetails) {
+  try {
+    console.log(`📧 Invio email conferma pagamento a: ${userEmail}`);
+
+    const templatePath = path.join(process.cwd(), 'emails', 'payment-success.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Formatta l'importo
+    const formattedAmount = (paymentDetails.amount / 100).toFixed(2);
+    const formattedCurrency = paymentDetails.currency.toUpperCase();
+    const paymentDate = new Date().toLocaleDateString('it-IT', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    // Sostituisci i placeholder nel template
+    htmlTemplate = htmlTemplate
+      .replace(/{{userName}}/g, userName)
+      .replace(/{{amount}}/g, formattedAmount)
+      .replace(/{{currency}}/g, formattedCurrency)
+      .replace(/{{paymentDate}}/g, paymentDate);
+
+    // Invia l'email tramite Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_EMAIL_FROM,
+      to: [userEmail],
+      subject: 'Pagamento Confermato - Qrea',
+      html: htmlTemplate,
+    });
+
+    if (error) {
+      console.error('❌ Errore invio email conferma pagamento:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Email conferma pagamento inviata con successo:', data.id);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Errore nell'invio email conferma pagamento:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendPaymentFailedEmail(userEmail, userName, paymentDetails) {
+  try {
+    console.log(`📧 Invio email pagamento fallito a: ${userEmail}`);
+
+    // Leggi il template HTML
+    const templatePath = path.join(process.cwd(), 'emails', 'payment-failed.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+    // Formatta l'importo
+    const formattedAmount = (paymentDetails.amount / 100).toFixed(2);
+    const formattedCurrency = paymentDetails.currency.toUpperCase();
+    const failureDate = new Date().toLocaleDateString('it-IT', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    // Sostituisci i placeholder nel template
+    htmlTemplate = htmlTemplate
+      .replace(/{{userName}}/g, userName)
+      .replace(/{{amount}}/g, formattedAmount)
+      .replace(/{{currency}}/g, formattedCurrency)
+      .replace(/{{attemptCount}}/g, paymentDetails.attemptCount || 1)
+      .replace(/{{failureDate}}/g, failureDate);
+
+    // Invia l'email tramite Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_EMAIL_FROM,
+      to: [userEmail],
+      subject: 'Pagamento Non Riuscito - Qrea',
+      html: htmlTemplate,
+    });
+
+    if (error) {
+      console.error('❌ Errore invio email pagamento fallito:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Email pagamento fallito inviata con successo:', data.id);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Errore nell'invio email pagamento fallito:", error);
     return { success: false, error: error.message };
   }
 }
