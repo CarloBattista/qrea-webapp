@@ -117,8 +117,8 @@ export default {
       auth,
       user: {
         data: {
-          email: 'carlitobatti@gmail.com',
-          password: 'carlo',
+          email: '',
+          password: '',
         },
         error: {
           email: null,
