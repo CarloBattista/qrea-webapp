@@ -1,4 +1,4 @@
-# QR Generator - QREA
+# QR Generator - QREA (IN DEVELOPMENT)
 
 A modern web application for generating and customizing QR codes, built with Vue 3 and Vite.
 
