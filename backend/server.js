@@ -1,7 +1,10 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
 import Stripe from 'stripe';
 import paymentsRouter from './routes/payments.js';
 import subscriptionsRouter from './routes/subscriptions.js';
@@ -9,9 +12,6 @@ import process from 'process';
 import { addStripeEventToQueue } from './queues/stripeQueue.js';
 import { saveStripeEvent } from './handlers/stripeHandlers.js';
 import './config/redis.js';
-
-// Configura dotenv
-dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

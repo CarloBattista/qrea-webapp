@@ -74,7 +74,7 @@
           <h2 class="text-sm font-medium text-gray-400">{{ $t('billing.history') }}</h2>
           <div class="w-full flex flex-col">
             <div
-              v-if="nextPayment.data && typeSubscription === 'Pro'"
+              v-if="nextPayment.data && typeSubscription === 'Pro' && !isSubscriptionCancelled"
               class="w-full mt-4 h-9 flex items-center justify-between text-base font-normal border-b border-gray-200 pb-2"
             >
               <h2 class="text-start">
@@ -137,7 +137,6 @@ export default {
     loader,
   },
   setup() {
-    const { getProfile, getSubscription } = useAuth();
     const {
       selectedLanguage,
       subscriptionDetails,
@@ -156,7 +155,6 @@ export default {
       completePayment,
     } = useProfile();
 
-    // Watchers
     watch(
       () => auth.profile,
       (value) => {
@@ -174,7 +172,6 @@ export default {
       },
       { deep: true, immediate: true }
     );
-
     watch(
       () => auth.subscription,
       (value) => {
@@ -184,7 +181,6 @@ export default {
       },
       { deep: true }
     );
-
     onMounted(async () => {
       window.scrollTo(0, 0);
 

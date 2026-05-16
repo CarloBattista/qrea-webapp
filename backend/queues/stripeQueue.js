@@ -3,7 +3,9 @@ import redis from '../config/redis.js';
 import {
   handleSuccessfulPayment,
   handleRecurringPayment,
+  handleSubscriptionCreated,
   handleSubscriptionCanceled,
+  handleSubscriptionUpdated,
   handleFailedPayment,
   handleDraftInvoice,
   handleInvoiceStatusChange,
@@ -31,7 +33,9 @@ export const stripeQueue = new Queue('stripe-events', queueConfig);
 const eventHandlers = {
   'checkout.session.completed': handleSuccessfulPayment,
   'invoice.payment_succeeded': handleRecurringPayment,
+  'customer.subscription.created': handleSubscriptionCreated,
   'customer.subscription.deleted': handleSubscriptionCanceled,
+  'customer.subscription.updated': handleSubscriptionUpdated,
   'invoice.payment_failed': handleFailedPayment,
   'invoice.created': handleDraftInvoice,
   'invoice.updated': handleInvoiceStatusChange,
@@ -107,14 +111,18 @@ export async function addStripeEventToQueue(event) {
 function getEventPriority(eventType) {
   const priorities = {
     'checkout.session.completed': 1, // Alta priorità
-    'invoice.payment_succeeded': 1, // Alta priorità
-    'invoice.payment_failed': 2, // Media priorità
-    'customer.subscription.deleted': 2, // Media priorità
-    'invoice.created': 3, // Bassa priorità
-    'invoice.updated': 3, // Bassa priorità
+
+    'customer.subscription.created': 2, // Alta priorità
+    'customer.subscription.updated': 3, // Alta priorità
+    'customer.subscription.deleted': 6, // Media priorità
+
+    'invoice.created': 7, // Bassa priorità
+    'invoice.updated': 8, // Bassa priorità
+    'invoice.payment_succeeded': 4, // Alta priorità
+    'invoice.payment_failed': 5, // Media priorità
   };
 
-  return priorities[eventType] || 5; // Priorità di default
+  return priorities[eventType] || 10; // Priorità di default
 }
 
 export default { stripeQueue, stripeWorker, addStripeEventToQueue };

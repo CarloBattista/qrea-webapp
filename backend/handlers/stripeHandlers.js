@@ -57,7 +57,6 @@ export async function handleSuccessfulPayment(session, eventId) {
     // Invia email di conferma pagamento
     if (paymentDetails.customerEmail) {
       try {
-        // Recupera il nome utente dal database
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('first_name, last_name')
@@ -188,7 +187,39 @@ export async function handleSubscriptionCreated(subscription, eventId) {
         console.error('❌ Errore aggiornamento subscription:', error);
       }
     } else {
-      console.log('⚠️ Nessuna subscription trovata per customer:', subscription.customer);
+      // Trova il profilo tramite customer_id nella tabella profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('customer_id', subscription.customer)
+        .maybeSingle();
+
+      if (profileError || !profileData) {
+        console.error('❌ Nessun profilo trovato per customer:', subscription.customer);
+        return;
+      }
+
+      // Crea nuova subscription
+      const newSubscriptionData = {
+        pid: profileData.id,
+        customer_id: subscription.customer,
+        stripe_id: subscription.id,
+        subscription_status: subscription.status,
+        plan: subscription.status === 'active' ? 'pro' : 'free',
+        created_at: new Date().toISOString(),
+      };
+
+      if (typeof subscription.current_period_end === 'number' && subscription.current_period_end > 0) {
+        newSubscriptionData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+      }
+
+      const { error: insertError } = await supabase.from('subscriptions').insert(newSubscriptionData);
+
+      if (insertError) {
+        console.error('❌ Errore creazione nuova subscription:', insertError);
+      } else {
+        console.log('✅ Nuova subscription creata con successo');
+      }
     }
   } catch (e) {
     console.error(e);
@@ -354,7 +385,16 @@ export async function handleDraftInvoice(invoice, eventId) {
       currency: invoice.currency,
     });
 
-    await suspendUserProfile(invoice.customer, 'draft_payment');
+    // NON sospendere immediatamente per fatture draft
+    // Stripe processerà automaticamente il pagamento
+    console.log('⏳ Attendendo processamento automatico del pagamento...');
+
+    await saveStripeEvent({
+      id: eventId,
+      type: 'invoice.created',
+      data: { object: invoice },
+    });
+    // await suspendUserProfile(invoice.customer, 'draft_payment');
   } catch (error) {
     console.error('❌ Errore nel gestire fattura draft:', error);
     throw error;
@@ -367,10 +407,11 @@ export async function handleInvoiceStatusChange(invoice, eventId) {
       invoiceId: invoice.id,
       customerId: invoice.customer,
       newStatus: invoice.status,
+      billingReason: invoice.billing_reason,
     });
 
-    if (invoice.status === 'draft') {
-      await suspendUserProfile(invoice.customer, 'draft_payment');
+    if (invoice.status === 'past_due' || invoice.status === 'uncollectible') {
+      await suspendUserProfile(invoice.customer, 'payment_failed');
     } else if (invoice.status === 'paid') {
       await reactivateUserProfile(invoice.customer);
     }

@@ -211,6 +211,13 @@ export function useProfile() {
       }
 
       const res = await response.json();
+
+      const { error: updateError } = await supabase.from('subscriptions').update({ cancel_at_period_end: true }).eq('pid', auth.profile.id);
+
+      if (updateError) {
+        console.error(updateError);
+      }
+
       alert(SUCCESS_MESSAGES.SUBSCRIPTION_CANCELLED);
 
       await fetchSubscriptionDetails();
